@@ -7,10 +7,10 @@ import {
   BookmarkAddRounded,
   MonetizationOn,
   ProductionQuantityLimits,
-  Report,
 } from "@mui/icons-material";
-import { FaCodeBranch, FaUser } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 import { motion } from "framer-motion";
+import { MinusSquareIcon, Store, Truck } from "lucide-react";
 
 export default function Sidebar({
   collapsed,
@@ -93,46 +93,31 @@ export default function Sidebar({
           label="Mahsulotlar"
         />
 
-        {authData.isSuperAdmin && (
-          <MenuItem to="/reports" icon={<Report />} label="Hisobotlar" />
-        )}
+       
+       
 
-        {authData.isSuperAdmin && (
-          <MenuItem
-            to="/users"
-            icon={<AdminPanelSettings />}
-            label="Adminlar"
-          />
-        )}
-
-          <MenuItem
-            to="/brands"
-            icon={<AdminPanelSettings />}
-            label="Brandlar"
-          />
           <MenuItem
             to="/categories"
             icon={<AdminPanelSettings />}
             label="Kategoriyalar"
           />
 
-        {authData.isSuperAdmin && (
-          <MenuItem
-            to="/integrations"
-            icon={<FaCodeBranch />}
-            label="Filiallar"
-          />
-        )}
+        
         
           <MenuItem
             to="/debts"
-            icon={<FaCodeBranch />}
+            icon={<MinusSquareIcon />}
             label="Qarzdorlar"
+          />
+           <MenuItem
+            to="/wagons"
+            icon={<Truck />}
+            label="Vagonlar"
           />
           { authData.isSuperAdmin && (
             <MenuItem
             to="/backup"
-            icon={<FaCodeBranch />}
+            icon={<Store />}
             label="Zaxiralash"
           />
           )}

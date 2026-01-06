@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   accessTokenFromStore,
   getCategoriesFromStore,
-  getBrandsFromStore,
   getProductsFromStore,
   getshopidfromstrore,
   getIsSingleProductOpenFromStore,
@@ -18,10 +17,8 @@ import {
 import type { AppDispatch } from "../../redux/store";
 import { getProductsThunk } from "../../redux/slices/products/thunks/getProducts";
 import { getCategoriesThunk } from "../../redux/slices/categories/thunk/getAllCategories";
-import { getBrandsThunk } from "../../redux/slices/brands/thunk/getAllBrands";
 import { setSingleProduct } from "../../redux/slices/products/productsreducer";
 import {
-  convertIdToBrandName,
   convertIdToCategoryName
 } from "../../middleware/mid_funcs";
 import { Button,  LinearProgress, Menu, MenuItem, IconButton, Tooltip } from "@mui/material";
@@ -32,12 +29,14 @@ import UpdateProductForm from "./updateProduct";
 import { deleteProductsThunk } from "../../redux/slices/products/thunks/deleteProduct";
 import { restockProductThunk } from "../../redux/slices/products/thunks/restockProduct";
 import { getBranchesThunk } from "../../redux/slices/branches/thunks/GetBranchesThunk";
+import ProductsStatistics from "./ProductsStatistics";
 
 export default function Products() {
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
   const [page, setPage] = useState(1);
   const pageSize = 10;
+  const [viewMode, setViewMode] = useState<"table" | "statistics">("table");
 
   // Stock/expiry filter menu state
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -67,7 +66,6 @@ export default function Products() {
 
   const products = useSelector(getProductsFromStore);
   const categories = useSelector(getCategoriesFromStore);
-  const brands = useSelector(getBrandsFromStore);
   const isSingleProductOpen = useSelector(getIsSingleProductOpenFromStore);
   const productReduxStatus = useSelector(getProductsStatusFromStore);
   const permissions = useSelector(getAdminPermissionsFromStore);
@@ -79,7 +77,6 @@ export default function Products() {
       // @ts-ignore
       dispatch(getProductsThunk({ shop_id, token, branch: authData.isSuperAdmin ? 100 : authData.user.branch }));
       dispatch(getCategoriesThunk({ token }));
-      dispatch(getBrandsThunk({ token }));
       dispatch(getBranchesThunk({shop_id, token}));
     }
   }, [shop_id, token, dispatch]);
@@ -131,7 +128,6 @@ export default function Products() {
     const headers = [
       "id",
       "name",
-      "brand",
       "category",
       "sell_price",
       "net_price",
@@ -142,7 +138,6 @@ export default function Products() {
     const rows = filtered.map((p) => [
       p.id,
       p.name,
-      convertIdToBrandName(p.brand_id, brands),
       convertIdToCategoryName(p.category_id, categories),
       p.sell_price,
       p.net_price,
@@ -239,7 +234,6 @@ export default function Products() {
               // @ts-ignore
               dispatch(getProductsThunk({ shop_id, token, branch: authData.isSuperAdmin ? 100 : authData.user.branch }));
               dispatch(getCategoriesThunk({ token }));
-              dispatch(getBrandsThunk({ token }));
             }}
             className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
           >
@@ -377,7 +371,6 @@ export default function Products() {
                   <table className="w-full text-sm border-collapse">
                     <thead>
                       <tr className="bg-red-100">
-                        <th className="px-4 py-3 text-left font-semibold text-red-900 border border-red-200">Brand</th>
                         <th className="px-4 py-3 text-left font-semibold text-red-900 border border-red-200">Mahsulot Nomi</th>
                         <th className="px-4 py-3 text-left font-semibold text-red-900 border border-red-200">Kategoriya</th>
                         <th className="px-4 py-3 text-right font-semibold text-red-900 border border-red-200">Ombor</th>
@@ -388,7 +381,6 @@ export default function Products() {
                       {expiredProducts.map((p) => (
                         <tr key={p.id} className="border-b border-gray-200 hover:bg-red-50 transition-colors">
                           <td className="px-4 py-3 border border-gray-200">
-                            {convertIdToBrandName(p.brand_id, brands)}
                           </td>
                           <td className="px-4 py-3 border border-gray-200">
                             <div className="font-medium text-gray-900">{p.name}</div>
@@ -457,6 +449,35 @@ export default function Products() {
 
       {isSingleProductOpen !== "idle" ? <UpdateProductForm type={isSingleProductOpen === "add" ? "add" : "edit"} /> : ""}
 
+      {/* VIEW MODE TOGGLE */}
+      <div className="mb-6 flex gap-3">
+        <button
+          onClick={() => setViewMode("table")}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition text-sm ${
+            viewMode === "table"
+              ? "bg-blue-600 text-white shadow-lg"
+              : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+          }`}
+        >
+          📊 Jadval
+        </button>
+        <button
+          onClick={() => setViewMode("statistics")}
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition text-sm ${
+            viewMode === "statistics"
+              ? "bg-blue-600 text-white shadow-lg"
+              : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+          }`}
+        >
+          📈 Statistika
+        </button>
+      </div>
+
+      {/* RENDER STATISTICS OR TABLE VIEW */}
+      {viewMode === "statistics" ? (
+        <ProductsStatistics products={filtered} />
+      ) : (
+        <>
       {/* SEARCH & FILTERS */}
       <div className="mb-4 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
@@ -494,7 +515,6 @@ export default function Products() {
         <table className="min-w-full text-sm border-collapse">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left font-semibold text-gray-900 border border-gray-200">Brand</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-900 border border-gray-200">Nomi</th>
               <th className="px-4 py-3 text-left font-semibold text-gray-900 border border-gray-200">Kategoriya</th>
               <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Sotish Narxi</th>
@@ -513,9 +533,7 @@ export default function Products() {
           <tbody>
             {pageItems.map((p) => (
               <tr key={p.id} className="border-b border-gray-200 hover:bg-blue-50 transition-colors">
-                <td className="px-4 py-3 border border-gray-200">
-                  {convertIdToBrandName(p.brand_id, brands)}
-                </td>
+                
 
                 <td 
                   className="px-4 py-3 border border-gray-200 cursor-pointer hover:bg-blue-100 transition-colors"
@@ -646,6 +664,36 @@ export default function Products() {
         </table>
       </div>
 
+      {/* PRODUCTS SUMMARY */}
+      {(() => {
+        const totalPrice = filtered.reduce((sum, p) => sum + (p.sell_price || 0), 0);
+        const totalQuantity = filtered.reduce((sum, p) => sum + (p.availability || 0), 0);
+        const totalValue = filtered.reduce((sum, p) => sum + ((p.sell_price || 0) * (p.availability || 0)), 0);
+        
+        return (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="p-5 bg-blue-50 rounded-lg border border-blue-200">
+              <p className="text-sm text-gray-600 mb-1">Jami Mahsulotlar</p>
+              <p className="text-2xl font-bold text-blue-900">{filtered.length}</p>
+            </div>
+            <div className="p-5 bg-green-50 rounded-lg border border-green-200">
+              <p className="text-sm text-gray-600 mb-1">Jami Miqdor</p>
+              <p className="text-2xl font-bold text-green-900">{totalQuantity.toLocaleString()}</p>
+            </div>
+            <div className="p-5 bg-purple-50 rounded-lg border border-purple-200">
+              <p className="text-sm text-gray-600 mb-1">O'rtacha Narx</p>
+              <p className="text-2xl font-bold text-purple-900">
+                {filtered.length > 0 ? (totalPrice / filtered.length).toLocaleString('en-US', { maximumFractionDigits: 0 }) : 0} so'm
+              </p>
+            </div>
+            <div className="p-5 bg-orange-50 rounded-lg border border-orange-200">
+              <p className="text-sm text-gray-600 mb-1">Jami Qiymati</p>
+              <p className="text-2xl font-bold text-orange-900">{totalValue.toLocaleString()} so'm</p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* PRODUCT DETAILS MODAL */}
       {showProductModal && selectedProduct && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -681,10 +729,7 @@ export default function Products() {
                     <label className="text-xs font-semibold text-gray-600">Mahsulot Nomi</label>
                     <p className="text-sm text-gray-900 font-medium">{selectedProduct.name}</p>
                   </div>
-                  <div>
-                    <label className="text-xs font-semibold text-gray-600">Brand</label>
-                    <p className="text-sm text-gray-900">{convertIdToBrandName(selectedProduct.brand_id, brands)}</p>
-                  </div>
+                 
                   <div>
                     <label className="text-xs font-semibold text-gray-600">Kategoriya</label>
                     <p className="text-sm text-gray-900">{convertIdToCategoryName(selectedProduct.category_id, categories)}</p>
@@ -845,6 +890,8 @@ export default function Products() {
           </button>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 }

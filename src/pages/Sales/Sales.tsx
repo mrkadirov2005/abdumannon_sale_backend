@@ -95,7 +95,7 @@ export default function Sales() {
     let result = products;
 
     if (sortType === "low_stock") {
-      result = result.filter((p) => p.availability > 0 && p.availability <= LOW_STOCK_THRESHOLD);
+      result = result.filter((p: { availability: number; }) => p.availability > 0 && p.availability <= LOW_STOCK_THRESHOLD);
     } else if (sortType === "high_stock") {
       result = result.filter((p) => p.availability > LOW_STOCK_THRESHOLD);
     } else if (sortType === "not_available") {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -20,6 +20,13 @@ import {
   Alert,
   CircularProgress,
   Chip,
+  InputAdornment,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+  Checkbox,
+  Tooltip,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -27,6 +34,13 @@ import {
   Add as AddIcon,
   Visibility as ViewIcon,
   Refresh as RefreshIcon,
+  Search as SearchIcon,
+  FileDownload as ExportIcon,
+  DeleteSweep as BulkDeleteIcon,
+  Category as CategoryIcon,
+  TrendingUp as TrendingUpIcon,
+  ArrowUpward,
+  ArrowDownward,
 } from '@mui/icons-material';
 import { type Category } from '../../../types/types';
 import { DEFAULT_ENDPOINT, ENDPOINTS } from '../../config/endpoints';
@@ -55,6 +69,19 @@ const CategoryManager: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [filterBy, setFilterBy] = useState<'all' | 'hasProducts' | 'noProducts'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'products' | 'date'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
+  // Bulk operations
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [showBulkDelete, setShowBulkDelete] = useState<boolean>(false);
+  
+  // View mode
+  
 //   REDUX STORE
   const categories=useSelector(getCategoriesFromStore)
   const dispatch=useDispatch<AppDispatch>()
@@ -88,7 +115,7 @@ const CategoryManager: React.FC = () => {
     dispatch(getCategoriesThunk({token:authData.accessToken}))
 
     } catch (err: any) {
-      setError(err.message || 'Error fetching categories');
+      setError(err.message || 'Kategoriyalarni yuklashda xatolik');
     } finally {
       setLoading(false);
     }
@@ -101,7 +128,7 @@ const CategoryManager: React.FC = () => {
     const category=categories.find((cat)=>cat.id===id)
       return category;
     } catch (err: any) {
-      setError(err.message || 'Error fetching category');
+      setError(err.message || 'Kategoriyani yuklashda xatolik');
       return null;
     }
   };
@@ -109,7 +136,7 @@ const CategoryManager: React.FC = () => {
   // Create category
   const createCategory = async () => {
     if (!formData.category_name.trim()) {
-      setError('Category name is required');
+      setError('Kategoriya nomi kiritilishi shart');
       return;
     }
 
@@ -129,15 +156,15 @@ const CategoryManager: React.FC = () => {
       const data: ApiResponse<Category> = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create category');
+        throw new Error(data.error || 'Kategoriya yaratishda xatolik');
       }
       
-      setSuccess('Category created successfully!');
+      setSuccess('Kategoriya muvaffaqiyatli yaratildi!');
       setOpenCreateModal(false);
       setFormData({ category_name: '', products_available: 0 });
       fetchCategories(); // Refresh list
     } catch (err: any) {
-      setError(err.message || 'Error creating category');
+      setError(err.message || 'Kategoriya yaratishda xatolik');
     } finally {
       setLoading(false);
     }
@@ -146,7 +173,7 @@ const CategoryManager: React.FC = () => {
   // Update category
   const updateCategory = async () => {
     if (!editFormData.id) {
-      setError('Category ID is required');
+      setError('Kategoriya ID kiritilishi shart');
       return;
     }
 
@@ -164,15 +191,15 @@ const CategoryManager: React.FC = () => {
       const data: ApiResponse<Category> = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update category');
+        throw new Error(data.error || 'Kategoriyani yangilashda xatolik');
       }
       
-      setSuccess('Category updated successfully!');
+      setSuccess('Kategoriya muvaffaqiyatli yangilandi!');
       setOpenEditModal(false);
       setEditFormData({ id: 0 });
       fetchCategories(); // Refresh list
     } catch (err: any) {
-      setError(err.message || 'Error updating category');
+      setError(err.message || 'Kategoriyani yangilashda xatolik');
     } finally {
       setLoading(false);
     }
@@ -196,15 +223,15 @@ const CategoryManager: React.FC = () => {
       const data: ApiResponse<Category> = await response.json();
       
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete category');
+        throw new Error(data.error || 'Kategoriyani o\'chirishda xatolik');
       }
       
-      setSuccess('Category deleted successfully!');
+      setSuccess('Kategoriya muvaffaqiyatli o\'chirildi!');
       setOpenDeleteModal(false);
       setDeleteId(null);
       fetchCategories(); // Refresh list
     } catch (err: any) {
-      setError(err.message || 'Error deleting category');
+      setError(err.message || 'Kategoriyani o\'chirishda xatolik');
     } finally {
       setLoading(false);
     }
@@ -242,6 +269,143 @@ const CategoryManager: React.FC = () => {
     return new Date(dateString).toLocaleString();
   };
 
+  // Filtered and sorted categories
+  const filteredCategories = useMemo(() => {
+    let filtered = [...categories];
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter((cat) =>
+        cat.category_name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply product filter
+    if (filterBy === 'hasProducts') {
+      filtered = filtered.filter((cat) => cat.products_available > 0);
+    } else if (filterBy === 'noProducts') {
+      filtered = filtered.filter((cat) => cat.products_available === 0);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let compareA: any, compareB: any;
+
+      switch (sortBy) {
+        case 'name':
+          compareA = a.category_name.toLowerCase();
+          compareB = b.category_name.toLowerCase();
+          break;
+        case 'products':
+          compareA = a.products_available;
+          compareB = b.products_available;
+          break;
+        case 'date':
+          compareA = new Date(a.createdat).getTime();
+          compareB = new Date(b.createdat).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      if (sortOrder === 'asc') {
+        return compareA > compareB ? 1 : -1;
+      } else {
+        return compareA < compareB ? 1 : -1;
+      }
+    });
+
+    return filtered;
+  }, [categories, searchQuery, filterBy, sortBy, sortOrder]);
+
+  // Statistics
+  const statistics = useMemo(() => {
+    const total = categories.length;
+    const withProducts = categories.filter((cat) => cat.products_available > 0).length;
+    const totalProducts = categories.reduce((sum, cat) => sum + cat.products_available, 0);
+    const avgProducts = total > 0 ? (totalProducts / total).toFixed(1) : 0;
+
+    return { total, withProducts, totalProducts, avgProducts };
+  }, [categories]);
+
+  // Bulk selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(filteredCategories.map((cat) => cat.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
+  };
+
+  // Bulk delete
+  const handleBulkDelete = async () => {
+    setLoading(true);
+    try {
+      const deletePromises = selectedIds.map((id) =>
+        fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.categories.deleteCategory}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${authData.accessToken}`,
+          },
+          body: JSON.stringify({ id }),
+        })
+      );
+
+      await Promise.all(deletePromises);
+      setSuccess(`${selectedIds.length} ta kategoriya muvaffaqiyatli o'chirildi!`);
+      setSelectedIds([]);
+      setShowBulkDelete(false);
+      fetchCategories();
+    } catch (err: any) {
+      setError(err.message || 'Kategoriyalarni o\'chirishda xatolik');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Export to CSV
+  const handleExportCSV = () => {
+    const headers = ['ID', 'Nomi', 'Mavjud Mahsulotlar', 'Yaratilgan', 'Yangilangan'];
+    const csvData = filteredCategories.map((cat) => [
+      cat.id,
+      cat.category_name,
+      cat.products_available,
+      formatDate(cat.createdat),
+      formatDate(cat.updatedat),
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map((row) => row.join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `categories_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    setSuccess('Kategoriyalar muvaffaqiyatli eksport qilindi!');
+  };
+
+  // Toggle sort order
+  const toggleSort = (field: 'name' | 'products' | 'date') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
   // Initial fetch
   useEffect(() => {
     fetchCategories();
@@ -249,28 +413,154 @@ const CategoryManager: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      {/* Statistics Table */}
+      <Paper sx={{ mb: 3, overflow: 'hidden' }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: 'primary.main' }}>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CategoryIcon />
+                    Jami Kategoriyalar
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <TrendingUpIcon />
+                    Mahsulotli
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <TrendingUpIcon />
+                    Jami Mahsulotlar
+                  </Box>
+                </TableCell>
+                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <TrendingUpIcon />
+                    O'rtacha Mahsulot/Kat
+                  </Box>
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>
+                  <Typography variant="h4" color="primary">{statistics.total}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="h4" color="success.main">{statistics.withProducts}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="h4" color="info.main">{statistics.totalProducts}</Typography>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="h4" color="warning.main">{statistics.avgProducts}</Typography>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" component="h1">
-            Category Management
+            Kategoriyalar Boshqaruvi
           </Typography>
-          <Box>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={fetchCategories}
-              sx={{ mr: 2 }}
-            >
-              Refresh
-            </Button>
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title="Yangilash">
+              <Button
+                variant="outlined"
+                startIcon={<RefreshIcon />}
+                onClick={fetchCategories}
+              >
+                Yangilash
+              </Button>
+            </Tooltip>
+            <Tooltip title="CSV ga eksport qilish">
+              <Button
+                variant="outlined"
+                startIcon={<ExportIcon />}
+                onClick={handleExportCSV}
+                disabled={filteredCategories.length === 0}
+              >
+                Eksport
+              </Button>
+            </Tooltip>
+            {selectedIds.length > 0 && (
+              <Tooltip title="Tanlanganlarni o'chirish">
+                <Button
+                  variant="outlined"
+                  color="error"
+                  startIcon={<BulkDeleteIcon />}
+                  onClick={() => setShowBulkDelete(true)}
+                >
+                  O'chirish ({selectedIds.length})
+                </Button>
+              </Tooltip>
+            )}
             <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => setOpenCreateModal(true)}
             >
-              Add Category
+              Kategoriya Qo'shish
             </Button>
           </Box>
+        </Box>
+
+        {/* Search and Filter Controls */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          <TextField
+            placeholder="Kategoriyalarni qidirish..."
+            variant="outlined"
+            size="small"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ minWidth: 250 }}
+          />
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Filtrlash</InputLabel>
+            <Select
+              value={filterBy}
+              label="Filtrlash"
+              onChange={(e) => setFilterBy(e.target.value as any)}
+            >
+              <MenuItem value="all">Barcha Kategoriyalar</MenuItem>
+              <MenuItem value="hasProducts">Mahsulotli</MenuItem>
+              <MenuItem value="noProducts">Mahsulot yo'q</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <InputLabel>Saralash</InputLabel>
+            <Select
+              value={sortBy}
+              label="Saralash"
+              onChange={(e) => setSortBy(e.target.value as any)}
+            >
+              <MenuItem value="name">Nom</MenuItem>
+              <MenuItem value="products">Mahsulotlar Soni</MenuItem>
+              <MenuItem value="date">Yaratilgan Sana</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            startIcon={sortOrder === 'asc' ? <ArrowUpward /> : <ArrowDownward />}
+          >
+            {sortOrder === 'asc' ? 'O\'sish tartibida' : 'Kamayish tartibida'}
+          </Button>
         </Box>
 
         {loading && categories.length === 0 ? (
@@ -282,17 +572,58 @@ const CategoryManager: React.FC = () => {
             <Table>
               <TableHead>
                 <TableRow>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedIds.length === filteredCategories.length && filteredCategories.length > 0}
+                      indeterminate={selectedIds.length > 0 && selectedIds.length < filteredCategories.length}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                    />
+                  </TableCell>
                   <TableCell>ID</TableCell>
-                  <TableCell>Category Name</TableCell>
-                  <TableCell>Products Available</TableCell>
-                  <TableCell>Created At</TableCell>
-                  <TableCell>Updated At</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell 
+                    sx={{ cursor: 'pointer' }}
+                    onClick={() => toggleSort('name')}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      Kategoriya Nomi
+                      {sortBy === 'name' && (sortOrder === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />)}
+                    </Box>
+                  </TableCell>
+                  <TableCell 
+                    sx={{ cursor: 'pointer' }}
+                    onClick={() => toggleSort('products')}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      Mavjud Mahsulotlar
+                      {sortBy === 'products' && (sortOrder === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />)}
+                    </Box>
+                  </TableCell>
+                  <TableCell 
+                    sx={{ cursor: 'pointer' }}
+                    onClick={() => toggleSort('date')}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      Yaratilgan
+                      {sortBy === 'date' && (sortOrder === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />)}
+                    </Box>
+                  </TableCell>
+                  <TableCell>Yangilangan</TableCell>
+                  <TableCell>Amallar</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {categories.map((category) => (
-                  <TableRow key={category.id}>
+                {filteredCategories.map((category) => (
+                  <TableRow 
+                    key={category.id}
+                    selected={selectedIds.includes(category.id)}
+                    hover
+                  >
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        checked={selectedIds.includes(category.id)}
+                        onChange={(e) => handleSelectOne(category.id, e.target.checked)}
+                      />
+                    </TableCell>
                     <TableCell>{category.id}</TableCell>
                     <TableCell>
                       <Typography variant="body1" fontWeight="medium">
@@ -313,7 +644,7 @@ const CategoryManager: React.FC = () => {
                         size="small"
                         color="info"
                         onClick={() => handleViewCategory(category.id)}
-                        title="View"
+                        title="Ko'rish"
                       >
                         <ViewIcon />
                       </IconButton>
@@ -321,7 +652,7 @@ const CategoryManager: React.FC = () => {
                         size="small"
                         color="primary"
                         onClick={() => handleEditClick(category)}
-                        title="Edit"
+                        title="Tahrirlash"
                       >
                         <EditIcon />
                       </IconButton>
@@ -329,7 +660,7 @@ const CategoryManager: React.FC = () => {
                         size="small"
                         color="error"
                         onClick={() => handleDeleteClick(category.id)}
-                        title="Delete"
+                        title="O'chirish"
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -341,21 +672,36 @@ const CategoryManager: React.FC = () => {
           </TableContainer>
         )}
 
-        {categories.length === 0 && !loading && (
+        {filteredCategories.length === 0 && !loading && (
           <Typography variant="body1" color="text.secondary" align="center" sx={{ p: 3 }}>
-            No categories found. Create your first category!
+            {searchQuery || filterBy !== 'all' 
+              ? 'Qidiruv/filtr mezonlariga mos kategoriya topilmadi.' 
+              : 'Kategoriya topilmadi. Birinchi kategoriyangizni yarating!'}
           </Typography>
+        )}
+
+        {filteredCategories.length > 0 && (
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="body2" color="text.secondary">
+              {categories.length} tadan {filteredCategories.length} ta ko'rsatilmoqda
+            </Typography>
+            {selectedIds.length > 0 && (
+              <Typography variant="body2" color="primary">
+                {selectedIds.length} ta tanlangan
+              </Typography>
+            )}
+          </Box>
         )}
       </Paper>
 
       {/* Create Category Modal */}
       <Dialog open={openCreateModal} onClose={() => setOpenCreateModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Create New Category</DialogTitle>
+        <DialogTitle>Yangi Kategoriya Yaratish</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Category Name"
+            label="Kategoriya Nomi"
             type="text"
             fullWidth
             variant="outlined"
@@ -366,7 +712,7 @@ const CategoryManager: React.FC = () => {
           />
           <TextField
             margin="dense"
-            label="Products Available (Optional)"
+            label="Mavjud Mahsulotlar (Ixtiyoriy)"
             type="number"
             fullWidth
             variant="outlined"
@@ -376,24 +722,24 @@ const CategoryManager: React.FC = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenCreateModal(false)}>Cancel</Button>
+          <Button onClick={() => setOpenCreateModal(false)}>Bekor qilish</Button>
           <Button
             onClick={createCategory}
             variant="contained"
             disabled={loading || !formData.category_name.trim()}
           >
-            {loading ? <CircularProgress size={24} /> : 'Create'}
+            {loading ? <CircularProgress size={24} /> : 'Yaratish'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Edit Category Modal */}
       <Dialog open={openEditModal} onClose={() => setOpenEditModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Category</DialogTitle>
+        <DialogTitle>Kategoriyani Tahrirlash</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
-            label="Products Available"
+            label="Mavjud Mahsulotlar"
             type="number"
             fullWidth
             variant="outlined"
@@ -405,24 +751,24 @@ const CategoryManager: React.FC = () => {
             sx={{ mt: 2 }}
           />
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-            Note: Category name cannot be edited
+            Eslatma: Kategoriya nomini tahrirlash mumkin emas
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenEditModal(false)}>Cancel</Button>
+          <Button onClick={() => setOpenEditModal(false)}>Bekor qilish</Button>
           <Button
             onClick={updateCategory}
             variant="contained"
             disabled={loading || editFormData.products_available === undefined}
           >
-            {loading ? <CircularProgress size={24} /> : 'Update'}
+            {loading ? <CircularProgress size={24} /> : 'Yangilash'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* View Category Modal */}
       <Dialog open={openViewModal} onClose={() => setOpenViewModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Category Details</DialogTitle>
+        <DialogTitle>Kategoriya Tafsilotlari</DialogTitle>
         <DialogContent>
           {selectedCategory && (
             <Box sx={{ mt: 2 }}>
@@ -433,42 +779,64 @@ const CategoryManager: React.FC = () => {
                 <strong>UUID:</strong> {selectedCategory.uuid}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>Name:</strong> {selectedCategory.category_name}
+                <strong>Nomi:</strong> {selectedCategory.category_name}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>Products Available:</strong> {selectedCategory.products_available}
+                <strong>Mavjud Mahsulotlar:</strong> {selectedCategory.products_available}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>Created:</strong> {formatDate(selectedCategory.createdat)}
+                <strong>Yaratilgan:</strong> {formatDate(selectedCategory.createdat)}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>Last Updated:</strong> {formatDate(selectedCategory.updatedat)}
+                <strong>Oxirgi Yangilanish:</strong> {formatDate(selectedCategory.updatedat)}
               </Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenViewModal(false)}>Close</Button>
+          <Button onClick={() => setOpenViewModal(false)}>Yopish</Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Modal */}
       <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>O'chirishni Tasdiqlash</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete this category? This action cannot be undone.
+            Ushbu kategoriyani o'chirishga ishonchingiz komilmi? Bu amalni bekor qilish mumkin emas.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDeleteModal(false)}>Cancel</Button>
+          <Button onClick={() => setOpenDeleteModal(false)}>Bekor qilish</Button>
           <Button
             onClick={deleteCategory}
             variant="contained"
             color="error"
             disabled={loading}
           >
-            {loading ? <CircularProgress size={24} /> : 'Delete'}
+            {loading ? <CircularProgress size={24} /> : 'O\'chirish'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Bulk Delete Confirmation Modal */}
+      <Dialog open={showBulkDelete} onClose={() => setShowBulkDelete(false)}>
+        <DialogTitle>Ko'plab O'chirishni Tasdiqlash</DialogTitle>
+        <DialogContent>
+          <Typography>
+            {selectedIds.length} ta tanlangan kategoriyalarni o'chirishga ishonchingiz komilmi? 
+            Bu amalni bekor qilish mumkin emas.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowBulkDelete(false)}>Bekor qilish</Button>
+          <Button
+            onClick={handleBulkDelete}
+            variant="contained"
+            color="error"
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : `${selectedIds.length} ta Kategoriyani O'chirish`}
           </Button>
         </DialogActions>
       </Dialog>

@@ -9,7 +9,6 @@ import type { Product } from "../../../types/types";
 import {
   accessTokenFromStore,
   getAuthFromStore,
-  getBrandsFromStore,
   getCategoriesFromStore,
   getSingleProductFromStore,
   getBranchesFromStore,
@@ -51,7 +50,6 @@ export default function UpdateProductForm({ type }: Props) {
   const token = useSelector(accessTokenFromStore);
   const authData = useSelector(getAuthFromStore);
   const categories = useSelector(getCategoriesFromStore);
-  const brands = useSelector(getBrandsFromStore);
   const branches = useSelector(getBranchesFromStore).branches;
 
   const [form, setForm] = useState<Product | null>(null);
@@ -67,19 +65,11 @@ export default function UpdateProductForm({ type }: Props) {
     if (type === "edit" && product) {
       const editForm = {
         ...product,
-        img_url: product.img_url ?? "",
-        receival_date: product.receival_date ?? "",
-        expire_date: product.expire_date ?? "",
-        supplier: product.supplier ?? "",
-        cost_price: product.cost_price ?? 0,
-        last_restocked: product.last_restocked ?? "",
-        location: product.location ?? "",
-        description: product.description ?? "",
-        brand_id: product.brand_id ?? "",
-        category_id: product.category_id ?? "",
-        shop_id: authData.user?.shop_id ?? "",
-        is_active: product.is_active ?? false,
-        branch: product.branch ?? (branches.length > 0 ? branches[0].id : ""),
+        scale: 1,
+        img_url: "",
+        expire_date: "",
+        brand_id: "",
+        branch: 0,
       };
       setForm(editForm);
       setOriginalForm(JSON.parse(JSON.stringify(editForm)));
@@ -89,7 +79,7 @@ export default function UpdateProductForm({ type }: Props) {
       const addForm = {
         id: "",
         name: "",
-        scale: 0,
+        scale: 1,
         img_url: "",
         availability: 0,
         total: 0,
@@ -109,7 +99,7 @@ export default function UpdateProductForm({ type }: Props) {
         is_expired: false,
         createdat: "",
         updatedat: "",
-        branch: branches.length > 0 ? branches[0].id : 0,
+        branch: 0,
       };
       setForm(addForm);
       setOriginalForm(null);
@@ -133,9 +123,6 @@ export default function UpdateProductForm({ type }: Props) {
     }
     if (!form.category_id) {
       newErrors.category_id = "Kategoriya majburiy";
-    }
-    if (!form.brand_id) {
-      newErrors.brand_id = "Brand majburiy";
     }
     if (form.sell_price <= 0) {
       newErrors.sell_price = "Sotish narxi 0 dan katta bo'lishi kerak";
@@ -227,17 +214,18 @@ export default function UpdateProductForm({ type }: Props) {
 
     const payload: Product = {
       ...form,
-      img_url: form.img_url || null,
+      scale: 1,
+      img_url: "",
+      expire_date: "",
+      brand_id: "",
+      branch:0 ,
       supplier: form.supplier || null,
       description: form.description || null,
       location: form.location || null,
       receival_date: form.receival_date || null,
-      expire_date: form.expire_date || null,
       last_restocked: form.last_restocked || null,
-      brand_id: form.brand_id || null,
       category_id: form.category_id || null,
       shop_id: form.shop_id || null,
-      branch: form.branch,
     };
 
     try {
@@ -397,32 +385,6 @@ export default function UpdateProductForm({ type }: Props) {
                 required
               />
 
-              <FormField
-                label="O'lchami/Birlik"
-                name="scale"
-                type="number"
-                value={form.scale}
-                onChange={handleChange}
-              />
-
-              <FormField
-                label="Rasm URL"
-                name="img_url"
-                value={form.img_url as string}
-                onChange={handleChange}
-                placeholder="https://example.com/image.jpg"
-              />
-
-              {form.img_url && (
-                <div className="mt-2">
-                  <img
-                    src={form.img_url}
-                    alt="Ko'rin"
-                    className="w-full h-48 object-cover rounded-lg border border-gray-200"
-                  />
-                </div>
-              )}
-
               <SelectField
                 label="Kategoriya"
                 name="category_id"
@@ -433,19 +395,6 @@ export default function UpdateProductForm({ type }: Props) {
                   name: c.category_name,
                 }))}
                 error={errors.category_id}
-                required
-              />
-
-              <SelectField
-                label="Brand"
-                name="brand_id"
-                value={form.brand_id ?? ""}
-                onChange={handleSelectChange}
-                options={brands.map((b) => ({
-                  id: b.id,
-                  name: b.brand_name,
-                }))}
-                error={errors.brand_id}
                 required
               />
             </div>
@@ -549,15 +498,6 @@ export default function UpdateProductForm({ type }: Props) {
                 value={form.receival_date as string}
                 onChange={handleChange}
               />
-
-              <FormField
-                label="Muddati tugash sanasi"
-                name="expire_date"
-                type="datetime-local"
-                value={form.expire_date as string}
-                onChange={handleChange}
-              />
-
               <FormField
                 label="Oxirgi to'ldirish"
                 name="last_restocked"
@@ -585,16 +525,6 @@ export default function UpdateProductForm({ type }: Props) {
                 onChange={handleChange}
               />
 
-              <SelectField
-                label="Fili"
-                name="branch"
-                value={form.branch ?? ""}
-                onChange={handleSelectChange}
-                options={branches.map((b) => ({
-                  id: b.id,
-                  name: `${b.name} — ${b.location}`,
-                }))}
-              />
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">

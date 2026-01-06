@@ -92,6 +92,17 @@ export const ENDPOINTS={
     },
     shop:{
         update:"/shop/update_shop"
+    },
+    wagons:{
+        getAll:"/wagons/all",
+        getById:"/wagons/get-by-id",
+        getByNumber:"/wagons/get-by-number",
+        getByIndicator:"/wagons/by-indicator",
+        getByShop:"/wagons/by-shop",
+        create:"/wagons/create",
+        update:"/wagons/update",
+        delete:"/wagons/delete"
     }
    
 }
+
