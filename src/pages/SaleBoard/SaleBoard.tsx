@@ -626,16 +626,118 @@ export default function SaleBoard() {
     setSaleProducts([]);
   };
 
+  // Print individual sale as invoice
+  const printSaleAsInvoice = (sale: Sale) => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const productsHtml = saleProducts
+      .map(
+        (p, i) => `
+      <tr>
+        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 5%;">${i + 1}</td>
+        <td style="border: 1px solid #000; padding: 5px; width: 40%;">${p.product_name}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 15%;">${p.amount}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${p.sell_price.toLocaleString()}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${(p.sell_price * p.amount).toLocaleString()}</td>
+      </tr>
+    `
+      )
+      .join("");
+
+    const totalAmount = saleProducts.reduce((sum, p) => sum + (p.sell_price * p.amount), 0);
+    const totalProfit = saleProducts.reduce((sum, p) => sum + ((p.sell_price - p.net_price) * p.amount), 0);
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Накладная #${sale.sale_id}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
+            .header { margin-bottom: 20px; }
+            .header-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+            .info-section { margin-bottom: 15px; font-size: 12px; line-height: 1.6; }
+            .info-label { font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 11px; }
+            th { border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; background: #f5f5f5; }
+            td { border: 1px solid #000; padding: 8px; }
+            .total-section { margin-top: 20px; text-align: right; font-size: 12px; }
+            .total-row { font-weight: bold; font-size: 14px; margin-top: 10px; }
+            .signature-section { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; font-size: 11px; }
+            .signature-line { text-align: center; }
+            .signature-blank { margin-bottom: 30px; border-bottom: 1px solid #000; height: 30px; }
+            button { margin-top: 20px; padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; }
+            @media print { button { display: none; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="header-title">НАКЛАДНАЯ № ${sale.sale_id}  ${new Date(sale.sale_time).toLocaleDateString('uz-UZ')}</div>
+          </div>
+
+          <div class="info-section">
+            <p><span class="info-label">Поставщик:</span> HC COMPANY</p>
+            <p>г. Москва, рынок «Фуд Сити»</p>
+            <p>Торговая точка: ${sale.id || '___'}</p>
+            <p>Тел: 8-915-016-16-15, 8-916-576-07-07</p>
+            <p><span class="info-label">Возврат товара в течение 14 дней</span></p>
+          </div>
+
+          <div class="info-section">
+            <p><span class="info-label">Продавец:</span> ${sale.admin_name || 'N/A'}</p>
+            <p><span class="info-label">Способ оплаты:</span> ${sale.payment_method === 'cash' ? 'Наличные' : sale.payment_method === 'card' ? 'Карта' : 'Мобильная'}</p>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 5%;">№</th>
+                <th style="width: 40%;">Наименование товара</th>
+                <th style="width: 15%;">Количество</th>
+                <th style="width: 20%;">Себестоимость</th>
+                <th style="width: 20%;">Сумма</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productsHtml}
+            </tbody>
+          </table>
+
+          <div class="total-section">
+            <div class="total-row">
+              ИТОГО: ${totalAmount.toLocaleString()} so'm
+            </div>
+          </div>
+
+          <div class="signature-section">
+            <div class="signature-line">
+              <div class="signature-blank"></div>
+              <p>Продавец (подпись)</p>
+            </div>
+            <div class="signature-line">
+              <div class="signature-blank"></div>
+              <p>Покупатель (подпись)</p>
+            </div>
+          </div>
+
+          <button onclick="window.print()">Печать</button>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
   // Handle print check as PDF
-  const handlePrintCheck = () => {
+  function handlePrintCheck() {
     if (saleProducts.length === 0) {
       toast.error("Chop etish uchun mahsulot yo'q");
       return;
     }
-
+    
     const sale = data.find(s => s.sale_id === viewingProductsSaleId);
     if (!sale) return;
-
+    
     try {
       const totalAmount = saleProducts.reduce((sum, p) => sum + (p.sell_price * p.amount), 0);
       const totalProfit = saleProducts.reduce((sum, p) => sum + ((p.sell_price - p.net_price) * p.amount), 0);
@@ -651,18 +753,18 @@ export default function SaleBoard() {
       const leftMargin = 5;
       const rightMargin = 75;
       const lineHeight = 5;
-
+      
       // Header
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
       doc.text('SOTUV CHEKI', 40, yPos, { align: 'center' });
       yPos += lineHeight + 2;
-
+      
       // Line
       doc.setLineWidth(0.3);
       doc.line(leftMargin, yPos, rightMargin, yPos);
       yPos += lineHeight;
-
+      
       // Date and time
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
@@ -676,28 +778,28 @@ export default function SaleBoard() {
       // Line
       doc.line(leftMargin, yPos, rightMargin, yPos);
       yPos += lineHeight;
-
+      
       // Info section
       doc.setFont('helvetica', 'bold');
       doc.text('Sotuvchi:', leftMargin, yPos);
       doc.setFont('helvetica', 'normal');
       doc.text(sale.admin_name || 'N/A', 30, yPos);
       yPos += lineHeight;
-
-      const paymentText = sale.payment_method === 'cash' ? 'Naqd' : 
-                         sale.payment_method === 'card' ? 'Karta' : 
-                         sale.payment_method === 'mobile' ? 'Mobil' : 
-                         sale.payment_method || 'N/A';
-      doc.setFont('helvetica', 'bold');
+      
+      const paymentText = sale.payment_method === 'cash' ? 'Naqd' :
+      sale.payment_method === 'card' ? 'Karta' :
+      sale.payment_method === 'mobile' ? 'Mobil' :
+            sale.payment_method || 'N/A';
+            doc.setFont('helvetica', 'bold');
       doc.text("To'lov:", leftMargin, yPos);
       doc.setFont('helvetica', 'normal');
       doc.text(paymentText, 30, yPos);
       yPos += lineHeight + 2;
-
+      
       // Line
       doc.line(leftMargin, yPos, rightMargin, yPos);
       yPos += lineHeight;
-
+      
       // Products table header
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8);
@@ -711,55 +813,55 @@ export default function SaleBoard() {
       doc.setLineWidth(0.5);
       doc.line(leftMargin, yPos, rightMargin, yPos);
       yPos += lineHeight;
-
+      
       // Products
       doc.setFont('helvetica', 'normal');
       saleProducts.forEach((product, index) => {
         const total = product.sell_price * product.amount;
         const productName = `${index + 1}. ${product.product_name}`;
-        
+
         // Word wrap for long product names
         const splitName = doc.splitTextToSize(productName, 35);
         doc.text(splitName, leftMargin, yPos);
         doc.text(product.amount.toString(), 45, yPos, { align: 'center' });
-        doc.text(product.sell_price  as unknown as string, 57, yPos, { align: 'right' });
+        doc.text(product.sell_price as unknown as string, 57, yPos, { align: 'right' });
         doc.text(total.toFixed(2), rightMargin, yPos, { align: 'right' });
-        
+
         yPos += lineHeight * splitName.length;
-        
+
         // Thin line
         doc.setLineWidth(0.1);
         doc.line(leftMargin, yPos, rightMargin, yPos);
         yPos += lineHeight;
       });
-
+      
       // Line before totals
       doc.setLineWidth(0.5);
       doc.line(leftMargin, yPos, rightMargin, yPos);
       yPos += lineHeight;
-
+      
       // Totals section
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.text('Mahsulotlar soni:', leftMargin, yPos);
       doc.text(`${saleProducts.length} ta`, rightMargin, yPos, { align: 'right' });
       yPos += lineHeight;
-
+      
       doc.text('Foyda:', leftMargin, yPos);
       doc.text(`${totalProfit.toFixed(2)} so'm`, rightMargin, yPos, { align: 'right' });
       yPos += lineHeight + 2;
-
+      
       // Grand total
       doc.setLineWidth(0.5);
       doc.line(leftMargin, yPos, rightMargin, yPos);
       yPos += lineHeight;
-
+      
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.text("JAMI TO'LOV:", leftMargin, yPos);
       doc.text(`${totalAmount.toFixed(2)} so'm`, rightMargin, yPos, { align: 'right' });
       yPos += lineHeight + 3;
-
+      
       // Line
       doc.setLineWidth(0.3);
       doc.line(leftMargin, yPos, rightMargin, yPos);
@@ -771,7 +873,7 @@ export default function SaleBoard() {
       doc.text('Xaridingiz uchun rahmat!', 40, yPos, { align: 'center' });
       yPos += lineHeight;
       doc.text('Yana kutamiz!', 40, yPos, { align: 'center' });
-
+      
       // Save PDF
       const fileName = `Chek_${sale.sale_id}_${new Date().toISOString().split('T')[0]}.pdf`;
       doc.save(fileName);
@@ -780,15 +882,16 @@ export default function SaleBoard() {
       console.error('PDF yaratishda xatolik:', error);
       toast.error('PDF yaratishda xatolik yuz berdi');
     }
-  };
-
+  }
+  
+  handlePrintCheck
   // Handle print all sales for selected admin
   const handlePrintAllAdminSales = () => {
     if (!selectedAdmin || filteredData.length === 0) {
       toast.error("Chop etish uchun sotuvlar yo'q");
       return;
     }
-
+    
     try {
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -1556,7 +1659,10 @@ export default function SaleBoard() {
 
             <div className="p-5 md:p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3 flex-wrap">
               <button
-                onClick={handlePrintCheck}
+                onClick={() => {
+                  const sale = data.find(s => s.sale_id === viewingProductsSaleId);
+                  if (sale) printSaleAsInvoice(sale);
+                }}
                 disabled={loadingProducts || saleProducts.length === 0}
                 className="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition"
               >

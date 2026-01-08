@@ -507,11 +507,11 @@ const WagonsPage: React.FC = () => {
       .map(
         (p, i) => `
       <tr>
-        <td style="border: 1px solid #ddd; padding: 8px;">${i + 1}</td>
-        <td style="border: 1px solid #ddd; padding: 8px;">${p.product_name}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${p.amount}</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${p.price.toLocaleString()} so'm</td>
-        <td style="border: 1px solid #ddd; padding: 8px; text-align: right;">${p.subtotal.toLocaleString()} so'm</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 5%;">${i + 1}</td>
+        <td style="border: 1px solid #000; padding: 5px; width: 40%;">${p.product_name}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 15%;">${p.amount}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${p.price.toLocaleString()}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${p.subtotal.toLocaleString()}</td>
       </tr>
     `
       )
@@ -521,44 +521,76 @@ const WagonsPage: React.FC = () => {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Vagon #${wagon.wagon_number}</title>
+          <title>Накладная #${wagon.wagon_number}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { text-align: center; color: #333; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-            th { background-color: #4F46E5; color: white; padding: 10px; text-align: left; }
-            .info { margin: 20px 0; }
-            .total { font-size: 20px; font-weight: bold; text-align: right; margin-top: 20px; }
+            body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
+            .header { margin-bottom: 20px; }
+            .header-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+            .info-section { margin-bottom: 15px; font-size: 12px; line-height: 1.6; }
+            .info-label { font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 11px; }
+            th { border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; background: #f5f5f5; }
+            td { border: 1px solid #000; padding: 8px; }
+            .total-section { margin-top: 20px; text-align: right; font-size: 12px; }
+            .total-row { font-weight: bold; font-size: 14px; margin-top: 10px; }
+            .signature-section { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; font-size: 11px; }
+            .signature-line { text-align: center; }
+            .signature-blank { margin-bottom: 30px; border-bottom: 1px solid #000; height: 30px; }
+            button { margin-top: 20px; padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; }
             @media print { button { display: none; } }
           </style>
         </head>
         <body>
-          <h1>🚛 Vagon Ma'lumotlari</h1>
-          <div class="info">
-            <p><strong>Vagon Raqami:</strong> ${wagon.wagon_number}</p>
-            <p><strong>Indikator:</strong> ${getIndicatorLabel(wagon.indicator)}</p>
-            <p><strong>Sana:</strong> ${formatDate(wagon.created_at)}</p>
+          <div class="header">
+            <div class="header-title">НАКЛАДНАЯ № ${wagon.wagon_number}  ${formatDate(wagon.created_at)}</div>
           </div>
+
+          <div class="info-section">
+            <p><span class="info-label">Поставщик:</span> HC COMPANY</p>
+            <p>г. Москва, рынок «Фуд Сити»</p>
+            <p>Торговая точка: ${wagon.shop_id || '___'}</p>
+            <p>Тел: 8-915-016-16-15, 8-916-576-07-07</p>
+            <p><span class="info-label">Возврат товара в течение 14 дней</span></p>
+          </div>
+
+          <div class="info-section">
+            <p><span class="info-label">Покупатель:</span></p>
+            <p style="margin: 10px 0; border-bottom: 1px solid #000; min-height: 20px;"></p>
+          </div>
+
           <table>
             <thead>
               <tr>
-                <th style="border: 1px solid #ddd; padding: 10px;">#</th>
-                <th style="border: 1px solid #ddd; padding: 10px;">Mahsulot</th>
-                <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Miqdor</th>
-                <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Narx</th>
-                <th style="border: 1px solid #ddd; padding: 10px; text-align: right;">Jami</th>
+                <th style="width: 5%;">№</th>
+                <th style="width: 40%;">Наименование товара</th>
+                <th style="width: 15%;">Количество</th>
+                <th style="width: 20%;">Цена за единицу</th>
+                <th style="width: 20%;">Сумма</th>
               </tr>
             </thead>
             <tbody>
               ${productsHtml}
             </tbody>
           </table>
-          <div class="total">
-            JAMI: ${parseFloat(wagon.total.toString()).toLocaleString()} so'm
+
+          <div class="total-section">
+            <div class="total-row">
+              ИТОГО: ${parseFloat(wagon.total.toString()).toLocaleString()} so'm
+            </div>
           </div>
-          <button onclick="window.print()" style="margin-top: 20px; padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Chop Etish
-          </button>
+
+          <div class="signature-section">
+            <div class="signature-line">
+              <div class="signature-blank"></div>
+              <p>Поставщик (подпись)</p>
+            </div>
+            <div class="signature-line">
+              <div class="signature-blank"></div>
+              <p>Покупатель (подпись)</p>
+            </div>
+          </div>
+
+          <button onclick="window.print()">Печать</button>
         </body>
       </html>
     `);

@@ -747,82 +747,84 @@ export default function DebtManagement() {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Qarz Kvitansiyasi - ${debt.name}</title>
+        <title>Накладная #${debt.id}</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
-          .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
-          .header h1 { margin: 0; color: #333; }
-          .info { margin: 20px 0; }
-          .info-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
-          .info-row.total { background: #f0f0f0; font-weight: bold; font-size: 18px; }
-          .label { font-weight: bold; color: #666; }
-          .value { color: #333; }
-          .products { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
-          .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
-          .status { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 14px; }
-          .status.returned { background: #d4edda; color: #155724; }
-          .status.pending { background: #f8d7da; color: #721c24; }
-          @media print { body { padding: 10px; } }
+          body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
+          .header { margin-bottom: 20px; }
+          .header-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+          .info-section { margin-bottom: 15px; font-size: 12px; line-height: 1.6; }
+          .info-label { font-weight: bold; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 11px; }
+          th { border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; background: #f5f5f5; }
+          td { border: 1px solid #000; padding: 8px; }
+          .total-section { margin-top: 20px; text-align: right; font-size: 12px; }
+          .total-row { font-weight: bold; font-size: 14px; margin-top: 10px; }
+          .signature-section { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; font-size: 11px; }
+          .signature-line { text-align: center; }
+          .signature-blank { margin-bottom: 30px; border-bottom: 1px solid #000; height: 30px; }
+          button { margin-top: 20px; padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; }
+          @media print { button { display: none; } }
         </style>
       </head>
       <body>
         <div class="header">
-          <h1>🧾 Qarz Kvitansiyasi</h1>
-          <p>Sana: ${formatDate(debt)}</p>
+          <div class="header-title">НАКЛАДНАЯ № ${debt.id}  ${formatDate(debt)}</div>
         </div>
-        
-        <div class="info">
-          <div class="info-row">
-            <span class="label">Mijoz Nomi:</span>
-            <span class="value">${debt.name}</span>
+
+        <div class="info-section">
+          <p><span class="info-label">Поставщик:</span> HC COMPANY</p>
+          <p>г. Москва, рынок «Фуд Сити»</p>
+          <p>Торговая точка: ${debt.shop_id || '___'}</p>
+          <p>Тел: 8-915-016-16-15, 8-916-576-07-07</p>
+          <p><span class="info-label">Возврат товара в течение 14 дней</span></p>
+        </div>
+
+        <div class="info-section">
+          <p><span class="info-label">Покупатель:</span> ${debt.name}</p>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 5%;">№</th>
+              <th style="width: 40%;">Наименование товара</th>
+              <th style="width: 15%;">Количество</th>
+              <th style="width: 20%;">Цена за единицу</th>
+              <th style="width: 20%;">Сумма</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="text-align: center;">1</td>
+              <td>${formatProductsForDisplay(debt.product_names)}</td>
+              <td style="text-align: center;">1</td>
+              <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
+              <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="total-section">
+          <div style="margin-bottom: 10px;">
+            <span class="info-label">Оплачено:</span> ${paidAmount} so'm
           </div>
-          <div class="info-row">
-            <span class="label">Filial:</span>
-            <span class="value">${getBranchName(debt.branch_id)}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Qarz Turi:</span>
-            <span class="value">${debt.branch_id === 1 ? "Nasiyam" : "Berilgan Nasiya"}</span>
-          </div>
-          <div class="info-row">
-            <span class="label">Holat:</span>
-            <span class="status ${debt.isreturned ? 'returned' : 'pending'}">
-              ${debt.isreturned ? '✓ Qaytarilgan' : '⏳ Kutilmoqda'}
-            </span>
+          <div class="total-row">
+            ИТОГО: ${remainingAmount} so'm (остаток)
           </div>
         </div>
 
-        <div class="products">
-          <strong>Mahsulotlar:</strong><br/>
-          ${formatProductsForDisplay(debt.product_names)}
-        </div>
-
-        <div class="info">
-          <div class="info-row">
-            <span class="label">Jami Summa:</span>
-            <span class="value">${debt.amount.toLocaleString()} so'm</span>
+        <div class="signature-section">
+          <div class="signature-line">
+            <div class="signature-blank"></div>
+            <p>Поставщик (подпись)</p>
           </div>
-          <div class="info-row">
-            <span class="label">To'langan Summa:</span>
-            <span class="value">${paidAmount} so'm</span>
-          </div>
-          <div class="info-row total">
-            <span class="label">Qolgan Summa:</span>
-            <span class="value">${remainingAmount} so'm</span>
+          <div class="signature-line">
+            <div class="signature-blank"></div>
+            <p>Покупатель (подпись)</p>
           </div>
         </div>
 
-        <div class="footer">
-          <p>Chop etilgan: ${new Date().toLocaleString()}</p>
-          <p>ID: ${debt.id}</p>
-        </div>
-
-        <script>
-          window.onload = () => {
-            window.print();
-            window.onafterprint = () => window.close();
-          };
-        </script>
+        <button onclick="window.print()">Печать</button>
       </body>
       </html>
     `);
@@ -1847,11 +1849,6 @@ export default function DebtManagement() {
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Tur
                 </th>
-                {selectedDebtor && (
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Mahsulotlar
-                  </th>
-                )}
                 <th
                   onClick={() => handleSort("amount")}
                   className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
@@ -1867,11 +1864,6 @@ export default function DebtManagement() {
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Qolgan
                 </th>
-                {selectedDebtor && (
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Filial
-                  </th>
-                )}
                 <th
                   onClick={() => handleSort("isreturned")}
                   className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
@@ -1923,13 +1915,6 @@ export default function DebtManagement() {
                             {debt.branch_id===1 ? "Nasiyam" : "Berilgan"}
                           </span>
                         </td>
-                        {selectedDebtor && (
-                          <td className="px-6 py-4 max-w-xs">
-                            <p className="text-sm text-gray-600 line-clamp-2 truncate" title={formatProductsForDisplay(debt.product_names)}>
-                              {formatProductsForDisplay(debt.product_names)}
-                            </p>
-                          </td>
-                        )}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-semibold text-gray-900">
                             {debt.amount.toLocaleString()} so'm
@@ -1945,11 +1930,6 @@ export default function DebtManagement() {
                             {remaining.toLocaleString()} so'm
                           </span>
                         </td>
-                        {selectedDebtor && (
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className="text-sm text-gray-600">{getBranchName(debt.branch_id)}</span>
-                          </td>
-                        )}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
