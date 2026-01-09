@@ -571,10 +571,11 @@ export default function DebtManagement() {
       const toastId = toast.loading("🗑️ Qarz o'chirilmoqda...");
       
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.delete}`, {
-        method: "POST",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
           authorization: token ?? "",
+          id: debtId,
         },
         body: JSON.stringify({ id: debtId }),
       });

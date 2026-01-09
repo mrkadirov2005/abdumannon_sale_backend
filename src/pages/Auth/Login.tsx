@@ -31,7 +31,7 @@ export default function Login() {
       loginSuperUser.fulfilled.match(result) ||
       loginAdmin.fulfilled.match(result)
     ) {
-      navigate("/");
+      navigate("/sales");
     }
   }
 
