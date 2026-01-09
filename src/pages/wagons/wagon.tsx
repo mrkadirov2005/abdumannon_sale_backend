@@ -84,7 +84,6 @@ const WagonsPage: React.FC = () => {
   const [formData, setFormData] = useState({
     wagon_number: "",
     indicator: "none" as "debt_taken" | "debt_given" | "none",
-    shop_id: "" as string,
     branch: null as number | null,
   });
 
@@ -176,11 +175,11 @@ const WagonsPage: React.FC = () => {
       product_name: row.product_name,
       amount: parseFloat(row.amount),
       price: parseFloat(row.price),
-      paid_amount: row.paid_amount ? parseFloat(row.paid_amount) : 0,
+      paid_amount: parseFloat(row.paid_amount) || 0, // Send paid_amount as numeric value
     }));
 
-    // Calculate total paid amount from products
-    const totalPaidAmount = products.reduce((sum, p) => sum + (p.paid_amount || 0), 0);
+    // Calculate total paid amount - sum of all paid amounts
+    const totalPaidAmount = validProducts.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
 
     try {
       const uuid = localStorage.getItem("uuid");
@@ -194,7 +193,6 @@ const WagonsPage: React.FC = () => {
         },
         body: JSON.stringify({
           ...formData,
-          shop_id: formData.shop_id || null,
           paid_amount: totalPaidAmount,
           products,
         }),
@@ -231,11 +229,11 @@ const WagonsPage: React.FC = () => {
       product_name: row.product_name,
       amount: parseFloat(row.amount),
       price: parseFloat(row.price),
-      paid_amount: row.paid_amount ? parseFloat(row.paid_amount) : 0,
+      paid_amount: parseFloat(row.paid_amount) || 0, // Send paid_amount as numeric value (0 if empty)
     }));
 
-    // Calculate total paid amount from products
-    const totalPaidAmount = products.reduce((sum, p) => sum + (p.paid_amount || 0), 0);
+    // Calculate total paid amount - sum of all paid amounts
+    const totalPaidAmount = validProducts.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
 
     try {
       
@@ -251,7 +249,6 @@ const WagonsPage: React.FC = () => {
         body: JSON.stringify({
           id: selectedWagon.id,
           ...formData,
-          shop_id: formData.shop_id || null,
           paid_amount: totalPaidAmount,
           products,
         }),
@@ -311,17 +308,19 @@ const WagonsPage: React.FC = () => {
     setFormData({
       wagon_number: wagon.wagon_number,
       indicator: wagon.indicator,
-      shop_id: wagon.shop_id || "",
       branch: wagon.branch,
     });
     setProductRows(
-      wagon.products.map((p) => ({
-        product_id: p.product_id,
-        product_name: p.product_name,
-        amount: p.amount.toString(),
-        price: p.price.toString(),
-        paid_amount: p.paid_amount ? p.paid_amount.toString() : "\"",
-      }))
+      wagon.products.map((p) => {
+        const paidAmt = p.paid_amount !== undefined && p.paid_amount !== null ? p.paid_amount : 0;
+        return {
+          product_id: p.product_id,
+          product_name: p.product_name,
+          amount: p.amount.toString(),
+          price: p.price.toString(),
+          paid_amount: paidAmt.toString(),
+        };
+      })
     );
     setShowEditModal(true);
   };
@@ -331,7 +330,6 @@ const WagonsPage: React.FC = () => {
     setFormData({
       wagon_number: "",
       indicator: "none",
-      shop_id: "",
       branch: null,
     });
     setProductRows([{ product_id: "", product_name: "", amount: "", price: "", paid_amount: "" }]);
@@ -548,7 +546,6 @@ const WagonsPage: React.FC = () => {
           <div class="info-section">
             <p><span class="info-label">Поставщик:</span> HC COMPANY</p>
             <p>г. Москва, рынок «Фуд Сити»</p>
-            <p>Торговая точка: ${wagon.shop_id || '___'}</p>
             <p>Тел: 8-915-016-16-15, 8-916-576-07-07</p>
             <p><span class="info-label">Возврат товара в течение 14 дней</span></p>
           </div>
@@ -1262,20 +1259,6 @@ const WagonsPage: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Shop ID */}
-                <div>
-                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Do'kon ID (Shop ID)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.shop_id}
-                    onChange={(e) => setFormData({ ...formData, shop_id: e.target.value })}
-                    className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Do'kon identifikatsiyasi"
-                  />
-                </div>
-
                 {/* Products */}
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
@@ -1418,20 +1401,6 @@ const WagonsPage: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Shop ID */}
-                <div>
-                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Do'kon ID (Shop ID)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.shop_id}
-                    onChange={(e) => setFormData({ ...formData, shop_id: e.target.value })}
-                    className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Do'kon identifikatsiyasi"
-                  />
-                </div>
-
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
                     Mahsulotlar <span className="text-red-500">*</span>
@@ -1540,9 +1509,14 @@ const WagonsPage: React.FC = () => {
             <div className="p-4 sm:p-6">
               {/* Calculate paid amount from products */}
               {(() => {
-                const calculatedPaidAmount = selectedWagon.products.reduce((sum, p) => sum + (p.paid_amount || 0), 0);
+                // Parse paid_amount string to get product names
+                const paidProductNames = selectedWagon.paid_amount ? 
+                  (typeof selectedWagon.paid_amount === 'string' ? 
+                    (selectedWagon.paid_amount as never as string).split(' / ') : 
+                    []) 
+                  : [];
+                
                 const totalAmount = parseFloat(selectedWagon.total.toString());
-                const remainingAmount = totalAmount - calculatedPaidAmount;
                 
                 return (
                   <>
@@ -1559,15 +1533,9 @@ const WagonsPage: React.FC = () => {
                         </p>
                       </div>
                       <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                        <p className="text-sm text-gray-600 mb-1">To'langan Summa</p>
+                        <p className="text-sm text-gray-600 mb-1">To'langan Mahsulotlar</p>
                         <p className="text-lg font-bold text-purple-900">
-                          {calculatedPaidAmount.toLocaleString()} so'm
-                        </p>
-                      </div>
-                      <div className={`p-4 rounded-lg border ${remainingAmount > 0 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
-                        <p className="text-sm text-gray-600 mb-1">Qolgan Summa</p>
-                        <p className={`text-lg font-bold ${remainingAmount > 0 ? 'text-red-900' : 'text-green-900'}`}>
-                          {remainingAmount.toLocaleString()} so'm
+                          {paidProductNames.length > 0 ? paidProductNames.join(', ') : 'Yo\'q'}
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1608,18 +1576,16 @@ const WagonsPage: React.FC = () => {
                         <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 border-b">
                           Jami
                         </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 border-b">
-                          To'langan
-                        </th>
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 border-b">
-                          Qolgan
+                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 border-b">
+                          To'langan Mahsulot
                         </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {selectedWagon.products.map((product, index) => {
-                        const paid = product.paid_amount || 0;
-                        const remaining = product.subtotal - paid;
+                        // Handle paid_amount that might be missing from backend
+                        const paidAmount = (product.paid_amount !== undefined && product.paid_amount !== null) ? product.paid_amount : 0;
+                        
                         return (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="px-4 py-3 text-sm text-gray-900">{index + 1}</td>
@@ -1635,11 +1601,8 @@ const WagonsPage: React.FC = () => {
                             <td className="px-4 py-3 text-sm font-semibold text-blue-600 text-right">
                               {product.subtotal.toLocaleString()} so'm
                             </td>
-                            <td className="px-4 py-3 text-sm font-semibold text-green-600 text-right">
-                              {paid.toLocaleString()} so'm
-                            </td>
-                            <td className={`px-4 py-3 text-sm font-semibold text-right ${remaining > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                              {remaining.toLocaleString()} so'm
+                            <td className="px-4 py-3 text-sm font-semibold text-green-600 text-left">
+                              {parseFloat(paidAmount.toString()).toLocaleString()} so'm
                             </td>
                           </tr>
                         );
@@ -1649,13 +1612,13 @@ const WagonsPage: React.FC = () => {
                           JAMI:
                         </td>
                         <td className="px-4 py-3 text-right text-blue-900 text-lg">
-                          {totalAmount.toLocaleString()} so'm
+                          {parseFloat(selectedWagon.total.toString()).toLocaleString()} so'm
                         </td>
-                        <td className="px-4 py-3 text-right text-green-900 text-lg">
-                          {calculatedPaidAmount.toLocaleString()} so'm
-                        </td>
-                        <td className={`px-4 py-3 text-right text-lg ${remainingAmount > 0 ? 'text-red-900' : 'text-green-900'}`}>
-                          {remainingAmount.toLocaleString()} so'm
+                        <td className="px-4 py-3 text-left text-blue-900 text-lg">
+                          {selectedWagon.products.reduce((sum, p) => {
+                            const paid = (p.paid_amount !== undefined && p.paid_amount !== null) ? p.paid_amount : 0;
+                            return sum + parseFloat(paid.toString());
+                          }, 0).toLocaleString()} so'm
                         </td>
                       </tr>
                     </tbody>
