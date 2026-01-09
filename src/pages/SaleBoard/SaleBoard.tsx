@@ -647,7 +647,6 @@ export default function SaleBoard() {
       .join("");
 
     const totalAmount = saleProducts.reduce((sum, p) => sum + (p.sell_price * p.amount), 0);
-    const totalProfit = saleProducts.reduce((sum, p) => sum + ((p.sell_price - p.net_price) * p.amount), 0);
 
     printWindow.document.write(`
       <!DOCTYPE html>
