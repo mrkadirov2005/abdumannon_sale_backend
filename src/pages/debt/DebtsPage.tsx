@@ -2863,7 +2863,76 @@ export default function DebtManagement() {
                 </div>
               </div>
 
-              <form  className="space-y-4">
+              <form  
+                className="space-y-4"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  
+                  if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
+                    toast.error("To'lov miqdorini kiriting");
+                    return;
+                  }
+
+                  const amount = parseFloat(paymentAmount);
+                  const remaining = paymentDebt.amount - (paymentDebt.paid_amount || 0);
+
+                  if (amount > remaining) {
+                    toast.error(`Maksimal to'lov: ${remaining.toLocaleString()} so'm`);
+                    return;
+                  }
+
+                  try {
+                    const toastId = toast.loading("💾 To'lov saqlanyapti...");
+                    const newPaidAmount = (paymentDebt.paid_amount || 0) + amount;
+                    const isFullyPaid = newPaidAmount >= paymentDebt.amount;
+
+                    const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        authorization: token ?? "",
+                      },
+                      body: JSON.stringify({
+                        id: paymentDebt.id,
+                        paid_amount: newPaidAmount,
+                        isreturned: isFullyPaid,
+                      }),
+                    });
+
+                    if (!res.ok) {
+                      throw new Error("To'lovni saqlashda xatolik");
+                    }
+
+                    const json = await res.json();
+                    
+                    // Update the debts list with the new payment
+                    setDebts(debts.map((d) => 
+                      d.id === json.data.id 
+                        ? { ...json.data, paid_amount: newPaidAmount } 
+                        : d
+                    ));
+
+                    // Update selected debt if it's open
+                    if (selectedDebt && selectedDebt.id === json.data.id) {
+                      setSelectedDebt({ ...selectedDebt, paid_amount: newPaidAmount });
+                    }
+
+                    toast.update(toastId, {
+                      render: "✅ To'lov muvaffaqiyatli saqlandi",
+                      type: "success",
+                      isLoading: false,
+                      autoClose: 3000,
+                    });
+
+                    // Close modal and reset
+                    setShowPaymentModal(false);
+                    setPaymentDebt(null);
+                    setPaymentAmount("");
+                  } catch (err: any) {
+                    toast.error(err.message || "To'lovni saqlashda xatolik");
+                  }
+                }}
+              >
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     To'lov Miqdori <span className="text-red-500">*</span>
