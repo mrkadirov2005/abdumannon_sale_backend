@@ -28,7 +28,6 @@ import { exampleProduct, type Product } from "../../../types/types";
 import UpdateProductForm from "./updateProduct";
 import { deleteProductsThunk } from "../../redux/slices/products/thunks/deleteProduct";
 import { restockProductThunk } from "../../redux/slices/products/thunks/restockProduct";
-import { getBranchesThunk } from "../../redux/slices/branches/thunks/GetBranchesThunk";
 import ProductsStatistics from "./ProductsStatistics";
 
 export default function Products() {
@@ -77,7 +76,6 @@ export default function Products() {
       // @ts-ignore
       dispatch(getProductsThunk({ shop_id, token, branch: authData.isSuperAdmin ? 100 : authData.user.branch }));
       dispatch(getCategoriesThunk({ token }));
-      dispatch(getBranchesThunk({shop_id, token}));
     }
   }, [shop_id, token, dispatch]);
 

@@ -600,8 +600,9 @@ export default function SaleBoard() {
         headers: {
           "Content-Type": "application/json",
           authorization: accessToken ?? "",
-          sale_id: sale_id,
+          uuid: user?.uuid || "",
         },
+        body: JSON.stringify({ sale_id }),
       });
 
       const result = await response.json();
