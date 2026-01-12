@@ -1,5 +1,5 @@
 // pages/DebtManagement.tsx
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, type JSXElementConstructor, type Key, type ReactElement, type ReactNode, type ReactPortal } from "react";
 import { useSelector } from "react-redux";
 import {
   accessTokenFromStore,
@@ -672,7 +672,7 @@ export default function DebtManagement() {
   const getTimestamp = (d: Debt) => new Date(formatDate(d)).getTime();
 
   const getBranchName = (branchId: number) => {
-    const branch = branches.branches?.find((b) => b.id === branchId);
+    const branch = branches.branches?.find((b: { id: number; }) => b.id === branchId);
     return branch?.name || "Unknown";
   };
 
@@ -1328,8 +1328,8 @@ export default function DebtManagement() {
           >
             <option value="">Barcha Filiallar</option>
             {branches.branches?.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
+              <option key={String(branch.id)} value={branch.id}>
+                {branch.name || "Unknown"}
               </option>
             ))}
           </select>
@@ -2760,10 +2760,10 @@ export default function DebtManagement() {
                   >
                     <option value="">Filialni tanlang</option>
                     {branches.branches?.map((branch) => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.name}
-                      </option>
-                    ))}
+                          <option key={String(branch.id)} value={branch.id}>
+                            {branch.name || "Unknown"}
+                          </option>
+                        ))}
                   </select>
                 </div>
 

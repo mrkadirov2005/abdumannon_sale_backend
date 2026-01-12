@@ -10,6 +10,7 @@ import DebtManagement from "../pages/debt/DebtsPage";
 import CategoryManager from "../pages/category/Categories";
 import DatabaseBackup from "../pages/backup/BackupManager";
 import WagonsPage from "../pages/wagons/wagon";
+import FinancePage from "../pages/Finance/Finance";
 
 /* ===========================
    Lazy-loaded pages (ADMIN)
@@ -62,6 +63,7 @@ export default function AppRoutes() {
           <Route path="categories" element={<CategoryManager />} />
           <Route path="backup" element={<DatabaseBackup />} />
           <Route path="wagons" element={<WagonsPage />} />
+          <Route path="finance" element={<FinancePage />} />
 
 
 

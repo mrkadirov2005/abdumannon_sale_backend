@@ -10,7 +10,7 @@ import {
 } from "@mui/icons-material";
 import { FaUser } from "react-icons/fa";
 import { motion } from "framer-motion";
-import { MinusSquareIcon, Store, Truck } from "lucide-react";
+import { MinusSquareIcon, Store, Truck, DollarSign } from "lucide-react";
 
 export default function Sidebar({
   collapsed,
@@ -113,6 +113,11 @@ export default function Sidebar({
             to="/wagons"
             icon={<Truck />}
             label="Vagonlar"
+          />
+          <MenuItem
+            to="/finance"
+            icon={<DollarSign />}
+            label="Moliya"
           />
           { authData.isSuperAdmin && (
             <MenuItem
