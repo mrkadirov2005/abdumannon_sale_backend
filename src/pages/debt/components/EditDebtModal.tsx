@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { X, Plus, Trash2 } from "lucide-react";
-import type { Debt } from "../types";
 
 interface Props {
-  debt: Debt;
   formData: any;
   onFormDataChange: (data: any) => void;
   currentProduct: any;
@@ -19,7 +17,6 @@ interface Props {
 }
 
 export const EditDebtModal: React.FC<Props> = ({
-  debt,
   formData,
   onFormDataChange,
   currentProduct,

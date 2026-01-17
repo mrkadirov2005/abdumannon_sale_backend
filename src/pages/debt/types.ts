@@ -28,6 +28,7 @@ export interface Debt {
   shop_id: number;
   admin_id: string;
   isreturned: boolean;
+  created_at: string;
 }
 
 export interface DebtStatistics {
@@ -59,7 +60,7 @@ export interface FormData {
   branch_id: number;
 }
 
-export type SortKey = "date" | "name" | "amount" | "isreturned";
+export type SortKey = "date" | "name" | "amount" | "isreturned" | "created_at";
 export type SortDirection = "asc" | "desc";
 export type ViewMode = "list" | "folders" | "statistics";
 export type DebtTypeFilter = "all" | "given" | "taken";
