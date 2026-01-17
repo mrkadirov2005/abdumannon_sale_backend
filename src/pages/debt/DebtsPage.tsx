@@ -22,7 +22,6 @@ interface Debt {
   year: number;
   name: string;
   amount: number;
-  paid_amount?: number;
   product_names: string;
   branch_id: number;
   shop_id: number;
@@ -80,7 +79,6 @@ export default function DebtManagement() {
   const [debtTypeFilter, setDebtTypeFilter] = useState<"all" | "given" | "taken">("all");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentDebt, setPaymentDebt] = useState<Debt | null>(null);
-  const [paymentAmount, setPaymentAmount] = useState("");
 
   // Filters
   const [searchName, setSearchName] = useState("");
@@ -464,7 +462,6 @@ export default function DebtManagement() {
           branch_id: typeof formData.branch_id === 'string' ? parseInt(formData.branch_id) : formData.branch_id,
           shop_id,
           admin_id: "admin-uuid",
-          paid_amount: 0,
         }),
       });
 
@@ -740,9 +737,6 @@ export default function DebtManagement() {
   const printDebt = (debt: Debt) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
-
-    const remainingAmount = (debt.amount - (debt.paid_amount || 0)).toLocaleString();
-    const paidAmount = (debt.paid_amount || 0).toLocaleString();
     
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -806,11 +800,11 @@ export default function DebtManagement() {
         </table>
 
         <div class="total-section">
-          <div style="margin-bottom: 10px;">
-            <span class="info-label">Оплачено:</span> ${paidAmount} so'm
-          </div>
           <div class="total-row">
-            ИТОГО: ${remainingAmount} so'm (остаток)
+            ИТОГО: ${debt.amount.toLocaleString()} Rubl
+          </div>
+          <div style="margin-top: 10px;">
+            <span class="info-label">Статус:</span> ${debt.isreturned ? 'Оплачено' : 'Ожидается'}
           </div>
         </div>
 
@@ -838,21 +832,18 @@ export default function DebtManagement() {
     if (!printWindow) return;
 
     const totalAmount = filteredAndSorted.reduce((sum, d) => sum + d.amount, 0);
-    const totalPaid = filteredAndSorted.reduce((sum, d) => sum + (d.paid_amount || 0), 0);
-    const totalRemaining = totalAmount - totalPaid;
+    const returnedAmount = filteredAndSorted.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0);
+    const unreturnedAmount = filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0);
 
     const debtsHTML = filteredAndSorted.map((debt, index) => {
-      const remaining = debt.amount - (debt.paid_amount || 0);
       return `
         <tr>
           <td>${index + 1}</td>
           <td>${formatDate(debt)}</td>
           <td>${debt.name}</td>
           <td>${debt.amount.toLocaleString()}</td>
-          <td>${(debt.paid_amount || 0).toLocaleString()}</td>
-          <td>${remaining.toLocaleString()}</td>
           <td><span class="status ${debt.isreturned ? 'returned' : 'pending'}">
-            ${debt.isreturned ? '✓ Returned' : '⏳ Pending'}
+            ${debt.isreturned ? '✓ Qaytarilgan' : '⏳ Kutilmoqda'}
           </span></td>
         </tr>
       `;
@@ -891,9 +882,7 @@ export default function DebtManagement() {
               <th>#</th>
               <th>Sana</th>
               <th>Mijoz</th>
-              <th>Jami Summa</th>
-              <th>To'langan Summa</th>
-              <th>Qolgan</th>
+              <th>Summa</th>
               <th>Holat</th>
             </tr>
           </thead>
@@ -901,9 +890,17 @@ export default function DebtManagement() {
             ${debtsHTML}
             <tr class="total-row">
               <td colspan="3">JAMI</td>
-              <td>${totalAmount.toLocaleString()} so'm</td>
-              <td>${totalPaid.toLocaleString()} so'm</td>
-              <td>${totalRemaining.toLocaleString()} so'm</td>
+              <td>${totalAmount.toLocaleString()} Rubl</td>
+              <td></td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="3">Qaytarilgan</td>
+              <td>${returnedAmount.toLocaleString()} Rubl</td>
+              <td></td>
+            </tr>
+            <tr class="total-row">
+              <td colspan="3">Qaytarilmagan</td>
+              <td>${unreturnedAmount.toLocaleString()} Rubl</td>
               <td></td>
             </tr>
           </tbody>
@@ -945,14 +942,11 @@ export default function DebtManagement() {
         : debtor.debts.filter(d => d.branch_id === 1);
 
       const debtsRows = relevantDebts.map((debt, idx) => {
-        const remaining = debt.amount - (debt.paid_amount || 0);
         return `
           <tr>
             <td>${idx + 1}</td>
             <td>${formatDate(debt)}</td>
             <td>${debt.amount.toLocaleString()}</td>
-            <td>${(debt.paid_amount || 0).toLocaleString()}</td>
-            <td>${remaining.toLocaleString()}</td>
             <td><span class="status ${debt.isreturned ? 'returned' : 'pending'}">
               ${debt.isreturned ? '✓ Returned' : '⏳ Pending'}
             </span></td>
@@ -961,8 +955,7 @@ export default function DebtManagement() {
       }).join("");
 
       const debtorTotal = relevantDebts.reduce((sum, d) => sum + d.amount, 0);
-      const debtorPaid = relevantDebts.reduce((sum, d) => sum + (d.paid_amount || 0), 0);
-      const debtorRemaining = debtorTotal - debtorPaid;
+      const debtorReturned = relevantDebts.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0);
 
       return `
         <div class="debtor-section">
@@ -977,15 +970,11 @@ export default function DebtManagement() {
             <div class="debtor-summary">
               <div class="summary-item">
                 <span class="label">Jami:</span>
-                <span class="value">${debtorTotal.toLocaleString()} so'm</span>
+                <span class="value">${debtorTotal.toLocaleString()} Rubl</span>
               </div>
               <div class="summary-item">
-                <span class="label">To'langan:</span>
-                <span class="value paid">${debtorPaid.toLocaleString()} so'm</span>
-              </div>
-              <div class="summary-item">
-                <span class="label">Qolgan:</span>
-                <span class="value remaining">${debtorRemaining.toLocaleString()} so'm</span>
+                <span class="label">Qaytarilgan:</span>
+                <span class="value paid">${debtorReturned.toLocaleString()} Rubl</span>
               </div>
             </div>
           </div>
@@ -996,7 +985,6 @@ export default function DebtManagement() {
                 <th>Sana</th>
                 <th>Summa</th>
                 <th>To'langan</th>
-                <th>Qolgan</th>
                 <th>Holat</th>
               </tr>
             </thead>
@@ -1015,9 +1003,8 @@ export default function DebtManagement() {
         : debtTypeFilter === "given"
         ? d.debts.filter(debt => debt.branch_id !== 1)
         : d.debts.filter(debt => debt.branch_id === 1);
-      return sum + relevantDebts.reduce((s, debt) => s + (debt.paid_amount || 0), 0);
+      return sum + relevantDebts.filter(debt => debt.isreturned).reduce((s, debt) => s + debt.amount, 0);
     }, 0);
-    const grandRemaining = grandTotal - grandPaid;
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -1060,15 +1047,11 @@ export default function DebtManagement() {
           <div class="grand-total-grid">
             <div class="grand-total-item">
               <span class="label">Jami Summa</span>
-              <span class="value">${grandTotal.toLocaleString()} so'm</span>
+              <span class="value">${grandTotal.toLocaleString()}Rubl</span>
             </div>
             <div class="grand-total-item">
               <span class="label">Jami To'langan</span>
-              <span class="value" style="color: #28a745;">${grandPaid.toLocaleString()} so'm</span>
-            </div>
-            <div class="grand-total-item">
-              <span class="label">Jami Qolgan</span>
-              <span class="value" style="color: #dc3545;">${grandRemaining.toLocaleString()} so'm</span>
+              <span class="value" style="color: #28a745;">${grandPaid.toLocaleString()}Rubl</span>
             </div>
           </div>
         </div>
@@ -1216,7 +1199,7 @@ export default function DebtManagement() {
               <X size={20} className="opacity-50 hidden md:block" />
             </div>
             <p className="text-2xl sm:text-4xl font-bold">{debts.filter(d => d.branch_id === 1).length}</p>
-            <p className="text-xs sm:text-sm opacity-75 mt-1 sm:mt-2">{debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0).toLocaleString()} so'm</p>
+            <p className="text-xs sm:text-sm opacity-75 mt-1 sm:mt-2">{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl</p>
           </div>
 
           <div
@@ -1478,19 +1461,13 @@ export default function DebtManagement() {
                   <div className="flex justify-between py-2 border-b border-blue-200">
                     <span className="text-gray-700">Jami Summa:</span>
                     <span className="font-bold text-blue-900">
-                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} so'm
+                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + d.amount, 0).toLocaleString()}Rubl
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-blue-200">
                     <span className="text-gray-700">To'langan Summa:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + (d.paid_amount || 0), 0).toLocaleString()} so'm
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-2 bg-blue-100 px-3 rounded-lg">
-                    <span className="font-bold text-gray-900">Qolgan:</span>
-                    <span className="font-bold text-blue-900 text-lg">
-                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0).toLocaleString()} so'm
+                      {debts.filter(d => d.branch_id === 0 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
@@ -1521,19 +1498,13 @@ export default function DebtManagement() {
                   <div className="flex justify-between py-2 border-b border-red-200">
                     <span className="text-gray-700">Jami Summa:</span>
                     <span className="font-bold text-red-900">
-                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} so'm
+                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + d.amount, 0).toLocaleString()}Rubl
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-red-200">
                     <span className="text-gray-700">To'langan Summa:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + (d.paid_amount || 0), 0).toLocaleString()} so'm
-                    </span>
-                  </div>
-                  <div className="flex justify-between py-2 bg-red-100 px-3 rounded-lg">
-                    <span className="font-bold text-gray-900">Qolgan:</span>
-                    <span className="font-bold text-red-900 text-lg">
-                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0).toLocaleString()} so'm
+                      {debts.filter(d => d.branch_id === 1 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
@@ -1566,12 +1537,6 @@ export default function DebtManagement() {
                     {debts.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}
                   </p>
                 </div>
-                <div className="bg-white rounded-lg p-4 border border-purple-200">
-                  <p className="text-sm text-gray-600 mb-1">Jami Qolgan</p>
-                  <p className="text-2xl font-bold text-purple-900">
-                    {debts.reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0).toLocaleString()}
-                  </p>
-                </div>
               </div>
             </div>
 
@@ -1582,25 +1547,25 @@ export default function DebtManagement() {
                 <div className="flex justify-between py-2">
                   <span className="text-gray-700">Men Olishim Kerak:</span>
                   <span className="font-bold text-green-700 text-lg">
-                    +{debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0).toLocaleString()} so'm
+                    +{debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
                   </span>
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="text-gray-700">Men To'lashim Kerak:</span>
                   <span className="font-bold text-red-700 text-lg">
-                    -{debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0).toLocaleString()} so'm
+                    -{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
                   </span>
                 </div>
                 <div className="flex justify-between py-3 border-t-2 border-gray-300 mt-3">
                   <span className="font-bold text-gray-900 text-lg">Sof Balans:</span>
                   <span className={`font-bold text-xl ${
-                    (debts.filter(d => d.branch_id === 0 ).reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0) -
-                    debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0)) >= 0
+                    (debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0) -
+                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)) >= 0
                       ? "text-green-700"
                       : "text-red-700"
                   }`}>
-                    {(debts.filter(d => d.branch_id === 0 ).reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0) -
-                    debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0)).toLocaleString()} so'm
+                    {(debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0) -
+                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)).toLocaleString()} Rubl
                   </span>
                 </div>
               </div>
@@ -1653,20 +1618,7 @@ export default function DebtManagement() {
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
-                      <div className="text-right">
-                        <p className="text-xs sm:text-sm md:text-base font-medium text-gray-600">Jami</p>
-                        <p className="text-sm sm:text-lg md:text-xl font-bold text-gray-900">
-                          {debtor.totalAmount.toLocaleString()}
-                        </p>
-                      </div>
-                      {debtor.unreturnedAmount > 0 && (
-                        <div className="text-right">
-                          <p className="text-xs sm:text-sm md:text-base font-medium text-red-600">Kutilmoqda</p>
-                          <p className="text-sm sm:text-lg md:text-xl font-bold text-red-700">
-                            {debtor.unreturnedAmount.toLocaleString()}
-                          </p>
-                        </div>
-                      )}
+                      
                       <ChevronRight className="text-gray-400 group-hover:text-blue-600 transition flex-shrink-0" size={24} />
                     </div>
                   </div>
@@ -1746,19 +1698,13 @@ export default function DebtManagement() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Jami Summa:</span>
                       <span className="font-semibold text-gray-900">
-                        {debt.amount.toLocaleString()} so'm
+                        {debt.amount.toLocaleString()}Rubl
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">To'langan:</span>
-                      <span className="font-semibold text-green-600">
-                        {(debt.paid_amount || 0).toLocaleString()} so'm
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-t border-gray-200 pt-2">
-                      <span className="text-gray-600 font-bold">Qolgan:</span>
-                      <span className="font-bold text-red-600">
-                        {(debt.amount - (debt.paid_amount || 0)).toLocaleString()} so'm
+                      <span className="text-gray-600">Holat:</span>
+                      <span className={`font-semibold ${debt.isreturned ? 'text-green-600' : 'text-red-600'}`}>
+                        {debt.isreturned ? '✓ Qaytarilgan' : '⏳ Qaytarilmagan'}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -1792,7 +1738,7 @@ export default function DebtManagement() {
                       <Eye size={16} /> Ko'rish
                     </button>
 
-                    {!debt.isreturned && (debt.amount - (debt.paid_amount || 0)) > 0 && (
+                    {!debt.isreturned && (
                       <button
                         onClick={() => {
                           setPaymentDebt(debt);
@@ -1859,12 +1805,6 @@ export default function DebtManagement() {
                     {getSortIcon("amount")}
                   </div>
                 </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  To'langan
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Qolgan
-                </th>
                 <th
                   onClick={() => handleSort("isreturned")}
                   className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
@@ -1895,7 +1835,6 @@ export default function DebtManagement() {
               ) : (
                 <>
                   {filteredAndSorted.map((debt) => {
-                    const remaining = debt.amount - (debt.paid_amount || 0);
                     return (
                       <tr
                         key={debt.id}
@@ -1918,17 +1857,7 @@ export default function DebtManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-semibold text-gray-900">
-                            {debt.amount.toLocaleString()} so'm
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-semibold text-green-600">
-                            {(debt.paid_amount || 0).toLocaleString()} so'm
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-bold text-red-600">
-                            {remaining.toLocaleString()} so'm
+                            {debt.amount.toLocaleString()}Rubl
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1968,7 +1897,7 @@ export default function DebtManagement() {
                               <Eye size={18} />
                             </button>
 
-                            {!debt.isreturned && remaining > 0 && (
+                            {!debt.isreturned && (
                               <button
                                 onClick={() => {
                                   setPaymentDebt(debt);
@@ -2008,13 +1937,13 @@ export default function DebtManagement() {
                       TOTAL:
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-gray-900">
-                      {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString()} so'm
+                      {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}Rubl
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-green-700">
-                      {filteredAndSorted.reduce((sum, d) => sum + (d.paid_amount || 0), 0).toLocaleString()} so'm
+                      {filteredAndSorted.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-red-700">
-                      {filteredAndSorted.reduce((sum, d) => sum + (d.amount - (d.paid_amount || 0)), 0).toLocaleString()} so'm
+                      {filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
                     </td>
                     <td colSpan={3}></td>
                   </tr>
@@ -2056,32 +1985,17 @@ export default function DebtManagement() {
               {/* Amount */}
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <p className="text-xs font-medium text-purple-700 mb-1">Jami Summa</p>
-                <p className="text-3xl font-bold text-purple-900">{selectedDebt.amount.toLocaleString()} so'm</p>
+                <p className="text-3xl font-bold text-purple-900">{selectedDebt.amount.toLocaleString()}Rubl</p>
               </div>
 
-              {/* Paid Amount - Editable */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-xs font-medium text-green-700 mb-2">To'langan Summa</p>
+              {/* Status */}
+              <div className={`${selectedDebt.isreturned ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-4`}>
+                <p className="text-xs font-medium text-gray-700 mb-2">Holat</p>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={selectedDebt.paid_amount || 0}
-                    onChange={(e) => {
-                      const newPaid = parseFloat(e.target.value) || 0;
-                      if (newPaid >= 0 && newPaid <= selectedDebt.amount) {
-                        setSelectedDebt({ ...selectedDebt, paid_amount: newPaid });
-                      }
-                    }}
-                    className="flex-1 px-3 py-2 border border-green-300 rounded-lg text-lg font-bold text-green-900 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  />
-                  <span className="text-sm text-green-700 font-medium">so'm</span>
+                  <span className={`text-lg font-bold ${selectedDebt.isreturned ? 'text-green-900' : 'text-yellow-900'}`}>
+                    {selectedDebt.isreturned ? '✓ Qaytarilgan' : '⏳ Qaytarilmagan'}
+                  </span>
                 </div>
-              </div>
-
-              {/* Remaining Amount */}
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-xs font-medium text-red-700 mb-1">Qolgan Summa</p>
-                <p className="text-2xl font-bold text-red-900">{(selectedDebt.amount - (selectedDebt.paid_amount || 0)).toLocaleString()} so'm</p>
               </div>
 
               {/* Debt Type */}
@@ -2108,13 +2022,13 @@ export default function DebtManagement() {
                           <div className="flex-1">
                             <p className="font-medium text-gray-900">{product.name}</p>
                             <p className="text-xs text-gray-600 mt-1">
-                              {product.quantity} × {product.price.toLocaleString()} so'm = {(product.quantity * product.price).toLocaleString()} so'm
+                              {product.quantity} × {product.price.toLocaleString()}Rubl = {(product.quantity * product.price).toLocaleString()}Rubl
                             </p>
                           </div>
                         </div>
                         {product.totalPaid > 0 && (
                           <p className="text-xs text-green-600 font-medium mt-2">
-                            To'langan: {product.totalPaid.toLocaleString()} so'm
+                            To'langan: {product.totalPaid.toLocaleString()}Rubl
                           </p>
                         )}
                       </div>
@@ -2167,7 +2081,7 @@ export default function DebtManagement() {
                   onClick={async () => {
                     try {
                       const toastId = toast.loading("💾 Saving changes...");
-                      const isFullyPaid = (selectedDebt.paid_amount || 0) >= selectedDebt.amount;
+                      const isFullyPaid = selectedDebt.isreturned;
                       
                       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
                         method: "POST",
@@ -2177,7 +2091,10 @@ export default function DebtManagement() {
                         },
                         body: JSON.stringify({
                           id: selectedDebt.id,
-                          paid_amount: selectedDebt.paid_amount,
+                          name: selectedDebt.name,
+                          amount: selectedDebt.amount,
+                          product_names: selectedDebt.product_names,
+                          branch_id: selectedDebt.branch_id,
                           isreturned: isFullyPaid,
                         }),
                       });
@@ -2187,7 +2104,7 @@ export default function DebtManagement() {
                       }
 
                       const json = await res.json();
-                      setDebts(debts.map((d) => (d.id === json.data.id ? { ...json.data, paid_amount: selectedDebt.paid_amount } : d)));
+                      setDebts(debts.map((d) => (d.id === json.data.id ? json.data : d)));
                       toast.update(toastId, {
                         render: "✅ Changes saved successfully",
                         type: "success",
@@ -2211,7 +2128,7 @@ export default function DebtManagement() {
                 >
                   🖨️ Chop Etish
                 </button>
-                {!selectedDebt.isreturned && (selectedDebt.amount - (selectedDebt.paid_amount || 0)) > 0 && (
+                {!selectedDebt.isreturned && (
                   <button
                     onClick={() => {
                       setPaymentDebt(selectedDebt);
@@ -2448,7 +2365,7 @@ export default function DebtManagement() {
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(currentProduct.price * currentProduct.quantity).toLocaleString()} so'm
+                            {(currentProduct.price * currentProduct.quantity).toLocaleString()}Rubl
                           </span>
                         </p>
                       </div>
@@ -2490,7 +2407,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} × {product.price.toLocaleString()} so'm = {(product.quantity * product.price).toLocaleString()} so'm
+                                  {product.quantity} × {product.price.toLocaleString()}Rubl = {(product.quantity * product.price).toLocaleString()}Rubl
                                 </p>
                               </div>
                               <button
@@ -2503,7 +2420,7 @@ export default function DebtManagement() {
                             </div>
                             {product.totalPaid > 0 && (
                               <p className="text-xs text-green-600 font-medium">
-                                To'langan: {product.totalPaid.toLocaleString()} so'm
+                                To'langan: {product.totalPaid.toLocaleString()}Rubl
                               </p>
                             )}
                           </div>
@@ -2514,7 +2431,7 @@ export default function DebtManagement() {
                       <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between font-bold text-gray-900">
                         <span>Jami Summa:</span>
                         <span className="text-lg text-blue-900">
-                          {calculateTotalFromProducts(productEntries).toLocaleString()} so'm
+                          {calculateTotalFromProducts(productEntries).toLocaleString()}Rubl
                         </span>
                       </div>
                     </div>
@@ -2677,7 +2594,7 @@ export default function DebtManagement() {
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(currentProduct.price * currentProduct.quantity).toLocaleString()} so'm
+                            {(currentProduct.price * currentProduct.quantity).toLocaleString()}Rubl
                           </span>
                         </p>
                       </div>
@@ -2719,7 +2636,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} × {product.price.toLocaleString()} so'm = {(product.quantity * product.price).toLocaleString()} so'm
+                                  {product.quantity} × {product.price.toLocaleString()}Rubl = {(product.quantity * product.price).toLocaleString()}Rubl
                                 </p>
                               </div>
                               <button
@@ -2732,7 +2649,7 @@ export default function DebtManagement() {
                             </div>
                             {product.totalPaid > 0 && (
                               <p className="text-xs text-green-600 font-medium">
-                                To'langan: {product.totalPaid.toLocaleString()} so'm
+                                To'langan: {product.totalPaid.toLocaleString()}Rubl
                               </p>
                             )}
                           </div>
@@ -2743,7 +2660,7 @@ export default function DebtManagement() {
                       <div className="mt-3 pt-3 border-t border-orange-200 flex justify-between font-bold text-gray-900">
                         <span>Jami Summa:</span>
                         <span className="text-lg text-orange-900">
-                          {calculateTotalFromProducts(productEntries).toLocaleString()} so'm
+                          {calculateTotalFromProducts(productEntries).toLocaleString()}Rubl
                         </span>
                       </div>
                     </div>
@@ -2826,13 +2743,12 @@ export default function DebtManagement() {
             {/* MODAL HEADER */}
             <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-4 sm:p-6 text-white flex items-center justify-between">
               <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                💰 To'lov Qo'shish
+                ✅ Qarzni Qaytarish
               </h2>
               <button
                 onClick={() => {
                   setShowPaymentModal(false);
                   setPaymentDebt(null);
-                  setPaymentAmount("");
                 }}
                 className="p-1 hover:bg-white/20 rounded-lg transition"
               >
@@ -2849,144 +2765,96 @@ export default function DebtManagement() {
 
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Jami Qarz:</span>
-                  <span className="font-bold text-gray-900">{paymentDebt.amount.toLocaleString()} so'm</span>
+                  <span className="text-gray-600">Qarz Miqdori:</span>
+                  <span className="font-bold text-gray-900">{paymentDebt.amount.toLocaleString()} Rubl</span>
                 </div>
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Allaqachon To'langan:</span>
-                  <span className="font-bold text-green-600">{(paymentDebt.paid_amount || 0).toLocaleString()} so'm</span>
-                </div>
-                <div className="flex justify-between py-2 bg-red-50 px-3 rounded-lg">
-                  <span className="font-bold text-gray-900">Qolgan:</span>
-                  <span className="font-bold text-red-600 text-lg">
-                    {(paymentDebt.amount - (paymentDebt.paid_amount || 0)).toLocaleString()} so'm
+                <div className="flex justify-between py-2 bg-yellow-50 px-3 rounded-lg">
+                  <span className="font-bold text-gray-900">Holat:</span>
+                  <span className="font-bold text-yellow-600">
+                    {paymentDebt.isreturned ? "Qaytarilgan" : "Qaytarilmagan"}
                   </span>
                 </div>
               </div>
 
-              <form  
-                className="space-y-4"
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  
-                  if (!paymentAmount || parseFloat(paymentAmount) <= 0) {
-                    toast.error("To'lov miqdorini kiriting");
-                    return;
-                  }
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200 mb-6">
+                <p className="text-sm text-gray-700">
+                  Bu qarzni to'liq to'langan deb belgilaysizmi?
+                </p>
+              </div>
 
-                  const amount = parseFloat(paymentAmount);
-                  const remaining = paymentDebt.amount - (paymentDebt.paid_amount || 0);
-
-                  if (amount > remaining) {
-                    toast.error(`Maksimal to'lov: ${remaining.toLocaleString()} so'm`);
-                    return;
-                  }
-
-                  try {
-                    const toastId = toast.loading("💾 To'lov saqlanyapti...");
-                    const newPaidAmount = (paymentDebt.paid_amount || 0) + amount;
-                    const isFullyPaid = newPaidAmount >= paymentDebt.amount;
-
-                    const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        authorization: token ?? "",
-                      },
-                      body: JSON.stringify({
-                        id: paymentDebt.id,
-                        paid_amount: newPaidAmount,
-                        isreturned: isFullyPaid,
-                      }),
-                    });
-
-                    if (!res.ok) {
-                      throw new Error("To'lovni saqlashda xatolik");
-                    }
-
-                    const json = await res.json();
-                    
-                    // Update the debts list with the new payment
-                    setDebts(debts.map((d) => 
-                      d.id === json.data.id 
-                        ? { ...json.data, paid_amount: newPaidAmount } 
-                        : d
-                    ));
-
-                    // Update selected debt if it's open
-                    if (selectedDebt && selectedDebt.id === json.data.id) {
-                      setSelectedDebt({ ...selectedDebt, paid_amount: newPaidAmount });
-                    }
-
-                    toast.update(toastId, {
-                      render: "✅ To'lov muvaffaqiyatli saqlandi",
-                      type: "success",
-                      isLoading: false,
-                      autoClose: 3000,
-                    });
-
-                    // Close modal and reset
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
                     setShowPaymentModal(false);
                     setPaymentDebt(null);
-                    setPaymentAmount("");
-                  } catch (err: any) {
-                    toast.error(err.message || "To'lovni saqlashda xatolik");
-                  }
-                }}
-              >
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    To'lov Miqdori <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={paymentAmount}
-                    onChange={(e) => setPaymentAmount(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="To'lov miqdorini kiriting"
-                    min="0"
-                    max={paymentDebt.amount - (paymentDebt.paid_amount || 0)}
-                    step="0.01"
-                    required
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Maksimal: {(paymentDebt.amount - (paymentDebt.paid_amount || 0)).toLocaleString()} so'm
-                  </p>
-                </div>
+                  }}
+                  className="flex-1 px-4 py-2.5 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition font-medium"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      const toastId = toast.loading("💾 Qarz qaytarilmoqda...");
 
-                {paymentAmount && parseFloat(paymentAmount) > 0 && (
-                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                    <p className="text-sm text-gray-600 mb-1">Ushbu to'lovdan keyin:</p>
-                    <p className="text-lg font-bold text-green-700">
-                      Qolgan: {(paymentDebt.amount - (paymentDebt.paid_amount || 0) - parseFloat(paymentAmount)).toLocaleString()} so'm
-                    </p>
-                    {(paymentDebt.amount - (paymentDebt.paid_amount || 0) - parseFloat(paymentAmount)) === 0 && (
-                      <p className="text-sm text-green-600 mt-2 font-medium">✓ Bu qarzni to'liq to'laydi</p>
-                    )}
-                  </div>
-                )}
+                      const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          authorization: token ?? "",
+                        },
+                        body: JSON.stringify({
+                          id: paymentDebt.id,
+                          name: paymentDebt.name,
+                          amount: paymentDebt.amount,
+                          product_names: typeof paymentDebt.product_names === 'string' 
+                            ? paymentDebt.product_names 
+                            : JSON.stringify(paymentDebt.product_names),
+                          branch_id: paymentDebt.branch_id,
+                          isreturned: true,
+                        }),
+                      });
 
-                <div className="flex flex-col sm:flex-row gap-2 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
+                      if (!res.ok) {
+                        throw new Error("Qarzni qaytarishda xatolik");
+                      }
+
+                      const json = await res.json();
+                      
+                      // Update the debts list
+                      setDebts(debts.map((d) => 
+                        d.id === json.data.id 
+                          ? { ...d, isreturned: true } 
+                          : d
+                      ));
+
+                      // Update selected debt if it's open
+                      if (selectedDebt && selectedDebt.id === json.data.id) {
+                        setSelectedDebt({ ...selectedDebt, isreturned: true });
+                      }
+
+                      // Refresh statistics
+                      fetchStatistics();
+
+                      toast.update(toastId, {
+                        render: "✅ Qarz qaytarilgan deb belgilandi",
+                        type: "success",
+                        isLoading: false,
+                        autoClose: 3000,
+                      });
+
+                      // Close modal and reset
                       setShowPaymentModal(false);
                       setPaymentDebt(null);
-                      setPaymentAmount("");
-                    }}
-                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
-                  >
-                    Bekor qilish
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
-                    className="w-full sm:w-auto flex-1 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    💰 To'lovni Qayd Qilish
-                  </button>
-                </div>
-              </form>
+                    } catch (err: any) {
+                      toast.error(err.message || "Qarzni qaytarishda xatolik");
+                    }
+                  }}
+                  className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
+                >
+                  ✅ Qaytarilgan deb belgilash
+                </button>
+              </div>
             </div>
           </div>
         </div>

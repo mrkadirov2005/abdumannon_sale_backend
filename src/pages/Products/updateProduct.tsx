@@ -34,6 +34,7 @@ import {
 import { Close,Save } from "@mui/icons-material";
 import { FiAlertCircle, FiCheckCircle } from "react-icons/fi";
 import { Copy } from "lucide-react";
+import { calculateProfit } from "./components/helpers";
 
 interface Props {
   type: "add" | "edit" | "idle";
@@ -194,7 +195,11 @@ export default function UpdateProductForm({ type }: Props) {
   // =========================
   // AUTO CALCULATE PROFIT
   // =========================
-  const profit = form.sell_price - form.net_price;
+  const profit = calculateProfit({
+    sell_price: form.sell_price,
+    net_price: form.net_price,
+    cost_price: form.cost_price as number,
+  });
   const profitMargin =
     form.sell_price > 0
       ? ((profit / form.sell_price) * 100).toFixed(1)

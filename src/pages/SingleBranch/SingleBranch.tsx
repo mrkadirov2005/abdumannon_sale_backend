@@ -195,7 +195,7 @@ export default function SingleBranch() {
           <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 shadow-lg text-white">
             <p className="text-sm font-semibold opacity-90">Jami savdo</p>
             <p className="text-3xl font-bold mt-2">{savdo.toLocaleString()}</p>
-            <p className="text-xs opacity-75 mt-1">so'm</p>
+            <p className="text-xs opacity-75 mt-1">Rubl</p>
           </div>
 
           {/* Peak Sales Day */}
@@ -205,7 +205,7 @@ export default function SingleBranch() {
               {peakDay ? `${peakDay.day}-kun` : "N/A"}
             </p>
             <p className="text-xs opacity-75 mt-1">
-              {peakDay ? `${peakDay.total.toLocaleString()} so'm` : ""}
+              {peakDay ? `${peakDay.total.toLocaleString()} Rubl` : ""}
             </p>
           </div>
 
@@ -213,7 +213,7 @@ export default function SingleBranch() {
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 shadow-lg text-white">
             <p className="text-sm font-semibold opacity-90">O'rtacha kunlik</p>
             <p className="text-3xl font-bold mt-2">{Math.round(avgDailySales).toLocaleString()}</p>
-            <p className="text-xs opacity-75 mt-1">so'm/kun</p>
+            <p className="text-xs opacity-75 mt-1">Rubl/kun</p>
           </div>
         </div>
 
@@ -243,17 +243,17 @@ export default function SingleBranch() {
             </tr>
             <tr style={trStyle}>
               <td style={tdStyle}>Jami savdo</td>
-              <td style={tdStyle}>{savdo.toLocaleString()} so'm</td>
+              <td style={tdStyle}>{savdo.toLocaleString()} Rubl</td>
             </tr>
             <tr style={trStyle}>
               <td style={tdStyle}>Eng yaxshi kun</td>
               <td style={tdStyle}>
-                {peakDay ? `${peakDay.day}-kun (${peakDay.total.toLocaleString()} so'm)` : "N/A"}
+                {peakDay ? `${peakDay.day}-kun (${peakDay.total.toLocaleString()} Rubl)` : "N/A"}
               </td>
             </tr>
             <tr style={trStyle}>
               <td style={tdStyle}>O'rtacha kunlik savdo</td>
-              <td style={tdStyle}>{Math.round(avgDailySales).toLocaleString()} so'm</td>
+              <td style={tdStyle}>{Math.round(avgDailySales).toLocaleString()} Rubl</td>
             </tr>
             <tr style={trStyle}>
               <td style={tdStyle}>Faol kunlar</td>

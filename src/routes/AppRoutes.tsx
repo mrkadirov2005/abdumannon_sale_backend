@@ -40,12 +40,15 @@ function RequireAuth({ children }: { children: JSX.Element }) {
    =========================== */
 
 export default function AppRoutes() {
+
   return (
     <Suspense fallback={<div style={{ padding: 20 }}>Loading...</div>}>
       <Routes>
         {/* ---------- Public route ---------- */}
         <Route path="/auth/login" element={<Login />} />
+        {/* if the route coming is  /, navigate to /sales */}
 
+        <Route path="/" element={<Navigate to="/sales" replace />} />
         {/* ---------- Protected app ---------- */}
         <Route
           path="/*"

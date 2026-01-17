@@ -64,7 +64,8 @@ const authSlice = createSlice({
       state.isSuperAdmin=true;
 
       const user = action.payload;
-      state.user = user.user ?? user;  // adjust depending on your payload shape
+      state.user = user.user ?? user; 
+      localStorage.setItem("Token", user.accessToken ?? ""); // adjust depending on your payload shape
 
       state.accessToken = user.accessToken ?? null;
       state.refreshToken = user.refreshToken ?? null;

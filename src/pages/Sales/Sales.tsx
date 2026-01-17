@@ -127,7 +127,7 @@ export default function Sales() {
       name: product.name,
       price: product.sell_price,
       netPrice: product.net_price,
-      quantity: 1,
+      quantity: 0,
     };
     dispatch(addToCart(cartItem));
   }
@@ -192,17 +192,17 @@ export default function Sales() {
     }
 
     if (!adminName || adminName.trim() === "") {
-      alert("Admin name is missing. Please check your user profile.");
+      alert("Klient nomi mavjud emas. Iltimos, foydalanuvchi profilingizni tekshiring.");
       return;
     }
 
     if (!adminNumber || adminNumber.trim() === "") {
-      alert("Admin phone number is missing. Please check your user profile.");
+      alert("Admin telefon raqami mavjud emas. Iltimos, foydalanuvchi profilingizni tekshiring.");
       return;
     }
 
     if (!method) {
-      alert("Please select a payment method.");
+      alert("Iltimos, to'lov usulini tanlang.");
       return;
     }
 
@@ -233,9 +233,9 @@ export default function Sales() {
     } catch (error: any) {
       const errorMessage = typeof error === "string" ? error : error?.message;
       if (errorMessage && errorMessage !== "Checkout failed") {
-        alert(`Checkout failed: ${errorMessage}`);
+        alert(`To'lov amalga oshmadi: ${errorMessage}`);
       } else {
-        alert("Checkout failed. Please try again.");
+        alert("To'lov amalga oshmadi. Iltimos, qayta urinib ko'ring.");
       }
     }
   }
@@ -271,11 +271,11 @@ export default function Sales() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-2">
-              <FiShoppingCart className="text-blue-600" /> Checkout
+              <FiShoppingCart className="text-blue-600" /> To'lov
             </h1>
-            <p className="text-gray-600 mt-1">Fast cashier view — search, filter & checkout products</p>
+            <p className="text-gray-600 mt-1">Tez kassir ko'rinishi — mahsulotlarni qidirish, filtrlash va to'lov qilish</p>
           </div>
-          <Tooltip title="Refresh data">
+          <Tooltip title="Ma'lumotlarni yangilash">
             <Button
               onClick={() => {
                 // @ts-ignore
@@ -285,7 +285,7 @@ export default function Sales() {
               variant="outlined"
               startIcon={<Refresh />}
             >
-              Refresh
+              Yangilash
             </Button>
           </Tooltip>
         </div>
@@ -341,7 +341,7 @@ export default function Sales() {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search products..."
+                placeholder="Mahsulotlarni qidirish..."
                 className="w-full px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <FiSearch className="absolute right-3 top-2.5 text-gray-400" />
@@ -388,7 +388,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Low Stock (≤ {LOW_STOCK_THRESHOLD})
+                  Kam zaxirada (≤ {LOW_STOCK_THRESHOLD})
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "high_stock"}
@@ -397,7 +397,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  High Stock (&gt; {LOW_STOCK_THRESHOLD})
+                  Ko'p zaxirada (&gt; {LOW_STOCK_THRESHOLD})
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "not_available"}
@@ -406,7 +406,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Out of Stock
+                  Zaxirada yo'q
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "expired"}
@@ -415,7 +415,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Expired
+                  Muddati o'tgan
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "price_asc"}
@@ -424,7 +424,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Price: Low → High
+                  Narx: Pastdan Yuqoriga
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "price_desc"}
@@ -433,7 +433,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Price: High → Low
+                  Narx: Yuqoridan Pastga
                 </MenuItem>
               </Menu>
 
@@ -445,12 +445,12 @@ export default function Sales() {
                 }}
                 className="px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
               >
-                Reset
+                Qayta o'rnatish
               </button>
             </div>
 
             <div className="text-xs text-gray-500 font-medium">
-              Found: <span className="font-bold text-gray-900">{filtered.length}</span> products
+              Topildi: <span className="font-bold text-gray-900">{filtered.length}</span> mahsulot
             </div>
           </div>
 
@@ -482,7 +482,7 @@ export default function Sales() {
                           : "bg-green-100 text-green-700"
                       }`}
                     >
-                      Stock: {p.availability}
+                      Zaxira: {p.availability}
                     </div>
                     <button
                       onClick={() => handleAddToCart(p)}
@@ -493,7 +493,7 @@ export default function Sales() {
                           : "bg-blue-600 text-white hover:bg-blue-700"
                       }`}
                     >
-                      Add
+                      Qo'shish
                     </button>
                   </div>
                 </div>
@@ -503,7 +503,7 @@ export default function Sales() {
             {filtered.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <FiSearch size={32} className="mb-2 opacity-50" />
-                <p className="text-sm">No products found</p>
+                <p className="text-sm">Mahsulot topilmadi</p>
               </div>
             )}
           </div>
@@ -516,7 +516,7 @@ export default function Sales() {
               <Badge badgeContent={cart.length} color="primary">
                 <FiShoppingCart className="text-gray-700" />
               </Badge>
-              Cart
+              Savat
             </h2>
           </div>
 
@@ -524,7 +524,7 @@ export default function Sales() {
             {cart.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <FiShoppingCart size={32} className="mb-2 opacity-50" />
-                <p className="text-sm">Cart is empty</p>
+                <p className="text-sm">Savat bo'sh</p>
               </div>
             )}
 
@@ -534,17 +534,18 @@ export default function Sales() {
                   <div className="flex-1">
                     <div className="font-medium text-gray-900 mb-2">{product.name}</div>
                     <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <span>Price:</span>
+                      <span>Narx:</span>
                       <input
                         type="number"
-                        value={product.price}
+                        value={product.price || ''}
                         onChange={(e) => {
-                          const val = parseFloat(e.target.value);
+                          const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
                           if (!isNaN(val) && val >= 0) {
                             dispatch(updatePrice({ productid: product.productid, price: val }));
                           }
                         }}
                         className="w-20 px-2 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="0.00"
                       />
                     </div>
                   </div>
@@ -558,18 +559,18 @@ export default function Sales() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Qty:</span>
+                    <span className="text-sm text-gray-600">Miqdor:</span>
                     <input
                       type="number"
-                      min="1"
-                      value={product.quantity}
+                      value={product.quantity || ''}
                       onChange={(e) => {
-                        const val = parseInt(e.target.value);
-                        if (!isNaN(val) && val > 0) {
+                        const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                        if (!isNaN(val) && val >= 0) {
                           dispatch(updateQuantity({ productid: product.productid, quantity: val }));
                         }
                       }}
                       className="w-16 px-2 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0"
                     />
                   </div>
                   <div className="font-bold text-gray-900">{formatter.format(product.price * product.quantity)}</div>
@@ -584,7 +585,7 @@ export default function Sales() {
               disabled={cart.length === 0}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Clear Cart
+              Savatni tozalash
             </button>
           </div>
         </div>
@@ -628,7 +629,7 @@ export default function Sales() {
             {/* TOTAL */}
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-900">Total</span>
+                <span className="font-semibold text-gray-900">Umumiy</span>
                 <span className="text-2xl font-bold text-blue-600">{formatter.format(totals.finalTotal)}</span>
               </div>
             </div>
@@ -636,7 +637,7 @@ export default function Sales() {
             {/* PAYMENT SECTION */}
             {showPayment && (
               <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-sm text-gray-900">Payment Method</h4>
+                <h4 className="font-semibold text-sm text-gray-900">To'lov usuli</h4>
                 <select
                   value={paymentMethod}
                   onChange={(e) => {
@@ -657,18 +658,18 @@ export default function Sales() {
                     type="text"
                     value={customPaymentMethod}
                     onChange={(e) => setCustomPaymentMethod(e.target.value)}
-                    placeholder="Enter payment method..."
+                    placeholder="To'lov usulini kiriting..."
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Admin Name (Optional)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Klient Nomi (ixtiyoriy)</label>
                   <input
                     type="text"
                     value={customAdminName}
                     onChange={(e) => setCustomAdminName(e.target.value)}
-                    placeholder="Enter admin name (leave empty for default)..."
+                    placeholder="Klient nomini kiriting (bo'sh qoldiring, agar standart bo'lsa)..."
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -684,14 +685,14 @@ export default function Sales() {
                     }}
                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors"
                   >
-                    Cancel
+                    Bekor qilish
                   </button>
                   <button
                     onClick={handleConfirmPayment}
                     disabled={loading || (paymentMethod === "boshqa" && !customPaymentMethod.trim())}
                     className="flex-1 px-3 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
-                    {loading ? "Processing..." : "Confirm"}
+                    {loading ? "To'lov kiritilmoqda..." : "Tasdiqlash"}
                   </button>
                 </div>
               </div>
@@ -709,7 +710,7 @@ export default function Sales() {
                       : "bg-gray-300 cursor-not-allowed"
                   }`}
                 >
-                  {loading ? "Processing..." : `Checkout — ${formatter.format(totals.finalTotal)}`}
+                  {loading ? "To'lov amalga oshirilmoqda..." : `To'lov — ${formatter.format(totals.finalTotal)}`}
                 </button>
               </div>
             )}

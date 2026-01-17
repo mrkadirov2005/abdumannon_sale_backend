@@ -20,7 +20,8 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
     const totalQuantity = products.reduce((sum, p) => sum + (p.availability || 0), 0);
     const totalInventoryValue = products.reduce((sum, p) => sum + ((p.sell_price || 0) * (p.availability || 0)), 0);
     const totalNetValue = products.reduce((sum, p) => sum + ((p.net_price || 0) * (p.availability || 0)), 0);
-    const totalProfit = totalInventoryValue - totalNetValue;
+    const totalCostValue = products.reduce((sum, p) => sum + (((p.cost_price ?? 0) + p.net_price) * (p.availability || 0)), 0);
+    const totalProfit = totalCostValue - totalInventoryValue;
     const profitMargin = totalInventoryValue > 0 ? (totalProfit / totalInventoryValue) * 100 : 0;
 
     // Stock status counts

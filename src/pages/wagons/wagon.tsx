@@ -82,6 +82,7 @@ const WagonsPage: React.FC = () => {
 
   // Form State
   const [formData, setFormData] = useState({
+    client_name: "",
     wagon_number: "",
     indicator: "none" as "debt_taken" | "debt_given" | "none",
     branch: null as number | null,
@@ -181,6 +182,9 @@ const WagonsPage: React.FC = () => {
     // Calculate total paid amount - sum of all paid amounts
     const totalPaidAmount = validProducts.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
 
+    // Join client_name and wagon_number with comma
+    const combinedWagonNumber = `${formData.client_name},${formData.wagon_number}`;
+
     try {
       const uuid = localStorage.getItem("uuid");
 
@@ -192,7 +196,9 @@ const WagonsPage: React.FC = () => {
           uuid: uuid || "",
         },
         body: JSON.stringify({
-          ...formData,
+          wagon_number: combinedWagonNumber,
+          indicator: formData.indicator,
+          branch: formData.branch,
           paid_amount: totalPaidAmount,
           products,
         }),
@@ -235,6 +241,9 @@ const WagonsPage: React.FC = () => {
     // Calculate total paid amount - sum of all paid amounts
     const totalPaidAmount = validProducts.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
 
+    // Join client_name and wagon_number with comma
+    const combinedWagonNumber = `${formData.client_name},${formData.wagon_number}`;
+
     try {
       
       const uuid = localStorage.getItem("uuid");
@@ -248,7 +257,9 @@ const WagonsPage: React.FC = () => {
         },
         body: JSON.stringify({
           id: selectedWagon.id,
-          ...formData,
+          wagon_number: combinedWagonNumber,
+          indicator: formData.indicator,
+          branch: formData.branch,
           paid_amount: totalPaidAmount,
           products,
         }),
@@ -305,8 +316,14 @@ const WagonsPage: React.FC = () => {
   // Open Edit Modal
   const openEditModal = (wagon: Wagon) => {
     setSelectedWagon(wagon);
+    // Split wagon_number by comma
+    const parts = wagon.wagon_number.split(',');
+    const client_name = parts[0] || '';
+    const wagon_num = parts[1] || '';
+    
     setFormData({
-      wagon_number: wagon.wagon_number,
+      client_name: client_name,
+      wagon_number: wagon_num,
       indicator: wagon.indicator,
       branch: wagon.branch,
     });
@@ -328,6 +345,7 @@ const WagonsPage: React.FC = () => {
   // Reset Form
   const resetForm = () => {
     setFormData({
+      client_name: "",
       wagon_number: "",
       indicator: "none",
       branch: null,
@@ -364,9 +382,13 @@ const WagonsPage: React.FC = () => {
       list = list.filter((w) => w.indicator === indicatorFilter);
     }
 
-    // Filter by selected person (wagon_number in folders view)
+    // Filter by selected person (client name - part before comma)
     if (selectedPerson) {
-      list = list.filter((w) => w.wagon_number.toLowerCase() === selectedPerson.toLowerCase());
+      list = list.filter((w) => {
+        const parts = w.wagon_number.split(',');
+        const clientName = parts[0] || w.wagon_number;
+        return clientName.toLowerCase() === selectedPerson.toLowerCase();
+      });
     }
 
     // Filter by search
@@ -397,7 +419,7 @@ const WagonsPage: React.FC = () => {
     return list;
   }, [wagons, indicatorFilter, selectedPerson, searchQuery, sortField, sortDirection]);
 
-  // Get unique persons (wagon numbers grouped)
+  // Get unique persons (wagon numbers grouped by client name)
   const getUniquePersons = useMemo(() => {
     const personsMap = new Map<string, { name: string; totalWagons: number; totalAmount: number; wagons: Wagon[] }>();
 
@@ -407,15 +429,18 @@ const WagonsPage: React.FC = () => {
     }
 
     filteredWagons.forEach((wagon) => {
-      const name = wagon.wagon_number;
-      if (personsMap.has(name)) {
-        const existing = personsMap.get(name)!;
+      // Extract client name (part before comma)
+      const parts = wagon.wagon_number.split(',');
+      const clientName = parts[0] || wagon.wagon_number;
+      
+      if (personsMap.has(clientName)) {
+        const existing = personsMap.get(clientName)!;
         existing.totalWagons++;
         existing.totalAmount += parseFloat(wagon.total.toString());
         existing.wagons.push(wagon);
       } else {
-        personsMap.set(name, {
-          name,
+        personsMap.set(clientName, {
+          name: clientName,
           totalWagons: 1,
           totalAmount: parseFloat(wagon.total.toString()),
           wagons: [wagon],
@@ -572,7 +597,7 @@ const WagonsPage: React.FC = () => {
 
           <div class="total-section">
             <div class="total-row">
-              ИТОГО: ${parseFloat(wagon.total.toString()).toLocaleString()} so'm
+              ИТОГО: ${parseFloat(wagon.total.toString()).toLocaleString()} Rubl
             </div>
           </div>
 
@@ -641,7 +666,7 @@ const WagonsPage: React.FC = () => {
           </div>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold">{statistics.total_wagons}</p>
           <p className="text-xs sm:text-sm opacity-75 mt-1">
-            {statistics.total_amount.toLocaleString()} so'm
+            {statistics.total_amount.toLocaleString()} Rubl
           </p>
         </div>
 
@@ -659,7 +684,7 @@ const WagonsPage: React.FC = () => {
           </div>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold">{statistics.debt_taken_count}</p>
           <p className="text-xs sm:text-sm opacity-75 mt-1">
-            {statistics.debt_taken_amount.toLocaleString()} so'm
+            {statistics.debt_taken_amount.toLocaleString()} Rubl
           </p>
         </div>
 
@@ -677,7 +702,7 @@ const WagonsPage: React.FC = () => {
           </div>
           <p className="text-2xl sm:text-3xl md:text-4xl font-bold">{statistics.debt_given_count}</p>
           <p className="text-xs sm:text-sm opacity-75 mt-1">
-            {statistics.debt_given_amount.toLocaleString()} so'm
+            {statistics.debt_given_amount.toLocaleString()} Rubl
           </p>
         </div>
 
@@ -822,7 +847,7 @@ const WagonsPage: React.FC = () => {
                   <div className="flex justify-between py-2 bg-red-100 px-3 rounded-lg">
                     <span className="font-bold text-gray-900">Jami Summa:</span>
                     <span className="font-bold text-red-900 text-lg">
-                      {statistics.debt_taken_amount.toLocaleString()} so'm
+                      {statistics.debt_taken_amount.toLocaleString()} Rubl
                     </span>
                   </div>
                 </div>
@@ -841,7 +866,7 @@ const WagonsPage: React.FC = () => {
                   <div className="flex justify-between py-2 bg-green-100 px-3 rounded-lg">
                     <span className="font-bold text-gray-900">Jami Summa:</span>
                     <span className="font-bold text-green-900 text-lg">
-                      {statistics.debt_given_amount.toLocaleString()} so'm
+                      {statistics.debt_given_amount.toLocaleString()} Rubl
                     </span>
                   </div>
                 </div>
@@ -872,7 +897,7 @@ const WagonsPage: React.FC = () => {
                 <div className="bg-white rounded-lg p-4 border border-blue-200">
                   <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
                   <p className="text-2xl font-bold text-blue-900">
-                    {statistics.total_amount.toLocaleString()} so'm
+                    {statistics.total_amount.toLocaleString()} Rubl
                   </p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-blue-200">
@@ -880,7 +905,7 @@ const WagonsPage: React.FC = () => {
                   <p className="text-2xl font-bold text-blue-900">
                     {statistics.total_wagons > 0 
                       ? (statistics.total_amount / statistics.total_wagons).toFixed(0) 
-                      : '0'} so'm
+                      : '0'} Rubl
                   </p>
                 </div>
               </div>
@@ -933,12 +958,12 @@ const WagonsPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
-                      <div className="text-right">
+                      {/* <div className="text-right">
                         <p className="text-xs sm:text-sm md:text-base font-medium text-gray-600">Jami Summa</p>
                         <p className="text-sm sm:text-lg md:text-xl font-bold text-blue-900">
-                          {person.totalAmount.toLocaleString()} so'm
+                          {person.totalAmount.toLocaleString()} Rubl
                         </p>
-                      </div>
+                      </div> */}
                       <ChevronRight className="text-gray-400 group-hover:text-blue-600 transition flex-shrink-0" size={24} />
                     </div>
                   </div>
@@ -1013,7 +1038,7 @@ const WagonsPage: React.FC = () => {
                 <div className="flex justify-between border-t border-gray-200 pt-2">
                   <span className="text-gray-600 font-bold">Jami Summa:</span>
                   <span className="font-bold text-blue-600 text-base md:text-lg">
-                    {parseFloat(wagon.total.toString()).toLocaleString()} so'm
+                    {parseFloat(wagon.total.toString()).toLocaleString()} Rubl
                   </span>
                 </div>
               </div>
@@ -1145,7 +1170,7 @@ const WagonsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                      {parseFloat(wagon.total.toString()).toLocaleString()} so'm
+                      {parseFloat(wagon.total.toString()).toLocaleString()} Rubl
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-2">
@@ -1215,30 +1240,34 @@ const WagonsPage: React.FC = () => {
             {/* MODAL CONTENT */}
             <div className="p-4 sm:p-6 overflow-y-auto flex-1">
               <form onSubmit={handleCreateWagon} className="space-y-4 sm:space-y-6">
+                {/* Client Name */}
+                <div>
+                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
+                    Klient Nomi <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.client_name}
+                    onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                    className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masalan: Ali Valiyev"
+                    required
+                  />
+                </div>
+
                 {/* Wagon Number */}
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    {getPersonLabel(formData.indicator)} <span className="text-red-500">*</span>
+                    Vagon Raqami <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.wagon_number}
                     onChange={(e) => setFormData({ ...formData, wagon_number: e.target.value })}
                     className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder={
-                      formData.indicator === "debt_taken" 
-                        ? "Masalan: Ali Valiyev" 
-                        : formData.indicator === "debt_given"
-                        ? "Masalan: Vali Aliyev"
-                        : "Masalan: VGN-12345"
-                    }
+                    placeholder="Masalan: VGN-12345"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {formData.indicator === "debt_taken" && "Sizdan oladigan shaxs nomi"}
-                    {formData.indicator === "debt_given" && "Sizga sotuvchi shaxs nomi"}
-                    {formData.indicator === "none" && "Vagon identifikatsiya raqami"}
-                  </p>
                 </div>
 
                 {/* Indicator */}
@@ -1373,6 +1402,20 @@ const WagonsPage: React.FC = () => {
               <form onSubmit={handleUpdateWagon} className="space-y-4 sm:space-y-6">
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
+                    Klient Nomi <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.client_name}
+                    onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                    className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masalan: Ali Valiyev"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
                     Vagon Raqami <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -1380,6 +1423,7 @@ const WagonsPage: React.FC = () => {
                     value={formData.wagon_number}
                     onChange={(e) => setFormData({ ...formData, wagon_number: e.target.value })}
                     className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Masalan: VGN-12345"
                     required
                   />
                 </div>
@@ -1529,7 +1573,7 @@ const WagonsPage: React.FC = () => {
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
                         <p className="text-lg font-bold text-green-900">
-                          {totalAmount.toLocaleString()} so'm
+                          {totalAmount.toLocaleString()} Rubl
                         </p>
                       </div>
                       <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
@@ -1596,13 +1640,13 @@ const WagonsPage: React.FC = () => {
                               {product.amount}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {product.price.toLocaleString()} so'm
+                              {product.price.toLocaleString()} Rubl
                             </td>
                             <td className="px-4 py-3 text-sm font-semibold text-blue-600 text-right">
-                              {product.subtotal.toLocaleString()} so'm
+                              {product.subtotal.toLocaleString()} Rubl
                             </td>
                             <td className="px-4 py-3 text-sm font-semibold text-green-600 text-left">
-                              {parseFloat(paidAmount.toString()).toLocaleString()} so'm
+                              {parseFloat(paidAmount.toString()).toLocaleString()} Rubl
                             </td>
                           </tr>
                         );
@@ -1612,13 +1656,13 @@ const WagonsPage: React.FC = () => {
                           JAMI:
                         </td>
                         <td className="px-4 py-3 text-right text-blue-900 text-lg">
-                          {parseFloat(selectedWagon.total.toString()).toLocaleString()} so'm
+                          {parseFloat(selectedWagon.total.toString()).toLocaleString()} Rubl
                         </td>
                         <td className="px-4 py-3 text-left text-blue-900 text-lg">
                           {selectedWagon.products.reduce((sum, p) => {
                             const paid = (p.paid_amount !== undefined && p.paid_amount !== null) ? p.paid_amount : 0;
                             return sum + parseFloat(paid.toString());
-                          }, 0).toLocaleString()} so'm
+                          }, 0).toLocaleString()} Rubl
                         </td>
                       </tr>
                     </tbody>
