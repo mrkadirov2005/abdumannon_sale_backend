@@ -329,11 +329,11 @@ export default function Sales() {
       </div>
 
       {/* MAIN LAYOUT */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-[calc(100vh-250px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 h-[calc(100vh-250px)]">
         {/* LEFT: PRODUCT LIST */}
-        <div className="xl:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+        <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
           {/* FILTERS */}
-          <div className="p-4 border-b border-gray-100 space-y-3">
+          <div className="p-3 md:p-4 border-b border-gray-100 space-y-2 md:space-y-3">
             {/* Search */}
             <div className="relative">
               <input
@@ -352,7 +352,7 @@ export default function Sales() {
               <select
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {brandNames.map((b) => (
                   <option key={b} value={b}>
@@ -443,7 +443,7 @@ export default function Sales() {
                   setBrand("All");
                   setSortType("default");
                 }}
-                className="px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                className="px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm font-medium hover:bg-gray-50 transition-colors"
               >
                 Qayta o'rnatish
               </button>
@@ -455,26 +455,26 @@ export default function Sales() {
           </div>
 
           {/* PRODUCT LIST */}
-          <div className="flex-1 overflow-y-auto space-y-2 p-4">
+          <div className="flex-1 overflow-y-auto space-y-1 md:space-y-2 p-2 md:p-4">
             {filtered.map((p) => (
               <div
                 key={p.id}
-                className="p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all group"
+                className="p-2 md:p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all group"
               >
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-1 md:gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate">{p.name}</div>
+                    <div className="font-medium text-xs md:text-sm text-gray-900 truncate">{p.name}</div>
                     <div className="text-xs text-gray-500">
                       {convertIdToBrandName(p.brand_id, brands) || "Unknown"}
                     </div>
-                    <div className="text-sm font-bold text-blue-600 mt-1">
+                    <div className="text-xs md:text-sm font-bold text-blue-600 mt-0.5 md:mt-1">
                       {formatter.format(p.sell_price)}
                     </div>
                   </div>
 
-                  <div className="text-right space-y-1">
+                  <div className="text-right space-y-0.5 md:space-y-1">
                     <div
-                      className={`text-xs font-semibold px-2 py-1 rounded ${
+                      className={`text-xs font-semibold px-1.5 md:px-2 py-0.5 md:py-1 rounded ${
                         p.availability === 0
                           ? "bg-red-100 text-red-700"
                           : p.availability <= LOW_STOCK_THRESHOLD
@@ -487,7 +487,7 @@ export default function Sales() {
                     <button
                       onClick={() => handleAddToCart(p)}
                       disabled={p.availability <= 0}
-                      className={`w-full px-2 py-1.5 rounded text-sm font-medium transition-colors ${
+                      className={`w-full px-1.5 md:px-2 py-1 md:py-1.5 rounded text-xs md:text-sm font-medium transition-colors ${
                         p.availability <= 0
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                           : "bg-blue-600 text-white hover:bg-blue-700"
@@ -510,9 +510,9 @@ export default function Sales() {
         </div>
 
         {/* MIDDLE: CART */}
-        <div className="xl:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-gray-100">
-            <h2 className="font-bold text-lg flex items-center gap-2">
+        <div className="lg:col-span-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+          <div className="p-3 md:p-4 border-b border-gray-100">
+            <h2 className="font-bold text-base md:text-lg flex items-center gap-2">
               <Badge badgeContent={cart.length} color="primary">
                 <FiShoppingCart className="text-gray-700" />
               </Badge>
@@ -520,19 +520,19 @@ export default function Sales() {
             </h2>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-2 p-4">
+          <div className="flex-1 overflow-y-auto space-y-1 md:space-y-2 p-2 md:p-4">
             {cart.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <FiShoppingCart size={32} className="mb-2 opacity-50" />
-                <p className="text-sm">Savat bo'sh</p>
+                <p className="text-xs md:text-sm">Savat bo'sh</p>
               </div>
             )}
 
             {cart.map((product) => (
-              <div key={product.productid} className="p-3 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
+              <div key={product.productid} className="p-2 md:p-3 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-2 md:mb-3">
                   <div className="flex-1">
-                    <div className="font-medium text-gray-900 mb-2">{product.name}</div>
+                    <div className="font-medium text-xs md:text-sm text-gray-900 mb-1 md:mb-2">{product.name}</div>
                     <div className="flex items-center gap-2 text-xs text-gray-600">
                       <span>Narx:</span>
                       <input
@@ -544,7 +544,7 @@ export default function Sales() {
                             dispatch(updatePrice({ productid: product.productid, price: val }));
                           }
                         }}
-                        className="w-20 px-2 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-16 md:w-20 px-2 py-0.5 md:py-1 text-center text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="0.00"
                       />
                     </div>
@@ -553,13 +553,13 @@ export default function Sales() {
                     onClick={() => handleRemoveFromCart(product.productid)}
                     className="text-red-600 hover:text-red-700 transition-colors"
                   >
-                    <FiTrash2 size={16} />
+                    <FiTrash2 size={14} />
                   </button>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Miqdor:</span>
+                    <span className="text-xs text-gray-600">Miqdor:</span>
                     <input
                       type="number"
                       value={product.quantity || ''}
@@ -569,21 +569,21 @@ export default function Sales() {
                           dispatch(updateQuantity({ productid: product.productid, quantity: val }));
                         }
                       }}
-                      className="w-16 px-2 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-12 md:w-16 px-2 py-0.5 md:py-1 text-center text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="0"
                     />
                   </div>
-                  <div className="font-bold text-gray-900">{formatter.format(product.price * product.quantity)}</div>
+                  <div className="font-bold text-xs md:text-sm text-gray-900">{formatter.format(product.price * product.quantity)}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="p-4 border-t border-gray-100">
+          <div className="p-2 md:p-4 border-t border-gray-100">
             <button
               onClick={() => dispatch(clearCart())}
               disabled={cart.length === 0}
-              className="w-full px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Savatni tozalash
             </button>
@@ -591,34 +591,34 @@ export default function Sales() {
         </div>
 
         {/* RIGHT: SUMMARY & CHECKOUT */}
-        <div className="xl:col-span-1">
-          <div className="sticky top-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+        <div className="lg:col-span-1">
+          <div className="sticky top-6 bg-white rounded-xl shadow-sm border border-gray-100 p-3 md:p-6 space-y-3 md:space-y-4">
             <div className="flex items-center gap-2">
-              <Receipt className="text-blue-600" />
-              <h3 className="font-bold text-lg">Buyurtma Tafsilotlari</h3>
+              <Receipt className="text-blue-600 text-lg md:text-xl" />
+              <h3 className="font-bold text-base md:text-lg">Buyurtma Tafsilotlari</h3>
             </div>
 
             {/* ITEMS BREAKDOWN */}
-            <div className="space-y-2 py-4 border-y border-gray-200">
-              <div className="flex justify-between text-sm">
+            <div className="space-y-1 md:space-y-2 py-3 md:py-4 border-y border-gray-200">
+              <div className="flex justify-between text-xs md:text-sm">
                 <span className="text-gray-600">Mahsulotlar:</span>
                 <span className="font-semibold">{cart.length}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs md:text-sm">
                 <span className="text-gray-600">Jami narxi:</span>
                 <span className="font-semibold">{formatter.format(totals.total)}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs md:text-sm">
                 <span className="text-gray-600">To'langan:</span>
                 <input
                   type="number"
                   value={paidAmount}
                   onChange={(e) => setPaidAmount(e.target.value)}
-                  className="w-24 px-2 py-1 border border-gray-300 rounded text-right font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-20 md:w-24 px-2 py-0.5 md:py-1 border border-gray-300 rounded text-right font-semibold text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
                 />
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs md:text-sm">
                 <span className="text-gray-600">Qoldiq:</span>
                 <span className={`font-semibold ${totals.remaining > 0 ? 'text-red-600' : 'text-green-600'}`}>
                   {formatter.format(Math.abs(totals.remaining))}
@@ -627,17 +627,17 @@ export default function Sales() {
             </div>
 
             {/* TOTAL */}
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 md:p-4 rounded-lg border border-blue-200">
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-gray-900">Umumiy</span>
-                <span className="text-2xl font-bold text-blue-600">{formatter.format(totals.finalTotal)}</span>
+                <span className="font-semibold text-xs md:text-sm text-gray-900">Umumiy</span>
+                <span className="text-xl md:text-2xl font-bold text-blue-600">{formatter.format(totals.finalTotal)}</span>
               </div>
             </div>
 
             {/* PAYMENT SECTION */}
             {showPayment && (
-              <div className="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-sm text-gray-900">To'lov usuli</h4>
+              <div className="space-y-2 md:space-y-3 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="font-semibold text-xs md:text-sm text-gray-900">To'lov usuli</h4>
                 <select
                   value={paymentMethod}
                   onChange={(e) => {
@@ -646,7 +646,7 @@ export default function Sales() {
                       setCustomPaymentMethod("");
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="Naqd">💵 Naqd</option>
                   <option value="Nasiya">💳 Nasiya</option>
@@ -659,7 +659,7 @@ export default function Sales() {
                     value={customPaymentMethod}
                     onChange={(e) => setCustomPaymentMethod(e.target.value)}
                     placeholder="To'lov usulini kiriting..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}
 
@@ -670,11 +670,11 @@ export default function Sales() {
                     value={customAdminName}
                     onChange={(e) => setCustomAdminName(e.target.value)}
                     placeholder="Klient nomini kiriting (bo'sh qoldiring, agar standart bo'lsa)..."
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 pt-1 md:pt-2">
                   <button
                     onClick={() => {
                       setShowPayment(false);
@@ -683,14 +683,14 @@ export default function Sales() {
                       setPaidAmount("");
                       setCustomAdminName("");
                     }}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors"
+                    className="flex-1 px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm font-medium hover:bg-gray-100 transition-colors"
                   >
                     Bekor qilish
                   </button>
                   <button
                     onClick={handleConfirmPayment}
                     disabled={loading || (paymentMethod === "boshqa" && !customPaymentMethod.trim())}
-                    className="flex-1 px-3 py-2 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
                     {loading ? "To'lov kiritilmoqda..." : "Tasdiqlash"}
                   </button>
@@ -700,11 +700,11 @@ export default function Sales() {
 
             {/* CHECKOUT BUTTONS */}
             {!showPayment && (
-              <div className="space-y-2 pt-2">
+              <div className="space-y-2 pt-1 md:pt-2">
                 <button
                   onClick={handleCheckout}
                   disabled={cart.length === 0 || loading}
-                  className={`w-full py-3 rounded-lg font-semibold text-white transition-colors ${
+                  className={`w-full py-2 md:py-3 rounded-lg font-semibold text-xs md:text-base text-white transition-colors ${
                     cart.length && !loading
                       ? "bg-green-600 hover:bg-green-700"
                       : "bg-gray-300 cursor-not-allowed"

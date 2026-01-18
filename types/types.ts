@@ -197,8 +197,8 @@ export interface Product {
 }
 
 export const exampleProduct: Product = {
-  id: "uuid-sample",
-  name: "Pepsi",
+  id: "Namuna mahsulot",
+  name: "Namuna mahsulot",
   scale: 1,
   img_url: null,
   availability: 10,
