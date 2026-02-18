@@ -606,7 +606,7 @@ export default function Sales() {
               </div>
               <div className="flex justify-between text-xs md:text-sm">
                 <span className="text-gray-600">Jami narxi:</span>
-                <span className="font-semibold">{formatter.format(totals.total)}</span>
+                <span className="font-semibold">{totals.total}</span>
               </div>
               <div className="flex justify-between text-xs md:text-sm">
                 <span className="text-gray-600">To'langan:</span>
