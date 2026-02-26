@@ -151,7 +151,7 @@ export default function UpdateProductForm({ type }: Props) {
   ) => {
     const { name, value, type } = e.target;
 
-    setForm((prev) => ({
+    setForm((prev: any) => ({
       ...prev!,
       [name]: type === "number" ? (value === "" ? "" : Number(value)) : value,
     }));
@@ -169,7 +169,7 @@ export default function UpdateProductForm({ type }: Props) {
   const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    setForm((prev) => ({
+    setForm((prev: any) => ({
       ...prev!,
       [name]: value === "" ? null : value,
     }));
@@ -184,7 +184,7 @@ export default function UpdateProductForm({ type }: Props) {
   };
 
   const handleCheckbox = (e: ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({
+    setForm((prev: any) => ({
       ...prev!,
       is_active: e.target.checked,
     }));
@@ -258,7 +258,7 @@ export default function UpdateProductForm({ type }: Props) {
   // DUPLICATE PRODUCT
   // =========================
   const handleDuplicate = () => {
-    setForm((prev) => ({
+    setForm((prev: any) => ({
       ...prev!,
       id: "",
       name: `${prev!.name} (Copy)`,

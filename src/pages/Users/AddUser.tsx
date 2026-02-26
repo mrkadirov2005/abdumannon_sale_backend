@@ -64,7 +64,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
 
     setForm((prev) => ({
       ...prev,
-      [name]: name === "salary" ? (value === "" ? "" : Number(value)) : value,
+      [name]: name === "salary" ? (value === "" ? 0 : Number(value)) : value,
     }));
   }
 
@@ -91,7 +91,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
   function handleSubmit() {
     const payload: SendableAddAdminData = {
       ...form,
-      salary: form.salary === "" || form.salary == null ? 0 : Number(form.salary),
+      salary: form.salary ?? 0,
       branch: form.branch === "" || form.branch == null ? 0 : Number(form.branch),
       permissions: selectedPermissions,
     };

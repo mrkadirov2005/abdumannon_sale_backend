@@ -59,17 +59,30 @@ interface DebtorSummary {
 interface ProductEntry {
   id: string;
   name: string;
-  quantity: number;
-  price: number;
+  quantity: number | "";
+  price: number | "";
   totalPaid: number;
+  unit: string;
 }
 
 /* ================= COMPONENT ================= */
 
 export default function DebtManagement() {
+  const UNIT_OPTIONS = [
+    { value: "pcs", label: "Dona" },
+    { value: "kg", label: "Kg" },
+    { value: "t", label: "Tonna" },
+    { value: "l", label: "Litr" },
+  ];
+
+  const formatUnitLabel = (unit: string | undefined | null) => {
+    const normalized = unit || "pcs";
+    const found = UNIT_OPTIONS.find((opt) => opt.value === normalized);
+    return found ? found.label : normalized;
+  };
   const [debts, setDebts] = useState<Debt[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statistics, setStatistics] = useState<DebtStatistics | null>(null);
+  const [, setStatistics] = useState<DebtStatistics | null>(null);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
   const [showDebtDetail, setShowDebtDetail] = useState(false);
 
@@ -123,9 +136,10 @@ export default function DebtManagement() {
   const [currentProduct, setCurrentProduct] = useState<ProductEntry>({
     id: Date.now().toString(),
     name: "",
-    quantity: 1,
-    price: 0,
+    quantity: "",
+    price: "",
     totalPaid: 0,
+    unit: "pcs",
   });
 
   const token = useSelector(accessTokenFromStore);
@@ -322,18 +336,16 @@ export default function DebtManagement() {
 
   const calculateTotalFromProducts = (entries: ProductEntry[]) => {
     return entries.reduce((total, product) => {
-      return total + (product.price * product.quantity);
+      const price = typeof product.price === "number" ? product.price : Number(product.price) || 0;
+      const quantity = typeof product.quantity === "number" ? product.quantity : Number(product.quantity) || 0;
+      return total + price * quantity;
     }, 0);
   };
 
-  const formatProductsToString = (entries: ProductEntry[]): string => {
-    return entries
-      .map((p) => `${p.name}*${p.quantity}*${p.price}*${p.totalPaid}`)
-      .join("|");
-  };
-
   const formatProductsToArray = (entries: ProductEntry[]): string[] => {
-    return entries.map((p) => `${p.name}*${p.quantity}*${p.price}*${p.totalPaid}`);
+    return entries.map(
+      (p) => `${p.name}*${p.quantity}*${p.price}*${p.totalPaid}*${p.unit || "pcs"}`
+    );
   };
 
   const normalizeProductNames = (value: unknown): string[] => {
@@ -358,13 +370,14 @@ export default function DebtManagement() {
       if (items.length === 0) return [];
 
       return items.map((item, index) => {
-        const [name, quantity, price, totalPaid] = item.split("*");
+        const [name, quantity, price, totalPaid, unit] = item.split("*");
         return {
           id: `${index}-${Date.now()}`,
           name: name || "",
           quantity: parseInt(quantity) || 1,
           price: parseFloat(price) || 0,
           totalPaid: parseFloat(totalPaid) || 0,
+          unit: unit || "pcs",
         };
       });
     } catch (error) {
@@ -385,7 +398,9 @@ export default function DebtManagement() {
           const parts = item.split("*");
           const name = parts[0] || "";
           const quantity = parts[1] || "";
-          return `${name}${quantity ? ` (${quantity} dona)` : ""}`;
+          const unit = parts[4] || "pcs";
+          const unitLabel = formatUnitLabel(unit);
+          return `${name}${quantity ? ` (${quantity} ${unitLabel})` : ""}`;
         })
         .filter((item) => item.trim() !== "")
         .join(", ");
@@ -396,21 +411,35 @@ export default function DebtManagement() {
   };
 
   const addProductEntry = () => {
-    if (!currentProduct.name || currentProduct.quantity < 1 || currentProduct.price < 0) {
+    const quantity = typeof currentProduct.quantity === "number"
+      ? currentProduct.quantity
+      : Number(currentProduct.quantity);
+    const price = typeof currentProduct.price === "number"
+      ? currentProduct.price
+      : Number(currentProduct.price);
+
+    if (!currentProduct.name || !Number.isFinite(quantity) || quantity < 1 || !Number.isFinite(price) || price < 0) {
       toast.error("Barcha mahsulot maydonlarini to'ldiring");
       return;
     }
 
-    setProductEntries([...productEntries, currentProduct]);
+    const normalizedProduct: ProductEntry = {
+      ...currentProduct,
+      quantity,
+      price,
+    };
+
+    setProductEntries([...productEntries, normalizedProduct]);
     setCurrentProduct({
       id: Date.now().toString(),
       name: "",
-      quantity: 1,
-      price: 0,
+      quantity: "",
+      price: "",
       totalPaid: 0,
+      unit: "pcs",
     });
 
-    const total = calculateTotalFromProducts([...productEntries, currentProduct]);
+    const total = calculateTotalFromProducts([...productEntries, normalizedProduct]);
     setFormData((prev) => ({ ...prev, amount: total.toString() }));
   };
 
@@ -477,9 +506,10 @@ export default function DebtManagement() {
       setCurrentProduct({
         id: Date.now().toString(),
         name: "",
-        quantity: 1,
-        price: 0,
+        quantity: "",
+        price: "",
         totalPaid: 0,
+        unit: "pcs",
       });
       setDebtorNameInput("");
       setShowSuggestions(false);
@@ -1962,7 +1992,7 @@ export default function DebtManagement() {
                           <div className="flex-1">
                             <p className="font-medium text-gray-900">{product.name}</p>
                             <p className="text-xs text-gray-600 mt-1">
-                              {product.quantity} × {product.price.toLocaleString()}? = {(product.quantity * product.price).toLocaleString()}?
+                              {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString()}? = {(Number(product.quantity) * Number(product.price)).toLocaleString()}?
                             </p>
                           </div>
                         </div>
@@ -2112,9 +2142,10 @@ export default function DebtManagement() {
                   setCurrentProduct({
                     id: Date.now().toString(),
                     name: "",
-                    quantity: 1,
-                    price: 0,
+                    quantity: "",
+                    price: "",
                     totalPaid: 0,
+                    unit: "pcs",
                   });
                   setDebtorNameInput("");
                   setShowSuggestions(false);
@@ -2194,7 +2225,7 @@ export default function DebtManagement() {
 
                   {/* Product Input Fields */}
                   <div className="space-y-3 mb-4 bg-white p-4 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Mahsulot Nomi</label>
                         <input
@@ -2215,13 +2246,31 @@ export default function DebtManagement() {
                           onChange={(e) =>
                             setCurrentProduct({
                               ...currentProduct,
-                              quantity: e.target.value === "" ? "" : parseInt(e.target.value) || 1,
+                              quantity: e.target.value === ""
+                                ? ""
+                                : Math.max(1, Number.parseInt(e.target.value, 10) || 1),
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           min="1"
                           placeholder="1"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">O‘lchov</label>
+                        <select
+                          value={currentProduct.unit}
+                          onChange={(e) =>
+                            setCurrentProduct({ ...currentProduct, unit: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {UNIT_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Narxi (so'm)</label>
@@ -2231,7 +2280,9 @@ export default function DebtManagement() {
                           onChange={(e) =>
                             setCurrentProduct({
                               ...currentProduct,
-                              price: e.target.value === "" ? "" : parseFloat(e.target.value) || 0,
+                              price: e.target.value === ""
+                                ? ""
+                                : Math.max(0, Number.parseFloat(e.target.value) || 0),
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -2241,11 +2292,11 @@ export default function DebtManagement() {
                       </div></div>
 
                     {/* Quick Info */}
-                    {currentProduct.price > 0 && currentProduct.quantity > 0 && (
+                    {Number(currentProduct.price) > 0 && Number(currentProduct.quantity) > 0 && (
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(currentProduct.price * currentProduct.quantity).toLocaleString()}?
+                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString()}? • {formatUnitLabel(currentProduct.unit)}
                           </span>
                         </p>
                       </div>
@@ -2287,7 +2338,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} × {product.price.toLocaleString()}? = {(product.quantity * product.price).toLocaleString()}?
+                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString()}? = {(Number(product.quantity) * Number(product.price)).toLocaleString()}?
                                 </p>
                               </div>
                               <button
@@ -2331,9 +2382,10 @@ export default function DebtManagement() {
                   setCurrentProduct({
                     id: Date.now().toString(),
                     name: "",
-                    quantity: 1,
-                    price: 0,
+                    quantity: "",
+                    price: "",
                     totalPaid: 0,
+                    unit: "pcs",
                   });
                   setDebtorNameInput("");
                   setShowSuggestions(false);
@@ -2401,7 +2453,7 @@ export default function DebtManagement() {
 
                   {/* Product Input Fields */}
                   <div className="space-y-3 mb-4 bg-white p-4 rounded-lg">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Mahsulot Nomi</label>
                         <input
@@ -2422,13 +2474,31 @@ export default function DebtManagement() {
                           onChange={(e) =>
                             setCurrentProduct({
                               ...currentProduct,
-                              quantity: e.target.value === "" ? "" : parseInt(e.target.value) || 1,
+                              quantity: e.target.value === ""
+                                ? ""
+                                : Math.max(1, Number.parseInt(e.target.value, 10) || 1),
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           min="1"
                           placeholder="1"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">O‘lchov</label>
+                        <select
+                          value={currentProduct.unit}
+                          onChange={(e) =>
+                            setCurrentProduct({ ...currentProduct, unit: e.target.value })
+                          }
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {UNIT_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">Narxi (so'm)</label>
@@ -2438,7 +2508,9 @@ export default function DebtManagement() {
                           onChange={(e) =>
                             setCurrentProduct({
                               ...currentProduct,
-                              price: e.target.value === "" ? "" : parseFloat(e.target.value) || 0,
+                              price: e.target.value === ""
+                                ? ""
+                                : Math.max(0, Number.parseFloat(e.target.value) || 0),
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -2448,11 +2520,11 @@ export default function DebtManagement() {
                       </div></div>
 
                     {/* Quick Info */}
-                    {currentProduct.price > 0 && currentProduct.quantity > 0 && (
+                    {Number(currentProduct.price) > 0 && Number(currentProduct.quantity) > 0 && (
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(currentProduct.price * currentProduct.quantity).toLocaleString()}?
+                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString()}? • {formatUnitLabel(currentProduct.unit)}
                           </span>
                         </p>
                       </div>
@@ -2494,7 +2566,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} × {product.price.toLocaleString()}? = {(product.quantity * product.price).toLocaleString()}?
+                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString()}? = {(Number(product.quantity) * Number(product.price)).toLocaleString()}?
                                 </p>
                               </div>
                               <button

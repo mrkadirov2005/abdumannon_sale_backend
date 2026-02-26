@@ -101,7 +101,12 @@ export default function Admins() {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : type === "number" ? (value === "" ? "" : Number(value)) : value,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : type === "number"
+            ? (value === "" ? undefined : Number(value))
+            : value,
     }));
 
     if (formErrors[name]) {
@@ -159,10 +164,7 @@ export default function Admins() {
         const updatedAdmin: Admin = {
           ...selectedAdmin,
           ...formData,
-          salary:
-            formData.salary === "" || formData.salary == null
-              ? 0
-              : Number(formData.salary),
+          salary: formData.salary == null ? 0 : Number(formData.salary),
         } as Admin;
         await dispatch(updateShopAdminsThunk({ token, admin: updatedAdmin })).unwrap();
         toast.success(`${formData.first_name} updated successfully!`);

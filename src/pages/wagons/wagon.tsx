@@ -24,6 +24,7 @@ interface Product {
   price: number;
   subtotal: number;
   paid_amount?: number;
+  unit?: string;
 }
 
 interface Wagon {
@@ -40,6 +41,19 @@ interface Wagon {
 }
 
 const WagonsPage: React.FC = () => {
+  const UNIT_OPTIONS = [
+    { value: "pcs", label: "Dona" },
+    { value: "kg", label: "Kg" },
+    { value: "t", label: "Tonna" },
+    { value: "l", label: "Litr" },
+  ];
+
+  const formatUnitLabel = (unit: string | undefined | null) => {
+    const normalized = unit || "pcs";
+    const found = UNIT_OPTIONS.find((opt) => opt.value === normalized);
+    return found ? found.label : normalized;
+  };
+
   // State Management
   const [wagons, setWagons] = useState<Wagon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +83,8 @@ const WagonsPage: React.FC = () => {
     amount: string;
     price: string;
     paid_amount: string;
-  }>>([{ product_id: "", product_name: "", amount: "", price: "", paid_amount: "" }]);
+    unit: string;
+  }>>([{ product_id: "", product_name: "", amount: "", price: "", paid_amount: "", unit: "pcs" }]);
 
   // Fetch Wagons
   const fetchWagons = async () => {
@@ -122,6 +137,7 @@ const WagonsPage: React.FC = () => {
       amount: parseFloat(row.amount),
       price: parseFloat(row.price),
       paid_amount: parseFloat(row.paid_amount) || 0, // Send paid_amount as numeric value
+      unit: row.unit || "pcs",
     }));
 
     // Calculate total paid amount - sum of all paid amounts
@@ -181,6 +197,7 @@ const WagonsPage: React.FC = () => {
       amount: parseFloat(row.amount),
       price: parseFloat(row.price),
       paid_amount: parseFloat(row.paid_amount) || 0, // Send paid_amount as numeric value (0 if empty)
+      unit: row.unit || "pcs",
     }));
 
     // Calculate total paid amount - sum of all paid amounts
@@ -281,6 +298,7 @@ const WagonsPage: React.FC = () => {
           amount: p.amount.toString(),
           price: p.price.toString(),
           paid_amount: paidAmt.toString(),
+          unit: p.unit || "pcs",
         };
       })
     );
@@ -295,13 +313,16 @@ const WagonsPage: React.FC = () => {
       indicator: "none",
       branch: null,
     });
-    setProductRows([{ product_id: "", product_name: "", amount: "", price: "", paid_amount: "" }]);
+    setProductRows([{ product_id: "", product_name: "", amount: "", price: "", paid_amount: "", unit: "pcs" }]);
     setSelectedWagon(null);
   };
 
   // Add Product Row
   const addProductRow = () => {
-    setProductRows([...productRows, { product_id: "", product_name: "", amount: "", price: "", paid_amount: "" }]);
+    setProductRows([
+      ...productRows,
+      { product_id: "", product_name: "", amount: "", price: "", paid_amount: "", unit: "pcs" },
+    ]);
   };
 
   // Remove Product Row
@@ -393,7 +414,7 @@ const WagonsPage: React.FC = () => {
       <tr>
         <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 5%;">${i + 1}</td>
         <td style="border: 1px solid #000; padding: 5px; width: 40%;">${p.product_name}</td>
-        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 15%;">${p.amount}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 15%;">${p.amount} ${formatUnitLabel(p.unit)}</td>
         <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${p.price.toLocaleString()}</td>
         <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${p.subtotal.toLocaleString()}</td>
       </tr>
@@ -867,6 +888,17 @@ const WagonsPage: React.FC = () => {
                           onChange={(e) => updateProductRow(index, "amount", e.target.value)}
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                        <select
+                          value={row.unit}
+                          onChange={(e) => updateProductRow(index, "unit", e.target.value)}
+                          className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {UNIT_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
                         <input
                           type="number"
                           step="0.01"
@@ -998,6 +1030,17 @@ const WagonsPage: React.FC = () => {
                           onChange={(e) => updateProductRow(index, "amount", e.target.value)}
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                        <select
+                          value={row.unit}
+                          onChange={(e) => updateProductRow(index, "unit", e.target.value)}
+                          className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          {UNIT_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
                         <input
                           type="number"
                           step="0.01"
@@ -1127,7 +1170,7 @@ const WagonsPage: React.FC = () => {
                               {product.product_name}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {product.amount}
+                              {product.amount} {formatUnitLabel(product.unit)}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
                               {product.price.toLocaleString()} ?
