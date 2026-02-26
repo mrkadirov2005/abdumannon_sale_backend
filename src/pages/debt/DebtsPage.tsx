@@ -762,6 +762,36 @@ export default function DebtManagement() {
   const printDebt = (debt: Debt) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
+
+    const parsedProducts = parseProductsFromString(debt.product_names);
+    const productsHtml = parsedProducts.length > 0
+      ? parsedProducts
+        .map((p, i) => `
+            <tr>
+              <td style="text-align: center;">${i + 1}</td>
+              <td>${p.name}</td>
+              <td style="text-align: center;">${p.quantity} ${formatUnitLabel(p.unit)}</td>
+              <td style="text-align: right;">${Number(p.price).toLocaleString()}</td>
+              <td style="text-align: right;">${(Number(p.price) * Number(p.quantity)).toLocaleString()}</td>
+            </tr>
+          `)
+        .join("")
+      : `
+          <tr>
+            <td style="text-align: center;">1</td>
+            <td>${formatProductsForDisplay(debt.product_names) || "—"}</td>
+            <td style="text-align: center;">1</td>
+            <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
+            <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
+          </tr>
+        `;
+
+    const totalAmount = parsedProducts.length > 0
+      ? parsedProducts.reduce(
+        (sum, p) => sum + Number(p.price) * Number(p.quantity),
+        0
+      )
+      : debt.amount;
     
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -814,19 +844,13 @@ export default function DebtManagement() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td style="text-align: center;">1</td>
-              <td>${formatProductsForDisplay(debt.product_names)}</td>
-              <td style="text-align: center;">1</td>
-              <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
-              <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
-            </tr>
+            ${productsHtml}
           </tbody>
         </table>
 
         <div class="total-section">
           <div class="total-row">
-            ИТОГО: ${debt.amount.toLocaleString()} ?
+            ИТОГО: ${totalAmount.toLocaleString()} ?
           </div>
           <div style="margin-top: 10px;">
             <span class="info-label">Статус:</span> ${debt.isreturned ? 'Оплачено' : 'Ожидается'}

@@ -8,6 +8,11 @@ export interface Product {
   sell_price?: number;
   net_price?: number;
   category_id?: number;
+  product_id?: string;
+  product_name?: string;
+  amount?: number;
+  subtotal?: number;
+  unit?: string;
 }
 
 export interface Wagon {
