@@ -1,6 +1,6 @@
 import React from "react";
 import { Plus, Trash2, Printer } from "lucide-react";
-import type { Person, FinanceRecord, Debt } from "../types";
+import type { Person, FinanceRecord, Debt, Wagon, Product } from "../types";
 
 interface DetailsPanelProps {
   person: Person;
@@ -40,14 +40,14 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   const debts: Debt[] = person.debts || [];
 
-  const printWagon = (wagon: Person["wagons"][number]) => {
+  const printWagon = (wagon: Wagon) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
     const parts = wagon.wagon_number.split(",");
     const wagonNumber = parts[1] || wagon.wagon_number;
     const productsHtml = (wagon.products || [])
-      .map((product, idx) => {
+      .map((product: Product, idx: number) => {
         const name = product.product_name || product.name || "";
         const quantity = Number(product.amount ?? 0);
         const unit = formatUnitLabel(product.unit);
