@@ -19,12 +19,23 @@ export interface Wagon {
   products: Product[];
 }
 
+export interface Debt {
+  id: string;
+  name: string;
+  amount: number;
+  day: number;
+  month: number;
+  year: number;
+  isreturned: boolean;
+}
+
 export interface Person {
   name: string;
   totalAmount: number;
   paidAmount: number;
   remainingAmount: number;
-  wagons: Wagon[];
+  wagons?: Wagon[];
+  debts?: Debt[];
 }
 
 export interface FinanceRecord {

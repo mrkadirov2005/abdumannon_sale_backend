@@ -42,6 +42,8 @@ export default function Sales() {
   const [customPaymentMethod, setCustomPaymentMethod] = useState<string>("");
   const [paidAmount, setPaidAmount] = useState<string>("");
   const [customAdminName, setCustomAdminName] = useState<string>("");
+  const [priceInputs, setPriceInputs] = useState<Record<string, string>>({});
+  const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
   const [sortType, setSortType] = useState<
     "default" | "low_stock" | "high_stock" | "not_available" | "expired" | "price_asc" | "price_desc"
@@ -73,11 +75,43 @@ export default function Sales() {
     }
   }, [shop_id, token, dispatch]);
 
+  useEffect(() => {
+    setPriceInputs((prev) => {
+      const next = { ...prev };
+      cart.forEach((item) => {
+        if (next[item.productid] === undefined) {
+          next[item.productid] = String(item.price ?? "");
+        }
+      });
+      Object.keys(next).forEach((id) => {
+        if (!cart.find((item) => item.productid === id)) {
+          delete next[id];
+        }
+      });
+      return next;
+    });
+
+    setQuantityInputs((prev) => {
+      const next = { ...prev };
+      cart.forEach((item) => {
+        if (next[item.productid] === undefined) {
+          next[item.productid] = String(item.quantity ?? "");
+        }
+      });
+      Object.keys(next).forEach((id) => {
+        if (!cart.find((item) => item.productid === id)) {
+          delete next[id];
+        }
+      });
+      return next;
+    });
+  }, [cart]);
+
   const formatter = useMemo(
     () =>
-      new Intl.NumberFormat("en-US", {
+      new Intl.NumberFormat("ru-RU", {
         style: "currency",
-        currency: "USD",
+        currency: "RUB",
       }),
     []
   );
@@ -90,6 +124,16 @@ export default function Sales() {
     });
     return ["All", ...Array.from(set)];
   }, [products, brands]);
+
+  const productUnitMap = useMemo(() => {
+    const map = new Map<string, string>();
+    products.forEach((p) => {
+      if (p.id) {
+        map.set(p.id, p.unit || "pcs");
+      }
+    });
+    return map;
+  }, [products]);
 
   const filtered = useMemo(() => {
     let result = products;
@@ -482,7 +526,7 @@ export default function Sales() {
                           : "bg-green-100 text-green-700"
                       }`}
                     >
-                      Zaxira: {p.availability}
+                      Zaxira: {p.availability} {p.unit || "pcs"}
                     </div>
                     <button
                       onClick={() => handleAddToCart(p)}
@@ -535,18 +579,28 @@ export default function Sales() {
                     <div className="font-medium text-xs md:text-sm text-gray-900 mb-1 md:mb-2">{product.name}</div>
                     <div className="flex items-center gap-2 text-xs text-gray-600">
                       <span>Narx:</span>
-                      <input
-                        type="number"
-                        value={product.price || ''}
-                        onChange={(e) => {
-                          const val = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                          if (!isNaN(val) && val >= 0) {
-                            dispatch(updatePrice({ productid: product.productid, price: val }));
-                          }
-                        }}
-                        className="w-16 md:w-20 px-2 py-0.5 md:py-1 text-center text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="0.00"
-                      />
+                    <input
+                      type="number"
+                      value={priceInputs[product.productid] ?? String(product.price ?? "")}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        setPriceInputs((prev) => ({ ...prev, [product.productid]: raw }));
+                        if (raw === "") return;
+                        const val = parseFloat(raw);
+                        if (!isNaN(val) && val >= 0) {
+                          dispatch(updatePrice({ productid: product.productid, price: val }));
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const raw = e.target.value;
+                        if (raw === "") {
+                          setPriceInputs((prev) => ({ ...prev, [product.productid]: "0" }));
+                          dispatch(updatePrice({ productid: product.productid, price: 0 }));
+                        }
+                      }}
+                      className="w-16 md:w-20 px-2 py-0.5 md:py-1 text-center text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="0.00"
+                    />
                     </div>
                   </div>
                   <button
@@ -562,16 +616,29 @@ export default function Sales() {
                     <span className="text-xs text-gray-600">Miqdor:</span>
                     <input
                       type="number"
-                      value={product.quantity || ''}
+                      value={quantityInputs[product.productid] ?? String(product.quantity ?? "")}
                       onChange={(e) => {
-                        const val = e.target.value === '' ? 0 : parseInt(e.target.value);
+                        const raw = e.target.value;
+                        setQuantityInputs((prev) => ({ ...prev, [product.productid]: raw }));
+                        if (raw === "") return;
+                        const val = parseInt(raw);
                         if (!isNaN(val) && val >= 0) {
                           dispatch(updateQuantity({ productid: product.productid, quantity: val }));
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const raw = e.target.value;
+                        if (raw === "") {
+                          setQuantityInputs((prev) => ({ ...prev, [product.productid]: "0" }));
+                          dispatch(updateQuantity({ productid: product.productid, quantity: 0 }));
                         }
                       }}
                       className="w-12 md:w-16 px-2 py-0.5 md:py-1 text-center text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="0"
                     />
+                    <span className="text-xs text-gray-500">
+                      {productUnitMap.get(product.productid) || "pcs"}
+                    </span>
                   </div>
                   <div className="font-bold text-xs md:text-sm text-gray-900">{formatter.format(product.price * product.quantity)}</div>
                 </div>

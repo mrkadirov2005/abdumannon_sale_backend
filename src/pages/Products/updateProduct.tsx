@@ -9,7 +9,6 @@ import type { Product } from "../../../types/types";
 import {
   accessTokenFromStore,
   getAuthFromStore,
-  getCategoriesFromStore,
   getSingleProductFromStore,
   getBranchesFromStore,
 } from "../../redux/selectors";
@@ -44,16 +43,22 @@ interface FormErrors {
   [key: string]: string;
 }
 
+const UNIT_OPTIONS = [
+  { id: "pcs", name: "Dona (pcs)" },
+  { id: "kg", name: "Kilogram (kg)" },
+  { id: "t", name: "Tonna (t)" },
+  { id: "l", name: "Litr (l)" },
+];
+
 export default function UpdateProductForm({ type }: Props) {
   const dispatch = useDispatch<AppDispatch>();
 
   const product = useSelector(getSingleProductFromStore);
   const token = useSelector(accessTokenFromStore);
   const authData = useSelector(getAuthFromStore);
-  const categories = useSelector(getCategoriesFromStore);
   const branches = useSelector(getBranchesFromStore).branches;
 
-  const [form, setForm] = useState<Product | null>(null);
+  const [form, setForm] = useState<any>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [tabValue, setTabValue] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -67,6 +72,7 @@ export default function UpdateProductForm({ type }: Props) {
       const editForm = {
         ...product,
         scale: 1,
+        unit: product.unit || "pcs",
         img_url: "",
         expire_date: "",
         brand_id: "",
@@ -81,6 +87,7 @@ export default function UpdateProductForm({ type }: Props) {
         id: "",
         name: "",
         scale: 1,
+        unit: "pcs",
         img_url: "",
         availability: 0,
         total: 0,
@@ -94,7 +101,7 @@ export default function UpdateProductForm({ type }: Props) {
         location: "",
         description: "",
         brand_id: "",
-        category_id: "",
+        category_id: null,
         shop_id: authData.user?.shop_id ?? "",
         is_active: true,
         is_expired: false,
@@ -122,17 +129,8 @@ export default function UpdateProductForm({ type }: Props) {
     if (!form.name?.trim()) {
       newErrors.name = "Mahsulot nomi majburiy";
     }
-    if (!form.category_id) {
-      newErrors.category_id = "Kategoriya majburiy";
-    }
     if (form.sell_price <= 0) {
       newErrors.sell_price = "Sotish narxi 0 dan katta bo'lishi kerak";
-    }
-    if (form.net_price < 0) {
-      newErrors.net_price = "Tozalangan narx manfiy bo'lishi mumkin emas";
-    }
-    if (form.net_price >= form.sell_price) {
-      newErrors.net_price = "Tozalangan narx sotish narxidan kichik bo'lishi kerak";
     }
     if (form.availability < 0) {
       newErrors.availability = "Mavjudlik manfiy bo'lishi mumkin emas";
@@ -155,7 +153,7 @@ export default function UpdateProductForm({ type }: Props) {
 
     setForm((prev) => ({
       ...prev!,
-      [name]: type === "number" ? (value === "" ? 0 : Number(value)) : value,
+      [name]: type === "number" ? (value === "" ? "" : Number(value)) : value,
     }));
 
     // Clear error for this field
@@ -220,10 +218,16 @@ export default function UpdateProductForm({ type }: Props) {
     const payload: Product = {
       ...form,
       scale: 1,
+      unit: form.unit || "pcs",
       img_url: "",
       expire_date: "",
       brand_id: "",
       branch:0 ,
+      availability: form.availability === "" ? 0 : Number(form.availability),
+      total: form.total === "" ? 0 : Number(form.total),
+      net_price: form.net_price === "" ? 0 : Number(form.net_price),
+      sell_price: form.sell_price === "" ? 0 : Number(form.sell_price),
+      cost_price: form.cost_price === "" || form.cost_price == null ? null : Number(form.cost_price),
       supplier: form.supplier || null,
       description: form.description || null,
       location: form.location || null,
@@ -389,19 +393,6 @@ export default function UpdateProductForm({ type }: Props) {
                 error={errors.name}
                 required
               />
-
-              <SelectField
-                label="Kategoriya"
-                name="category_id"
-                value={form.category_id ?? ""}
-                onChange={handleSelectChange}
-                options={categories.map((c) => ({
-                  id: c.id,
-                  name: c.category_name,
-                }))}
-                error={errors.category_id}
-                required
-              />
             </div>
           )}
 
@@ -413,19 +404,8 @@ export default function UpdateProductForm({ type }: Props) {
                 name="cost_price"
                 type="number"
                 step="0.01"
-                value={form.cost_price as unknown as number}
+                value={form.cost_price ?? ""}
                 onChange={handleChange}
-              />
-
-              <FormField
-                label="Tozalangan narx (Optom)"
-                name="net_price"
-                type="number"
-                step="0.01"
-                value={form.net_price}
-                onChange={handleChange}
-                error={errors.net_price}
-                required
               />
 
               <FormField
@@ -433,7 +413,7 @@ export default function UpdateProductForm({ type }: Props) {
                 name="sell_price"
                 type="number"
                 step="0.01"
-                value={form.sell_price}
+                value={form.sell_price ?? ""}
                 onChange={handleChange}
                 error={errors.sell_price}
                 required
@@ -469,11 +449,19 @@ export default function UpdateProductForm({ type }: Props) {
           {/* TAB 2: STOCK & DATES */}
           {tabValue === 2 && (
             <div className="space-y-4">
+              <SelectField
+                label="O'lchov birligi"
+                name="unit"
+                value={form.unit ?? "pcs"}
+                onChange={handleSelectChange}
+                options={UNIT_OPTIONS}
+              />
+
               <FormField
                 label="Hozirgi ombor"
                 name="availability"
                 type="number"
-                value={form.availability}
+                value={form.availability ?? ""}
                 onChange={handleChange}
                 error={errors.availability}
               />
@@ -482,14 +470,14 @@ export default function UpdateProductForm({ type }: Props) {
                 label="Jami miqdori"
                 name="total"
                 type="number"
-                value={form.total}
+                value={form.total ?? ""}
                 onChange={handleChange}
                 error={errors.total}
               />
 
               {form.availability !== null && form.total !== null && (
                 <Chip
-                  label={`Ombor holati: ${form.availability}/${form.total} birlik`}
+                  label={`Ombor holati: ${form.availability}/${form.total} ${form.unit || "pcs"}`}
                   variant="outlined"
                   color={form.availability > 0 ? "success" : "error"}
                   sx={{ width: "100%", py: 3 }}

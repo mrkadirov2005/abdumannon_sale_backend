@@ -706,7 +706,7 @@ export default function SaleBoard() {
 
           <div class="total-section">
             <div class="total-row">
-              ИТОГО: ${totalAmount.toLocaleString()} Rubl
+              ИТОГО: ${totalAmount.toLocaleString()} ?
             </div>
           </div>
 
@@ -848,7 +848,7 @@ export default function SaleBoard() {
       yPos += lineHeight;
       
       doc.text('Foyda:', leftMargin, yPos);
-      doc.text(`${totalProfit.toFixed(2)} Rubl`, rightMargin, yPos, { align: 'right' });
+      doc.text(`${totalProfit.toFixed(2)} ?`, rightMargin, yPos, { align: 'right' });
       yPos += lineHeight + 2;
       
       // Grand total
@@ -859,7 +859,7 @@ export default function SaleBoard() {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.text("JAMI TO'LOV:", leftMargin, yPos);
-      doc.text(`${totalAmount.toFixed(2)} Rubl`, rightMargin, yPos, { align: 'right' });
+      doc.text(`${totalAmount.toFixed(2)} ?`, rightMargin, yPos, { align: 'right' });
       yPos += lineHeight + 3;
       
       // Line
@@ -1006,8 +1006,8 @@ export default function SaleBoard() {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
       doc.text('JAMI:', leftMargin, yPos);
-      doc.text(`${totalAmount.toFixed(2)} Rubl`, rightMargin - 40, yPos, { align: 'right' });
-      doc.text(`${totalProfit.toFixed(2)} Rubl`, rightMargin, yPos, { align: 'right' });
+      doc.text(`${totalAmount.toFixed(2)} ?`, rightMargin - 40, yPos, { align: 'right' });
+      doc.text(`${totalProfit.toFixed(2)} ?`, rightMargin, yPos, { align: 'right' });
       yPos += lineHeight;
 
       doc.setLineWidth(0.5);
@@ -1239,7 +1239,7 @@ export default function SaleBoard() {
         {selectedAdmin && (
           <div className="mt-4 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm md:text-base text-gray-700">
-              <span className="font-bold text-blue-900">{filteredData.length}</span> ta sotuv topildi • Jami: <span className="font-bold text-blue-900">{totals.totalPrice.toFixed(2)}</span> Rubl
+              <span className="font-bold text-blue-900">{filteredData.length}</span> ta sotuv topildi • Jami: <span className="font-bold text-blue-900">{totals.totalPrice.toFixed(2)}</span> ?
             </p>
           </div>
         )}
@@ -1308,12 +1308,12 @@ export default function SaleBoard() {
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
               <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Jami Summa</p>
               <p className="text-3xl md:text-4xl font-bold">{totals.totalPrice.toFixed(2)}</p>
-              <p className="text-xs md:text-sm opacity-75 mt-1">Rubl</p>
+              <p className="text-xs md:text-sm opacity-75 mt-1">?</p>
             </div>
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
               <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Jami Foyda</p>
               <p className="text-3xl md:text-4xl font-bold">{totals.totalProfit.toFixed(2)}</p>
-              <p className="text-xs md:text-sm opacity-75 mt-1">Rubl</p>
+              <p className="text-xs md:text-sm opacity-75 mt-1">?</p>
             </div>
           </div>
 

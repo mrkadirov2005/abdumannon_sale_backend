@@ -63,9 +63,9 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
     };
   }, [sales]);
 
-  const formatter = new Intl.NumberFormat("en-US", {
+  const formatter = new Intl.NumberFormat("ru-RU", {
     style: "currency",
-    currency: "USD",
+    currency: "RUB",
   });
 
   return (

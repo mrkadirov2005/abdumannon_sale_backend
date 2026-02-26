@@ -1,6 +1,6 @@
 import React from "react";
 import { Plus, Trash2 } from "lucide-react";
-import type { Person, FinanceRecord } from "../types";
+import type { Person, FinanceRecord, Debt } from "../types";
 
 interface DetailsPanelProps {
   person: Person;
@@ -8,6 +8,7 @@ interface DetailsPanelProps {
   onAddPayment: () => void;
   onDeleteWagon: (wagonId: string) => void;
   onDeleteFinanceRecord: (recordId: number) => void;
+  source: "wagons" | "debts";
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
@@ -16,10 +17,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   onAddPayment,
   onDeleteWagon,
   onDeleteFinanceRecord,
+  source,
 }) => {
   const personFinanceRecords = financeRecords.filter((record) =>
     record.description?.startsWith(person.name)
   );
+
+  const debts: Debt[] = person.debts || [];
 
   return (
     <div className="mt-6 bg-white rounded-lg shadow-lg p-4 sm:p-6">
@@ -48,82 +52,144 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         </div>
       </div>
 
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Vagonlar ({person.wagons.length})
-      </h3>
+      {source === "wagons" ? (
+        <>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Vagonlar ({person.wagons?.length || 0})
+          </h3>
 
-      <div className="overflow-x-auto mb-6">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 border-b">
-            <tr>
-              <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                Vagon
-              </th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                Mahsulotlar
-              </th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                Jami
-              </th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                To'langan
-              </th>
-              <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                Qoldiq
-              </th>
-              <th className="px-4 py-3 text-center font-semibold text-gray-700">
-                Amallar
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {person.wagons.map((wagon) => {
-              // Extract wagon number (part after comma)
-              const parts = wagon.wagon_number.split(',');
-              const wagonNumber = parts[1] || wagon.wagon_number;
-              
-              return (
-                <tr key={wagon.id} className="border-b hover:bg-gray-50 transition">
-                  <td className="px-4 py-3 font-semibold text-gray-900">
-                    {wagonNumber}
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-600">
-                    {wagon.products.length}
-                  </td>
-                  <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                    {parseFloat(wagon.total.toString()).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-right text-green-600 font-semibold">
-                    {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-right text-orange-600 font-semibold">
-                    {(
-                      parseFloat(wagon.total.toString()) -
-                      parseFloat((wagon.paid_amount || 0).toString())
-                    ).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-center space-x-2 flex justify-center">
-                    <button
-                      onClick={onAddPayment}
-                      className="text-blue-600 hover:text-blue-800 transition"
-                      title="Pul qo'shish"
-                    >
-                      <Plus size={18} />
-                    </button>
-                    <button
-                      onClick={() => onDeleteWagon(wagon.id)}
-                      className="text-red-600 hover:text-red-800 transition"
-                      title="O'chirish"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
+          <div className="overflow-x-auto mb-6">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100 border-b">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                    Vagon
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-gray-700">
+                    Mahsulotlar
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-gray-700">
+                    Jami
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-gray-700">
+                    To'langan
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-gray-700">
+                    Qoldiq
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-700">
+                    Amallar
+                  </th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {(person.wagons || []).map((wagon) => {
+                  const parts = wagon.wagon_number.split(",");
+                  const wagonNumber = parts[1] || wagon.wagon_number;
+
+                  return (
+                    <tr key={wagon.id} className="border-b hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 font-semibold text-gray-900">
+                        {wagonNumber}
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-600">
+                        {wagon.products.length}
+                      </td>
+                      <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                        {parseFloat(wagon.total.toString()).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right text-green-600 font-semibold">
+                        {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-right text-orange-600 font-semibold">
+                        {(
+                          parseFloat(wagon.total.toString()) -
+                          parseFloat((wagon.paid_amount || 0).toString())
+                        ).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-3 text-center space-x-2 flex justify-center">
+                        <button
+                          onClick={onAddPayment}
+                          className="text-blue-600 hover:text-blue-800 transition"
+                          title="Pul qo'shish"
+                        >
+                          <Plus size={18} />
+                        </button>
+                        <button
+                          onClick={() => onDeleteWagon(wagon.id)}
+                          className="text-red-600 hover:text-red-800 transition"
+                          title="O'chirish"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : (
+        <>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Qarzlar ({debts.length})
+          </h3>
+
+          <div className="overflow-x-auto mb-6">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100 border-b">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                    Sana
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-gray-700">
+                    Summa
+                  </th>
+                  <th className="px-4 py-3 text-right font-semibold text-gray-700">
+                    Holat
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-700">
+                    Amallar
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {debts.map((debt) => (
+                  <tr key={debt.id} className="border-b hover:bg-gray-50 transition">
+                    <td className="px-4 py-3 text-gray-600">
+                      {`${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`}
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                      {debt.amount.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                          debt.isreturned
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {debt.isreturned ? "Qaytarilgan" : "Qaytarilmagan"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={onAddPayment}
+                        className="text-blue-600 hover:text-blue-800 transition"
+                        title="Pul qo'shish"
+                      >
+                        <Plus size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       <h3 className="text-lg font-semibold text-gray-900 mb-4 mt-6">
         Pul berish tarixi ({personFinanceRecords.length})

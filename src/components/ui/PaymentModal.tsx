@@ -67,7 +67,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Prop
 
           <div className="flex items-center justify-between mt-2">
             <div className="text-sm text-gray-600">Total</div>
-            <div className="text-lg font-semibold">{new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(total)}</div>
+            <div className="text-lg font-semibold">{new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB" }).format(total)}</div>
           </div>
 
           <div className="flex gap-2 mt-4">

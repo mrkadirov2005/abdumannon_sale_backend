@@ -7,7 +7,6 @@ import type { JSX } from "react";
 import Layout from "../components/layout/Layout";
 import Login from "../pages/Auth/Login";
 import DebtManagement from "../pages/debt/DebtsPage";
-import CategoryManager from "../pages/category/Categories";
 import DatabaseBackup from "../pages/backup/BackupManager";
 import WagonsPage from "../pages/wagons/wagon";
 import FinancePage from "../pages/Finance/Finance";
@@ -63,7 +62,6 @@ export default function AppRoutes() {
           <Route path="saleboard" element={<SaleBoard />} />
           <Route path="profile" element={<Profile />} />
           <Route path="debts" element={<DebtManagement />} />
-          <Route path="categories" element={<CategoryManager />} />
           <Route path="backup" element={<DatabaseBackup />} />
           <Route path="wagons" element={<WagonsPage />} />
           <Route path="finance" element={<FinancePage />} />

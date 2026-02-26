@@ -53,7 +53,7 @@ import { getCategoriesThunk } from '../../redux/slices/categories/thunk/getAllCa
 
 interface CategoryFormData {
   category_name: string;
-  products_available?: number;
+  products_available?: number | "";
 }
 
 interface ApiResponse<T> {
@@ -95,13 +95,13 @@ const CategoryManager: React.FC = () => {
   // Form states
   const [formData, setFormData] = useState<CategoryFormData>({
     category_name: '',
-    products_available: 0,
+    products_available: "",
   });
   
   const [editFormData, setEditFormData] = useState<{
     id: number;
     category_name?: string;
-    products_available?: number;
+    products_available?: number | "";
   }>({ id: 0 });
   
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -161,7 +161,7 @@ const CategoryManager: React.FC = () => {
       
       setSuccess('Kategoriya muvaffaqiyatli yaratildi!');
       setOpenCreateModal(false);
-      setFormData({ category_name: '', products_available: 0 });
+      setFormData({ category_name: '', products_available: "" });
       fetchCategories(); // Refresh list
     } catch (err: any) {
       setError(err.message || 'Kategoriya yaratishda xatolik');
@@ -177,6 +177,14 @@ const CategoryManager: React.FC = () => {
       return;
     }
 
+    const normalizedEditForm = {
+      ...editFormData,
+      products_available:
+        editFormData.products_available === "" || editFormData.products_available == null
+          ? 0
+          : Number(editFormData.products_available),
+    };
+
     setLoading(true);
     try {
       const response = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.categories.updateCategory}`, {
@@ -185,7 +193,7 @@ const CategoryManager: React.FC = () => {
           'Content-Type': 'application/json',
           'Authorization': `${authData.accessToken}`,
         },
-        body: JSON.stringify(editFormData),
+        body: JSON.stringify(normalizedEditForm),
       });
       
       const data: ApiResponse<Category> = await response.json();
@@ -716,8 +724,11 @@ const CategoryManager: React.FC = () => {
             type="number"
             fullWidth
             variant="outlined"
-            value={formData.products_available}
-            onChange={(e) => setFormData({ ...formData, products_available: parseInt(e.target.value) || 0 })}
+            value={formData.products_available ?? ""}
+            onChange={(e) => setFormData({
+              ...formData,
+              products_available: e.target.value === "" ? "" : parseInt(e.target.value),
+            })}
             sx={{ mt: 2 }}
           />
         </DialogContent>
@@ -743,10 +754,10 @@ const CategoryManager: React.FC = () => {
             type="number"
             fullWidth
             variant="outlined"
-            value={editFormData.products_available || 0}
+            value={editFormData.products_available ?? ""}
             onChange={(e) => setEditFormData({
               ...editFormData,
-              products_available: parseInt(e.target.value) || 0,
+              products_available: e.target.value === "" ? "" : parseInt(e.target.value),
             })}
             sx={{ mt: 2 }}
           />

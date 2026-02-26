@@ -2,7 +2,6 @@ import { useSelector } from "react-redux";
 import { Link, useLocation } from "react-router-dom";
 import { getAuthFromStore, getUserFromStore } from "../../redux/selectors";
 import {
-  AdminPanelSettings,
   AutoGraph,
   BookmarkAddRounded,
   MonetizationOn,
@@ -96,14 +95,6 @@ export default function Sidebar({
        
        
 
-          <MenuItem
-            to="/categories"
-            icon={<AdminPanelSettings />}
-            label="Kategoriyalar"
-          />
-
-        
-        
           <MenuItem
             to="/debts"
             icon={<MinusSquareIcon />}

@@ -5,8 +5,11 @@ import type {
   Person,
   FinanceRecord,
   FormData,
+  Debt,
 } from "./types";
 import { DEFAULT_ENDPOINT } from "../../config/endpoints";
+import { useSelector } from "react-redux";
+import { getshopidfromstrore } from "../../redux/selectors";
 
 const getHeaders = () => {
   const token = localStorage.getItem("Token");
@@ -18,13 +21,15 @@ const getHeaders = () => {
   };
 };
 
-export const useFinanceLogic = () => {
+export const useFinanceLogic = (source: "wagons" | "debts") => {
   const [wagons, setWagons] = useState<Wagon[]>([]);
+  const [debts, setDebts] = useState<Debt[]>([]);
   const [financeRecords, setFinanceRecords] = useState<FinanceRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const shop_id = useSelector(getshopidfromstrore);
   const [formData, setFormData] = useState<FormData>({
     amount: "",
     description: "",
@@ -36,69 +41,99 @@ export const useFinanceLogic = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [wagonsRes, financeRes] = await Promise.all([
+      const [wagonsRes, financeRes, debtsRes] = await Promise.all([
         fetch(`${DEFAULT_ENDPOINT}/wagons/all`, { headers: getHeaders() }),
         fetch(`${DEFAULT_ENDPOINT}/finance`, { headers: getHeaders() }),
+        fetch(`${DEFAULT_ENDPOINT}/debts/all`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({ shop_id }),
+        }),
       ]);
 
       const wagonsData = await wagonsRes.json();
       const financeData = await financeRes.json();
+      const debtsData = await debtsRes.json();
 
       setWagons(wagonsData.data || wagonsData);
       setFinanceRecords(financeData.data || financeData);
+      setDebts(debtsData.data || debtsData);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Ma'lumotlarni yuklashda xatolik");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [shop_id]);
 
-  // Group wagons by client name (part before comma in wagon_number)
   const uniquePersons = useMemo(() => {
     const personsMap = new Map<string, Person>();
 
-    wagons.forEach((wagon) => {
-      // Extract client name (part before comma), normalize to lowercase for grouping
-      const parts = wagon.wagon_number.split(',');
-      const rawPersonName = (parts[0] || wagon.wagon_number).trim();
-      const personNameKey = rawPersonName.toLowerCase();
-      
-      if (!personsMap.has(personNameKey)) {
-        personsMap.set(personNameKey, {
-          name: rawPersonName, // Use the first occurrence's casing
-          totalAmount: 0,
-          paidAmount: 0,
-          remainingAmount: 0,
-          wagons: [],
-        });
-      }
+    if (source === "wagons") {
+      wagons.forEach((wagon) => {
+        const parts = wagon.wagon_number.split(",");
+        const rawPersonName = (parts[0] || wagon.wagon_number).trim();
+        const personNameKey = rawPersonName.toLowerCase();
 
-      const person = personsMap.get(personNameKey)!;
-      person.wagons.push(wagon);
+        if (!personsMap.has(personNameKey)) {
+          personsMap.set(personNameKey, {
+            name: rawPersonName,
+            totalAmount: 0,
+            paidAmount: 0,
+            remainingAmount: 0,
+            wagons: [],
+          });
+        }
 
-      // Calculate totals from products
-      const wagonTotal = parseFloat(wagon.total.toString());
-      const paidAmount = parseFloat((wagon.paid_amount || 0).toString());
+        const person = personsMap.get(personNameKey)!;
+        person.wagons!.push(wagon);
 
-      person.totalAmount += wagonTotal;
-      person.paidAmount += paidAmount;
-      person.remainingAmount += wagonTotal - paidAmount;
-    });
+        const wagonTotal = parseFloat(wagon.total.toString());
+        const paidAmount = parseFloat((wagon.paid_amount || 0).toString());
 
-    // Add finance records to persons
+        person.totalAmount += wagonTotal;
+        person.paidAmount += paidAmount;
+        person.remainingAmount += wagonTotal - paidAmount;
+      });
+    } else {
+      debts.forEach((debt) => {
+        const rawPersonName = debt.name.trim();
+        const personNameKey = rawPersonName.toLowerCase();
+
+        if (!personsMap.has(personNameKey)) {
+          personsMap.set(personNameKey, {
+            name: rawPersonName,
+            totalAmount: 0,
+            paidAmount: 0,
+            remainingAmount: 0,
+            debts: [],
+          });
+        }
+
+        const person = personsMap.get(personNameKey)!;
+        person.debts!.push(debt);
+
+        person.totalAmount += debt.amount;
+        if (debt.isreturned) {
+          person.paidAmount += debt.amount;
+        } else {
+          person.remainingAmount += debt.amount;
+        }
+      });
+    }
+
+    // Apply finance records to persons
     financeRecords.forEach((record) => {
-      // Extract person name from description (format: "personName: description")
       const descriptionParts = record.description?.split(": ") || [];
       const rawPersonName = (descriptionParts[0] || "").trim();
       const personNameKey = rawPersonName.toLowerCase();
 
       if (personNameKey && personsMap.has(personNameKey)) {
         const person = personsMap.get(personNameKey)!;
-        // Finance records represent money given to the person
         if (record.type === "income") {
-          person.paidAmount += parseFloat(record.amount);
-          person.remainingAmount -= parseFloat(record.amount);
+          const amount = parseFloat(record.amount);
+          person.paidAmount += amount;
+          person.remainingAmount -= amount;
         }
       }
     });
@@ -106,7 +141,7 @@ export const useFinanceLogic = () => {
     return Array.from(personsMap.values()).sort(
       (a, b) => b.totalAmount - a.totalAmount
     );
-  }, [wagons, financeRecords]);
+  }, [source, wagons, debts, financeRecords]);
 
   // Filter persons by search
   const filteredPersons = useMemo(() => {
@@ -226,6 +261,7 @@ export const useFinanceLogic = () => {
   return {
     // State
     wagons,
+    debts,
     financeRecords,
     loading,
     searchQuery,

@@ -95,7 +95,7 @@ export default function UpdateAdminForm({
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : type === "number" ? Number(value) : value,
+      [name]: type === "checkbox" ? checked : type === "number" ? (value === "" ? "" : Number(value)) : value,
     }));
 
     if (formErrors[name]) {
@@ -125,10 +125,20 @@ export default function UpdateAdminForm({
         phone_number: formData.phone_number || admin.phone_number,
         work_start: formData.work_start || admin.work_start,
         work_end: formData.work_end || admin.work_end,
-        salary: formData.salary !== undefined ? formData.salary : admin.salary,
+        salary:
+          formData.salary !== undefined
+            ? formData.salary === "" || formData.salary == null
+              ? 0
+              : Number(formData.salary)
+            : admin.salary,
         isloggedin: formData.isloggedin !== undefined ? formData.isloggedin : admin.isloggedin,
         img_url: formData.img_url || admin.img_url,
-        branch: formData.branch !== undefined ? formData.branch : admin.branch,
+        branch:
+          formData.branch !== undefined
+            ? formData.branch === "" || formData.branch == null
+              ? 0
+              : Number(formData.branch)
+            : admin.branch,
         ispaidthismonth: formData.ispaidthismonth !== undefined ? formData.ispaidthismonth : admin.ispaidthismonth,
       } as Admin;
 
@@ -259,7 +269,7 @@ export default function UpdateAdminForm({
           <input
             type="number"
             name="salary"
-            value={formData.salary || 0}
+            value={formData.salary ?? ""}
             onChange={handleFormChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Maosh kiritish"
@@ -289,7 +299,7 @@ export default function UpdateAdminForm({
           <input
             type="number"
             name="branch"
-            value={formData.branch || 0}
+            value={formData.branch ?? ""}
             onChange={handleFormChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Filial ID raqamini kiriting"

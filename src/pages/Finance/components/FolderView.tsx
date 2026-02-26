@@ -5,12 +5,14 @@ interface FolderViewProps {
   persons: Person[];
   selectedPerson: string | null;
   onPersonSelect: (person: string) => void;
+  source: "wagons" | "debts";
 }
 
 export const FolderView: React.FC<FolderViewProps> = ({
   persons,
   selectedPerson,
   onPersonSelect,
+  source,
 }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -31,29 +33,14 @@ export const FolderView: React.FC<FolderViewProps> = ({
                 {person.name}
               </h3>
               <p className="text-xs text-gray-500">
-                {person.wagons.length} ta vagon
+                {source === "wagons"
+                  ? `${person.wagons?.length || 0} ta vagon`
+                  : `${person.debts?.length || 0} ta qarz`}
               </p>
             </div>
           </div>
-          <div className="space-y-1 text-xs">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Jami:</span>
-              <span className="font-semibold text-gray-900">
-                {person.totalAmount.toLocaleString()} ₽
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">To'langan:</span>
-              <span className="font-semibold text-green-600">
-                {person.paidAmount.toLocaleString()} ₽
-              </span>
-            </div>
-            <div className="flex justify-between border-t border-gray-200 pt-1">
-              <span className="text-gray-600">Qolgan:</span>
-              <span className="font-semibold text-red-600">
-                {person.remainingAmount.toLocaleString()} ₽
-              </span>
-            </div>
+          <div className="text-xs text-gray-500">
+            Ma'lumotlar ko'rish uchun bosing
           </div>
         </div>
       ))}

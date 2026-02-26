@@ -63,6 +63,10 @@ export default function ProductDetailsModal({
                 <p className="text-sm text-gray-900">{convertIdToCategoryName(product.category_id, categories)}</p>
               </div>
               <div>
+                <label className="text-xs font-semibold text-gray-600">O'lchov birligi</label>
+                <p className="text-sm text-gray-900">{product.unit || "pcs"}</p>
+              </div>
+              <div>
                 <label className="text-xs font-semibold text-gray-600">Yetkazib beruvchi</label>
                 <p className="text-sm text-gray-900">{product.supplier || "—"}</p>
               </div>
@@ -108,7 +112,7 @@ export default function ProductDetailsModal({
                         : "text-green-600"
                   }`}
                 >
-                  {product.availability}
+                  {product.availability} {product.unit || "pcs"}
                 </p>
               </div>
             </div>

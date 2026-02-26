@@ -5,16 +5,9 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Search,
   X,
   Eye,
-  Filter,
   Package,
-  DollarSign,
-  AlertCircle,
-  Check,
-  ChevronUp,
-  ChevronDown,
   Folder,
   User,
   ChevronRight,
@@ -46,28 +39,10 @@ interface Wagon {
   created_at: string;
 }
 
-interface Statistics {
-  total_wagons: number;
-  debt_taken_count: number;
-  debt_given_count: number;
-  none_count: number;
-  total_amount: number;
-  debt_taken_amount: number;
-  debt_given_amount: number;
-}
-
 const WagonsPage: React.FC = () => {
   // State Management
   const [wagons, setWagons] = useState<Wagon[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [indicatorFilter, setIndicatorFilter] = useState<"all" | "debt_taken" | "debt_given" | "none">("all");
-  const [sortField, setSortField] = useState<"created_at" | "wagon_number" | "total">("created_at");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const [showFilters, setShowFilters] = useState(false);
-
-  // View Mode States
-  const [viewMode, setViewMode] = useState<"list" | "folders" | "statistics">("folders");
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
 
   // Modal States
@@ -96,17 +71,6 @@ const WagonsPage: React.FC = () => {
     paid_amount: string;
   }>>([{ product_id: "", product_name: "", amount: "", price: "", paid_amount: "" }]);
 
-  // Statistics State
-  const [statistics, setStatistics] = useState<Statistics>({
-    total_wagons: 0,
-    debt_taken_count: 0,
-    debt_given_count: 0,
-    none_count: 0,
-    total_amount: 0,
-    debt_taken_amount: 0,
-    debt_given_amount: 0,
-  });
-
   // Fetch Wagons
   const fetchWagons = async () => {
     try {
@@ -123,7 +87,6 @@ const WagonsPage: React.FC = () => {
       const data = await response.json();
       if (data.success) {
         setWagons(data.data);
-        calculateStatistics(data.data);
       } else {
         toast.error("Vagonlarni yuklashda xatolik");
       }
@@ -138,24 +101,6 @@ const WagonsPage: React.FC = () => {
   useEffect(() => {
     fetchWagons();
   }, []);
-
-  // Calculate Statistics
-  const calculateStatistics = (wagonData: Wagon[]) => {
-    const stats = {
-      total_wagons: wagonData.length,
-      debt_taken_count: wagonData.filter((w) => w.indicator === "debt_taken").length,
-      debt_given_count: wagonData.filter((w) => w.indicator === "debt_given").length,
-      none_count: wagonData.filter((w) => w.indicator === "none").length,
-      total_amount: wagonData.reduce((sum, w) => sum + parseFloat(w.total.toString()), 0),
-      debt_taken_amount: wagonData
-        .filter((w) => w.indicator === "debt_taken")
-        .reduce((sum, w) => sum + parseFloat(w.total.toString()), 0),
-      debt_given_amount: wagonData
-        .filter((w) => w.indicator === "debt_given")
-        .reduce((sum, w) => sum + parseFloat(w.total.toString()), 0),
-    };
-    setStatistics(stats);
-  };
 
   // Create Wagon
   const handleCreateWagon = async (e: React.FormEvent) => {
@@ -197,7 +142,7 @@ const WagonsPage: React.FC = () => {
         },
         body: JSON.stringify({
           wagon_number: combinedWagonNumber,
-          indicator: formData.indicator,
+          indicator: "none",
           branch: formData.branch,
           paid_amount: totalPaidAmount,
           products,
@@ -377,70 +322,43 @@ const WagonsPage: React.FC = () => {
   const filteredAndSorted = useMemo(() => {
     let list = [...wagons];
 
-    // Filter by indicator
-    if (indicatorFilter !== "all") {
-      list = list.filter((w) => w.indicator === indicatorFilter);
-    }
-
     // Filter by selected person (client name - part before comma)
     if (selectedPerson) {
       list = list.filter((w) => {
         const parts = w.wagon_number.split(',');
-        const clientName = parts[0] || w.wagon_number;
+        const clientName = (parts[0] || w.wagon_number).trim();
         return clientName.toLowerCase() === selectedPerson.toLowerCase();
       });
     }
 
-    // Filter by search
-    if (searchQuery) {
-      list = list.filter((w) => w.wagon_number.toLowerCase().includes(searchQuery.toLowerCase()));
-    }
-
-    // Sort
+    // Sort by newest first
     list.sort((a, b) => {
-      let aVal: any = a[sortField];
-      let bVal: any = b[sortField];
-
-      if (sortField === "created_at") {
-        aVal = new Date(aVal).getTime();
-        bVal = new Date(bVal).getTime();
-      } else if (sortField === "total") {
-        aVal = parseFloat(aVal);
-        bVal = parseFloat(bVal);
-      }
-
-      if (sortDirection === "asc") {
-        return aVal > bVal ? 1 : -1;
-      } else {
-        return aVal < bVal ? 1 : -1;
-      }
+      const aVal = new Date(a.created_at).getTime();
+      const bVal = new Date(b.created_at).getTime();
+      return bVal - aVal;
     });
 
     return list;
-  }, [wagons, indicatorFilter, selectedPerson, searchQuery, sortField, sortDirection]);
+  }, [wagons, selectedPerson]);
 
   // Get unique persons (wagon numbers grouped by client name)
   const getUniquePersons = useMemo(() => {
     const personsMap = new Map<string, { name: string; totalWagons: number; totalAmount: number; wagons: Wagon[] }>();
 
-    let filteredWagons = wagons;
-    if (indicatorFilter !== "all") {
-      filteredWagons = wagons.filter((w) => w.indicator === indicatorFilter);
-    }
-
-    filteredWagons.forEach((wagon) => {
-      // Extract client name (part before comma)
+    wagons.forEach((wagon) => {
       const parts = wagon.wagon_number.split(',');
-      const clientName = parts[0] || wagon.wagon_number;
-      
-      if (personsMap.has(clientName)) {
-        const existing = personsMap.get(clientName)!;
+      const clientNameRaw = parts[0] || wagon.wagon_number;
+      const key = clientNameRaw.trim().toLowerCase();
+      const displayName = clientNameRaw.trim();
+
+      if (personsMap.has(key)) {
+        const existing = personsMap.get(key)!;
         existing.totalWagons++;
         existing.totalAmount += parseFloat(wagon.total.toString());
         existing.wagons.push(wagon);
       } else {
-        personsMap.set(clientName, {
-          name: clientName,
+        personsMap.set(key, {
+          name: displayName,
           totalWagons: 1,
           totalAmount: parseFloat(wagon.total.toString()),
           wagons: [wagon],
@@ -449,23 +367,7 @@ const WagonsPage: React.FC = () => {
     });
 
     return Array.from(personsMap.values()).sort((a, b) => b.totalAmount - a.totalAmount);
-  }, [wagons, indicatorFilter]);
-
-  // Handle Sort
-  const handleSort = (field: "created_at" | "wagon_number" | "total") => {
-    if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortDirection("asc");
-    }
-  };
-
-  // Get Sort Icon
-  const getSortIcon = (field: string) => {
-    if (sortField !== field) return null;
-    return sortDirection === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />;
-  };
+  }, [wagons]);
 
   // Format Date
   const formatDate = (dateString: string) => {
@@ -479,47 +381,6 @@ const WagonsPage: React.FC = () => {
     });
   };
 
-  // Get Indicator Label
-  const getIndicatorLabel = (indicator: string) => {
-    switch (indicator) {
-      case "debt_taken":
-        return "Oluvchi";
-      case "debt_given":
-        return "Sotuvchi";
-      case "none":
-        return "Yo'q";
-      default:
-        return indicator;
-    }
-  };
-
-  // Get person label based on indicator
-  const getPersonLabel = (indicator: string) => {
-    switch (indicator) {
-      case "debt_taken":
-        return "Oluvchi"; // We are taking debt, so this person is giving us (buyer from us)
-      case "debt_given":
-        return "Sotuvchi"; // We are giving debt, so this person is taking from us (seller to us)
-      case "none":
-        return "Vagon Raqami";
-      default:
-        return "Vagon Raqami";
-    }
-  };
-
-  // Get Indicator Color
-  const getIndicatorColor = (indicator: string) => {
-    switch (indicator) {
-      case "debt_taken":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "debt_given":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "none":
-        return "bg-gray-100 text-gray-800 border-gray-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
 
   // Print Wagon
   const printWagon = (wagon: Wagon) => {
@@ -597,7 +458,7 @@ const WagonsPage: React.FC = () => {
 
           <div class="total-section">
             <div class="total-row">
-              ИТОГО: ${parseFloat(wagon.total.toString()).toLocaleString()} Rubl
+              ИТОГО: ${parseFloat(wagon.total.toString()).toLocaleString()} ?
             </div>
           </div>
 
@@ -650,277 +511,24 @@ const WagonsPage: React.FC = () => {
         </button>
       </header>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div 
-          onClick={() => {
-            setIndicatorFilter("all");
-            setViewMode("folders");
-            setSelectedPerson(null);
-          }}
-          className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">Jami Vagonlar</p>
-            <Truck size={20} className="opacity-50 hidden md:block" />
-          </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-bold">{statistics.total_wagons}</p>
-          <p className="text-xs sm:text-sm opacity-75 mt-1">
-            {statistics.total_amount.toLocaleString()} Rubl
-          </p>
-        </div>
-
-        <div 
-          onClick={() => {
-            setIndicatorFilter("debt_taken");
-            setViewMode("folders");
-            setSelectedPerson(null);
-          }}
-          className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">Olingan Qarz</p>
-            <AlertCircle size={20} className="opacity-50 hidden md:block" />
-          </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-bold">{statistics.debt_taken_count}</p>
-          <p className="text-xs sm:text-sm opacity-75 mt-1">
-            {statistics.debt_taken_amount.toLocaleString()} Rubl
-          </p>
-        </div>
-
-        <div 
-          onClick={() => {
-            setIndicatorFilter("debt_given");
-            setViewMode("folders");
-            setSelectedPerson(null);
-          }}
-          className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">Berilgan Qarz</p>
-            <DollarSign size={20} className="opacity-50 hidden md:block" />
-          </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-bold">{statistics.debt_given_count}</p>
-          <p className="text-xs sm:text-sm opacity-75 mt-1">
-            {statistics.debt_given_amount.toLocaleString()} Rubl
-          </p>
-        </div>
-
-        <div 
-          onClick={() => setViewMode("statistics")}
-          className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">Statistika</p>
-            <Check size={20} className="opacity-50 hidden md:block" />
-          </div>
-          <p className="text-2xl sm:text-3xl md:text-4xl font-bold">{statistics.none_count}</p>
-          <p className="text-xs sm:text-sm opacity-75 mt-1">Batafsil Ko'rish</p>
-        </div>
-      </div>
-
-      {/* View Mode Toggle */}
-      <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mb-4 sm:mb-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
-          <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">Ko'rinish Rejimi</h3>
-          <div className="flex gap-2 w-full md:w-auto flex-wrap">
-            <button
-              onClick={() => {
-                setViewMode("folders");
-                setSelectedPerson(null);
-              }}
-              className={`flex-1 md:flex-none px-3 sm:px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition text-sm md:text-base ${
-                viewMode === "folders"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              <Folder size={18} /> 
-              {indicatorFilter === "debt_taken" ? "Oluvchilar" : indicatorFilter === "debt_given" ? "Sotuvchilar" : "Shaxslar"}
-            </button>
-            <button
-              onClick={() => {
-                setViewMode("list");
-                setSelectedPerson(null);
-              }}
-              className={`flex-1 md:flex-none px-3 sm:px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition text-sm md:text-base ${
-                viewMode === "list"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              <DollarSign size={18} /> Barcha Vagonlar
-            </button>
-            <button
-              onClick={() => {
-                setViewMode("statistics");
-                setSelectedPerson(null);
-              }}
-              className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition ${
-                viewMode === "statistics"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              📊 Statistika
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
+            {/* Summary */}
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
-          <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">
-            Filtrlar & Qidiruv
-          </h3>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="w-full md:w-auto px-4 py-2 md:py-2.5 text-sm md:text-base bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition flex items-center justify-center gap-2"
-          >
-            <Filter size={18} />
-            {showFilters ? "Filtrlarni Yashirish" : "Filtrlarni Ko'rsatish"}
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-          <div className="relative sm:col-span-2 lg:col-span-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Vagon raqami bo'yicha qidirish..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-gray-600 mb-1">Jami Vagonlar</p>
+            <p className="text-2xl sm:text-3xl font-bold text-blue-900">{wagons.length}</p>
           </div>
-
-          <select
-            value={indicatorFilter}
-            onChange={(e) => setIndicatorFilter(e.target.value as any)}
-            className="w-full px-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="all">Barcha Indikatorlar</option>
-            <option value="debt_taken">Olingan Qarz</option>
-            <option value="debt_given">Berilgan Qarz</option>
-            <option value="none">Yo'q</option>
-          </select>
-
-          {(searchQuery || indicatorFilter !== "all") && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setIndicatorFilter("all");
-              }}
-              className="w-full px-4 py-2 md:py-2.5 text-sm md:text-base bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition flex items-center justify-center gap-2"
-            >
-              <X size={18} /> Tozalash
-            </button>
-          )}
-        </div>
-
-        {/* Results Count */}
-        <div className="mt-4 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm md:text-base text-gray-700">
-            <span className="font-bold text-blue-900">{filteredAndSorted.length}</span> ta vagon topildi
-          </p>
+          <Truck size={28} className="text-blue-600" />
         </div>
       </div>
 
-      {/* STATISTICS VIEW */}
-      {viewMode === "statistics" && (
-        <div className="space-y-4">
-          <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-6">📊 Vagonlar Statistikasi</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-              {/* Debt Taken */}
-              <div className="border-2 border-red-200 rounded-lg p-4 sm:p-5 md:p-6 bg-red-50">
-                <h3 className="text-base sm:text-lg md:text-xl font-bold text-red-900 mb-4 flex items-center gap-2">
-                  🚛 Olingan Qarz
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between py-2 border-b border-red-200">
-                    <span className="text-gray-700">Jami Soni:</span>
-                    <span className="font-bold text-red-900">{statistics.debt_taken_count}</span>
-                  </div>
-                  <div className="flex justify-between py-2 bg-red-100 px-3 rounded-lg">
-                    <span className="font-bold text-gray-900">Jami Summa:</span>
-                    <span className="font-bold text-red-900 text-lg">
-                      {statistics.debt_taken_amount.toLocaleString()} Rubl
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Debt Given */}
-              <div className="border-2 border-green-200 rounded-lg p-4 sm:p-5 md:p-6 bg-green-50">
-                <h3 className="text-base sm:text-lg md:text-xl font-bold text-green-900 mb-4 flex items-center gap-2">
-                  💰 Berilgan Qarz
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between py-2 border-b border-green-200">
-                    <span className="text-gray-700">Jami Soni:</span>
-                    <span className="font-bold text-green-900">{statistics.debt_given_count}</span>
-                  </div>
-                  <div className="flex justify-between py-2 bg-green-100 px-3 rounded-lg">
-                    <span className="font-bold text-gray-900">Jami Summa:</span>
-                    <span className="font-bold text-green-900 text-lg">
-                      {statistics.debt_given_amount.toLocaleString()} Rubl
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* None */}
-              <div className="border-2 border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 bg-gray-50">
-                <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  ✅ Qarzisiz
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between py-2 border-b border-gray-200">
-                    <span className="text-gray-700">Jami Soni:</span>
-                    <span className="font-bold text-gray-900">{statistics.none_count}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Overall Summary */}
-            <div className="mt-4 md:mt-6 border-2 border-blue-200 rounded-lg p-4 sm:p-5 md:p-6 bg-blue-50">
-              <h3 className="text-base sm:text-lg md:text-xl font-bold text-blue-900 mb-4">📈 Umumiy Xulosala</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-                <div className="bg-white rounded-lg p-4 border border-blue-200">
-                  <p className="text-sm text-gray-600 mb-1">Jami Vagonlar</p>
-                  <p className="text-2xl font-bold text-blue-900">{statistics.total_wagons}</p>
-                </div>
-                <div className="bg-white rounded-lg p-4 border border-blue-200">
-                  <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
-                  <p className="text-2xl font-bold text-blue-900">
-                    {statistics.total_amount.toLocaleString()} Rubl
-                  </p>
-                </div>
-                <div className="bg-white rounded-lg p-4 border border-blue-200">
-                  <p className="text-sm text-gray-600 mb-1">O'rtacha Summa</p>
-                  <p className="text-2xl font-bold text-blue-900">
-                    {statistics.total_wagons > 0 
-                      ? (statistics.total_amount / statistics.total_wagons).toFixed(0) 
-                      : '0'} Rubl
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* FOLDERS VIEW */}
-      {viewMode === "folders" && !selectedPerson && (
+            {/* FOLDERS VIEW */}
+      {!selectedPerson && (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-4 sm:p-5 md:p-6 border-b border-gray-200">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Folder className="text-blue-600" size={24} />
-              {indicatorFilter === "debt_taken" ? "Oluvchilar" : indicatorFilter === "debt_given" ? "Sotuvchilar" : "Shaxslar"} ({getUniquePersons.length})
+              Shaxslar ({getUniquePersons.length})
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Vagonlarini ko'rish uchun shaxsga bosing</p>
           </div>
@@ -938,7 +546,6 @@ const WagonsPage: React.FC = () => {
                   key={person.name}
                   onClick={() => {
                     setSelectedPerson(person.name);
-                    setViewMode("list");
                   }}
                   className="p-4 sm:p-5 md:p-6 hover:bg-blue-50 transition cursor-pointer group"
                 >
@@ -961,7 +568,7 @@ const WagonsPage: React.FC = () => {
                       {/* <div className="text-right">
                         <p className="text-xs sm:text-sm md:text-base font-medium text-gray-600">Jami Summa</p>
                         <p className="text-sm sm:text-lg md:text-xl font-bold text-blue-900">
-                          {person.totalAmount.toLocaleString()} Rubl
+                          {person.totalAmount.toLocaleString()} ?
                         </p>
                       </div> */}
                       <ChevronRight className="text-gray-400 group-hover:text-blue-600 transition flex-shrink-0" size={24} />
@@ -975,7 +582,7 @@ const WagonsPage: React.FC = () => {
       )}
 
       {/* WAGONS LIST/TABLE VIEW */}
-      {(viewMode === "list" || selectedPerson) && (
+      {selectedPerson && (
         <>
           {selectedPerson && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 md:p-5 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -1015,19 +622,11 @@ const WagonsPage: React.FC = () => {
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <p className="text-xs text-gray-500 mb-1">{getPersonLabel(wagon.indicator)}</p>
                   <h3 className="font-semibold text-gray-900 text-base md:text-lg">
-                    {wagon.indicator === "debt_taken" ? "👤" : wagon.indicator === "debt_given" ? "💼" : "🚛"} {wagon.wagon_number}
+                    🚛 {wagon.wagon_number}
                   </h3>
                   <p className="text-xs md:text-sm text-gray-500">{formatDate(wagon.created_at)}</p>
                 </div>
-                <span
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold border ${getIndicatorColor(
-                    wagon.indicator
-                  )}`}
-                >
-                  {getIndicatorLabel(wagon.indicator)}
-                </span>
               </div>
 
               <div className="space-y-2 text-sm mb-3">
@@ -1038,7 +637,7 @@ const WagonsPage: React.FC = () => {
                 <div className="flex justify-between border-t border-gray-200 pt-2">
                   <span className="text-gray-600 font-bold">Jami Summa:</span>
                   <span className="font-bold text-blue-600 text-base md:text-lg">
-                    {parseFloat(wagon.total.toString()).toLocaleString()} Rubl
+                    {parseFloat(wagon.total.toString()).toLocaleString()} ?
                   </span>
                 </div>
               </div>
@@ -1086,38 +685,17 @@ const WagonsPage: React.FC = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th
-                  onClick={() => handleSort("created_at")}
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    Sana
-                    {getSortIcon("created_at")}
-                  </div>
-                </th>
-                <th
-                  onClick={() => handleSort("wagon_number")}
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    {indicatorFilter === "debt_taken" ? "Oluvchi" : indicatorFilter === "debt_given" ? "Sotuvchi" : "Vagon Raqami"}
-                    {getSortIcon("wagon_number")}
-                  </div>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Sana
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Indikator
+                  Vagon Raqami
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Mahsulotlar
                 </th>
-                <th
-                  onClick={() => handleSort("total")}
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    Jami Summa
-                    {getSortIcon("total")}
-                  </div>
+                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  Jami Summa
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Amallar
@@ -1127,7 +705,7 @@ const WagonsPage: React.FC = () => {
             <tbody className="divide-y divide-gray-200">
               {filteredAndSorted.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={5} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <Truck size={48} className="text-gray-300 mb-4" />
                       <p className="text-lg font-medium text-gray-900">Vagonlar topilmadi</p>
@@ -1147,21 +725,10 @@ const WagonsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        {wagon.indicator === "debt_taken" ? "👤" : wagon.indicator === "debt_given" ? "💼" : <Truck size={18} className="text-blue-600" />}
                         <div>
-                          <p className="text-xs text-gray-500">{getPersonLabel(wagon.indicator)}</p>
                           <span className="font-semibold text-gray-900">{wagon.wagon_number}</span>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getIndicatorColor(
-                          wagon.indicator
-                        )}`}
-                      >
-                        {getIndicatorLabel(wagon.indicator)}
-                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       <div className="flex items-center gap-2">
@@ -1170,7 +737,7 @@ const WagonsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                      {parseFloat(wagon.total.toString()).toLocaleString()} Rubl
+                      {parseFloat(wagon.total.toString()).toLocaleString()} ?
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-2">
@@ -1270,24 +837,6 @@ const WagonsPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Indicator */}
-                <div>
-                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Indikator
-                  </label>
-                  <select
-                    value={formData.indicator}
-                    onChange={(e) =>
-                      setFormData({ ...formData, indicator: e.target.value as any })
-                    }
-                    className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="none">Yo'q</option>
-                    <option value="debt_taken">Olingan Qarz</option>
-                    <option value="debt_given">Berilgan Qarz</option>
-                  </select>
-                </div>
-
                 {/* Products */}
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
@@ -1324,14 +873,6 @@ const WagonsPage: React.FC = () => {
                           placeholder="Narx"
                           value={row.price}
                           onChange={(e) => updateProductRow(index, "price", e.target.value)}
-                          className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <input
-                          type="number"
-                          step="0.01"
-                          placeholder="To'langan"
-                          value={row.paid_amount}
-                          onChange={(e) => updateProductRow(index, "paid_amount", e.target.value)}
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button
@@ -1430,23 +971,6 @@ const WagonsPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Indikator
-                  </label>
-                  <select
-                    value={formData.indicator}
-                    onChange={(e) =>
-                      setFormData({ ...formData, indicator: e.target.value as any })
-                    }
-                    className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="none">Yo'q</option>
-                    <option value="debt_taken">Olingan Qarz</option>
-                    <option value="debt_given">Berilgan Qarz</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
                     Mahsulotlar <span className="text-red-500">*</span>
                   </label>
                   <div className="space-y-3">
@@ -1480,14 +1004,6 @@ const WagonsPage: React.FC = () => {
                           placeholder="Narx"
                           value={row.price}
                           onChange={(e) => updateProductRow(index, "price", e.target.value)}
-                          className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <input
-                          type="number"
-                          step="0.01"
-                          placeholder="To'langan"
-                          value={row.paid_amount}
-                          onChange={(e) => updateProductRow(index, "paid_amount", e.target.value)}
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button
@@ -1551,17 +1067,9 @@ const WagonsPage: React.FC = () => {
             </div>
 
             <div className="p-4 sm:p-6">
-              {/* Calculate paid amount from products */}
               {(() => {
-                // Parse paid_amount string to get product names
-                const paidProductNames = selectedWagon.paid_amount ? 
-                  (typeof selectedWagon.paid_amount === 'string' ? 
-                    (selectedWagon.paid_amount as never as string).split(' / ') : 
-                    []) 
-                  : [];
-                
                 const totalAmount = parseFloat(selectedWagon.total.toString());
-                
+
                 return (
                   <>
                     {/* Basic Info */}
@@ -1573,19 +1081,7 @@ const WagonsPage: React.FC = () => {
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
                         <p className="text-lg font-bold text-green-900">
-                          {totalAmount.toLocaleString()} Rubl
-                        </p>
-                      </div>
-                      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                        <p className="text-sm text-gray-600 mb-1">To'langan Mahsulotlar</p>
-                        <p className="text-lg font-bold text-purple-900">
-                          {paidProductNames.length > 0 ? paidProductNames.join(', ') : 'Yo\'q'}
-                        </p>
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-sm text-gray-600 mb-1">Indikator</p>
-                        <p className="text-lg font-bold text-gray-900">
-                          {getIndicatorLabel(selectedWagon.indicator)}
+                          {totalAmount.toLocaleString()} ?
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1620,16 +1116,10 @@ const WagonsPage: React.FC = () => {
                         <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 border-b">
                           Jami
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 border-b">
-                          To'langan Mahsulot
-                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {selectedWagon.products.map((product, index) => {
-                        // Handle paid_amount that might be missing from backend
-                        const paidAmount = (product.paid_amount !== undefined && product.paid_amount !== null) ? product.paid_amount : 0;
-                        
                         return (
                           <tr key={index} className="hover:bg-gray-50">
                             <td className="px-4 py-3 text-sm text-gray-900">{index + 1}</td>
@@ -1640,13 +1130,10 @@ const WagonsPage: React.FC = () => {
                               {product.amount}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {product.price.toLocaleString()} Rubl
+                              {product.price.toLocaleString()} ?
                             </td>
                             <td className="px-4 py-3 text-sm font-semibold text-blue-600 text-right">
-                              {product.subtotal.toLocaleString()} Rubl
-                            </td>
-                            <td className="px-4 py-3 text-sm font-semibold text-green-600 text-left">
-                              {parseFloat(paidAmount.toString()).toLocaleString()} Rubl
+                              {product.subtotal.toLocaleString()} ?
                             </td>
                           </tr>
                         );
@@ -1656,13 +1143,7 @@ const WagonsPage: React.FC = () => {
                           JAMI:
                         </td>
                         <td className="px-4 py-3 text-right text-blue-900 text-lg">
-                          {parseFloat(selectedWagon.total.toString()).toLocaleString()} Rubl
-                        </td>
-                        <td className="px-4 py-3 text-left text-blue-900 text-lg">
-                          {selectedWagon.products.reduce((sum, p) => {
-                            const paid = (p.paid_amount !== undefined && p.paid_amount !== null) ? p.paid_amount : 0;
-                            return sum + parseFloat(paid.toString());
-                          }, 0).toLocaleString()} Rubl
+                          {parseFloat(selectedWagon.total.toString()).toLocaleString()} ?
                         </td>
                       </tr>
                     </tbody>

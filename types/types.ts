@@ -174,6 +174,7 @@ export interface Product {
   id: string; // uuid
   name: string;
   scale: number;
+  unit?: string;
   img_url: string | null;
   availability: number;
   total: number;
@@ -200,6 +201,7 @@ export const exampleProduct: Product = {
   id: "Namuna mahsulot",
   name: "Namuna mahsulot",
   scale: 1,
+  unit: "pcs",
   img_url: null,
   availability: 10,
   total: 10,

@@ -6,9 +6,9 @@ interface ProductsSummaryProps {
 }
 
 export default function ProductsSummary({ products }: ProductsSummaryProps) {
-  const totalPrice = products.reduce((sum, p) => sum + (p.sell_price || 0), 0);
   const totalQuantity = products.reduce((sum, p) => sum + (p.availability || 0), 0);
   const totalValue = products.reduce((sum, p) => sum + ((p.sell_price || 0) * (p.availability || 0)), 0);
+  const averagePrice = totalQuantity > 0 ? totalValue / totalQuantity : 0;
 
   return (
     <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -23,15 +23,12 @@ export default function ProductsSummary({ products }: ProductsSummaryProps) {
       <div className="p-5 bg-purple-50 rounded-lg border border-purple-200">
         <p className="text-sm text-gray-600 mb-1">O'rtacha Narx</p>
         <p className="text-2xl font-bold text-purple-900">
-          {products.length > 0
-            ? (totalPrice / products.length).toLocaleString("en-US", { maximumFractionDigits: 0 })
-            : 0}{" "}
-          Rubl
+          {averagePrice.toLocaleString("en-US", { maximumFractionDigits: 0 })} ₽
         </p>
       </div>
       <div className="p-5 bg-orange-50 rounded-lg border border-orange-200">
         <p className="text-sm text-gray-600 mb-1">Jami Qiymati</p>
-        <p className="text-2xl font-bold text-orange-900">{totalValue.toLocaleString()} Rubl</p>
+        <p className="text-2xl font-bold text-orange-900">{totalValue.toLocaleString()} ₽</p>
       </div>
     </div>
   );

@@ -257,9 +257,9 @@ export default function Profile() {
                         <div>
                           <p className="text-xs text-gray-500">Salary</p>
                           <p className="text-sm font-semibold text-gray-900">
-                            {new Intl.NumberFormat("en-US", {
+                            {new Intl.NumberFormat("ru-RU", {
                               style: "currency",
-                              currency: "USD",
+                              currency: "RUB",
                             }).format(admin.salary || 0)}
                           </p>
                         </div>
@@ -284,9 +284,9 @@ export default function Profile() {
                         <div>
                           <p className="text-xs text-gray-500">Bonuses</p>
                           <p className="text-sm font-semibold text-gray-900">
-                            {new Intl.NumberFormat("en-US", {
+                            {new Intl.NumberFormat("ru-RU", {
                               style: "currency",
-                              currency: "USD",
+                              currency: "RUB",
                             }).format(admin.bonuses || 0)}
                           </p>
                         </div>
@@ -587,7 +587,7 @@ export default function Profile() {
                           onChange={(e) => setCurrency(e.target.value)}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                         >
-                          <option value="USD">USD - US Dollar ($)</option>
+                          <option value="RUB">RUB - Russian ?e ({"\u20BD"})</option>
                           <option value="UZS">UZS - Uzbekistani Som (so'm)</option>
                           <option value="EUR">EUR - Euro (€)</option>
                           <option value="GBP">GBP - British Pound (£)</option>

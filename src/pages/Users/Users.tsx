@@ -246,7 +246,7 @@ export default function Admins() {
                 <div className="border-b border-gray-200 pb-3">
                   <p className="text-xs font-medium text-gray-600 mb-1">Maosh</p>
                   <p className="text-sm font-semibold text-gray-900">
-                    {u.salary > 0 ? `${u.salary.toLocaleString()} Rubl` : "—"}
+                    {u.salary > 0 ? `${u.salary.toLocaleString()} ?` : "—"}
                   </p>
                 </div>
 
@@ -476,7 +476,7 @@ export default function Admins() {
                   <div className="flex justify-between">
                     <span className="text-xs font-medium text-green-700">Maosh:</span>
                     <span className="text-sm font-semibold text-green-900">
-                      {selectedAdmin.salary > 0 ? `${selectedAdmin.salary.toLocaleString()} Rubl` : "—"}
+                      {selectedAdmin.salary > 0 ? `${selectedAdmin.salary.toLocaleString()} ?` : "—"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -631,19 +631,19 @@ export default function Admins() {
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Maosh</p>
-                    <p className="text-2xl font-bold text-green-900">{selectedAdmin.salary > 0 ? `${selectedAdmin.salary.toLocaleString()} Rubl` : "—"}</p>
+                    <p className="text-2xl font-bold text-green-900">{selectedAdmin.salary > 0 ? `${selectedAdmin.salary.toLocaleString()} ?` : "—"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Jami savdolar</p>
-                    <p className="text-2xl font-bold text-green-900">{selectedAdmin.sales > 0 ? `${selectedAdmin.sales.toLocaleString()} Rubl` : "—"}</p>
+                    <p className="text-2xl font-bold text-green-900">{selectedAdmin.sales > 0 ? `${selectedAdmin.sales.toLocaleString()} ?` : "—"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Xarajatlar</p>
-                    <p className="text-lg font-semibold text-green-900">{selectedAdmin.expenses > 0 ? `${selectedAdmin.expenses.toLocaleString()} Rubl` : "—"}</p>
+                    <p className="text-lg font-semibold text-green-900">{selectedAdmin.expenses > 0 ? `${selectedAdmin.expenses.toLocaleString()} ?` : "—"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Bonuslar</p>
-                    <p className="text-lg font-semibold text-green-900">{selectedAdmin.bonuses > 0 ? `${selectedAdmin.bonuses.toLocaleString()} Rubl` : "—"}</p>
+                    <p className="text-lg font-semibold text-green-900">{selectedAdmin.bonuses > 0 ? `${selectedAdmin.bonuses.toLocaleString()} ?` : "—"}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs font-medium text-green-700 mb-1">Bu oy to'landi</p>

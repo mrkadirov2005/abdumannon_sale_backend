@@ -102,7 +102,7 @@ export const EditDebtModal: React.FC<Props> = ({
             </label>
             <input
               type="number"
-              value={formData.amount}
+              value={formData.amount ?? ""}
               onChange={(e) =>
                 onFormDataChange({ ...formData, amount: e.target.value })
               }
@@ -128,11 +128,11 @@ export const EditDebtModal: React.FC<Props> = ({
               <div className="grid grid-cols-2 gap-3">
                 <input
                   type="number"
-                  value={currentProduct.quantity}
+                  value={currentProduct.quantity ?? ""}
                   onChange={(e) =>
                     onCurrentProductChange({
                       ...currentProduct,
-                      quantity: parseInt(e.target.value),
+                      quantity: e.target.value === "" ? "" : parseInt(e.target.value),
                     })
                   }
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -140,11 +140,11 @@ export const EditDebtModal: React.FC<Props> = ({
                 />
                 <input
                   type="number"
-                  value={currentProduct.price}
+                  value={currentProduct.price ?? ""}
                   onChange={(e) =>
                     onCurrentProductChange({
                       ...currentProduct,
-                      price: parseFloat(e.target.value),
+                      price: e.target.value === "" ? "" : parseFloat(e.target.value),
                     })
                   }
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"

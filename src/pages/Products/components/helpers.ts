@@ -4,10 +4,9 @@ interface Product{
     net_price?: number;
 }
 export const calculateProfit = (product: Product)=>{
-  if (!product.cost_price || !product.sell_price || !product.net_price) {
-    return 0;
-  }
-  return Number(product.sell_price) - (Number(product.cost_price) + Number(product.net_price));
-//   return 0;
-
+  const sellPrice = Number(product.sell_price ?? 0);
+  if (!sellPrice) return 0;
+  const costPrice = Number(product.cost_price ?? 0);
+  const netPrice = Number(product.net_price ?? 0);
+  return sellPrice - (costPrice + netPrice);
 }

@@ -45,11 +45,6 @@ export default function ProductsTable({
             <th className="px-4 py-3 text-left font-semibold text-gray-900 border border-gray-200">Kategoriya</th>
             <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Sotish Narxi</th>
             {(permissions.includes("PRODUCT_DETAILS") || isSuperUser) && (
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">
-                Tozalangan Narxi
-              </th>
-            )}
-            {(permissions.includes("PRODUCT_DETAILS") || isSuperUser) && (
               <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Foyda</th>
             )}
             <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Ombor</th>
@@ -82,10 +77,6 @@ export default function ProductsTable({
               <td className="px-4 py-3 text-right font-semibold border border-gray-200">{p.sell_price}</td>
 
               {(permissions.includes("PRODUCT_DETAILS") || isSuperUser) && (
-                <td className="px-4 py-3 text-right text-gray-600 border border-gray-200">{p.net_price}</td>
-              )}
-
-              {(permissions.includes("PRODUCT_DETAILS") || isSuperUser) && (
                 <td className="px-4 py-3 text-right text-gray-600 border border-gray-200">
                  {calculateProfit({sell_price: p.sell_price, net_price: p.net_price, cost_price: p.cost_price as number})}
                 </td>
@@ -96,7 +87,7 @@ export default function ProductsTable({
                   p.availability > 0 ? "text-green-600" : "text-red-500"
                 }`}
               >
-                {p.availability}
+                {p.availability} {p.unit || "pcs"}
               </td>
 
               <td className="px-4 py-3 border border-gray-200">
@@ -111,6 +102,7 @@ export default function ProductsTable({
                         onRestockChange(Number(e.target.value));
                       }}
                     />
+                    <span className="text-xs text-gray-500">{p.unit || "pcs"}</span>
                     <Button
                       onClick={() => onRestockSave(p.id, restockValue, p.availability)}
                       disabled={restockValue <= 0}
@@ -160,7 +152,7 @@ export default function ProductsTable({
 
           {products.length === 0 && (
             <tr>
-              <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
+              <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
                 Mahsulot topilmadi
               </td>
             </tr>

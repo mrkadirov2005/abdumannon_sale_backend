@@ -22,7 +22,7 @@ interface Debt {
   year: number;
   name: string;
   amount: number;
-  product_names: string;
+  product_names: string | string[];
   branch_id: number;
   shop_id: number;
   admin_id: string;
@@ -224,6 +224,7 @@ export default function DebtManagement() {
           authorization: token ?? "",
           branch_id: branchId,
         },
+        body: JSON.stringify({ shop_id }),
       });
 
       if (!res.ok) {
@@ -331,31 +332,41 @@ export default function DebtManagement() {
       .join("|");
   };
 
+  const formatProductsToArray = (entries: ProductEntry[]): string[] => {
+    return entries.map((p) => `${p.name}*${p.quantity}*${p.price}*${p.totalPaid}`);
+  };
+
+  const normalizeProductNames = (value: unknown): string[] => {
+    if (Array.isArray(value)) {
+      return value.filter((v) => typeof v === "string" && v.trim() !== "");
+    }
+    if (typeof value === "string") {
+      if (value.trim() === "") return [];
+      return value
+        .split("|")
+        .map((v) => v.trim())
+        .filter((v) => v !== "");
+    }
+    return [];
+  };
+
   const parseProductsFromString = (productString: string | string[] | undefined | null | any): ProductEntry[] => {
     if (!productString) return [];
     
     try {
-      // Convert array to string if needed
-      let str = productString;
-      if (Array.isArray(productString)) {
-        str = productString[0] || "";
-      }
-      
-      if (typeof str !== "string" || str.trim() === "") return [];
-      
-      return str
-        .split("|")
-        .filter((item) => item.trim() !== "")
-        .map((item, index) => {
-          const [name, quantity, price, totalPaid] = item.split("*");
-          return {
-            id: `${index}-${Date.now()}`,
-            name: name || "",
-            quantity: parseInt(quantity) || 1,
-            price: parseFloat(price) || 0,
-            totalPaid: parseFloat(totalPaid) || 0,
-          };
-        });
+      const items = normalizeProductNames(productString);
+      if (items.length === 0) return [];
+
+      return items.map((item, index) => {
+        const [name, quantity, price, totalPaid] = item.split("*");
+        return {
+          id: `${index}-${Date.now()}`,
+          name: name || "",
+          quantity: parseInt(quantity) || 1,
+          price: parseFloat(price) || 0,
+          totalPaid: parseFloat(totalPaid) || 0,
+        };
+      });
     } catch (error) {
       console.error("Error parsing products:", error);
       return [];
@@ -366,33 +377,17 @@ export default function DebtManagement() {
     if (!productString) return "";
     
     try {
-      // Convert array to string if needed
-      let str = productString;
-      if (Array.isArray(productString)) {
-        str = productString[0] || "";
-      }
-      
-      if (typeof str !== "string") return "";
-      
-      // If empty or just whitespace, return empty
-      if (str.trim() === "") return "";
-      
-      // Check if it contains the delimiter
-      if (!str.includes("|") && !str.includes("*")) {
-        // Assume it's just a plain string (legacy format or error), return as is
-        return str;
-      }
-      
-      return str
-        .split("|")
-        .filter((item) => item.trim() !== "") // Filter out empty items
+      const items = normalizeProductNames(productString);
+      if (items.length === 0) return "";
+
+      return items
         .map((item) => {
           const parts = item.split("*");
           const name = parts[0] || "";
           const quantity = parts[1] || "";
           return `${name}${quantity ? ` (${quantity} dona)` : ""}`;
         })
-        .filter((item) => item.trim() !== "") // Filter out empty results
+        .filter((item) => item.trim() !== "")
         .join(", ");
     } catch (error) {
       console.error("Error formatting products:", error);
@@ -446,7 +441,7 @@ export default function DebtManagement() {
 
     try {
       const toastId = toast.loading("💾 Qarz yaratilmoqda...");
-      const productNamesString = formatProductsToString(productEntries);
+      const productNamesArray = formatProductsToArray(productEntries);
       const totalAmount = calculateTotalFromProducts(productEntries);
 
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.create}`, {
@@ -458,7 +453,7 @@ export default function DebtManagement() {
         body: JSON.stringify({
           name: formData.name,
           amount: totalAmount,
-          product_names: productNamesString,
+          product_names: productNamesArray,
           branch_id: typeof formData.branch_id === 'string' ? parseInt(formData.branch_id) : formData.branch_id,
           shop_id,
           admin_id: "admin-uuid",
@@ -511,8 +506,8 @@ export default function DebtManagement() {
       
       // If editing with new products, format them; otherwise keep original format
       const productString = productEntries.length > 0 
-        ? formatProductsToString(productEntries)
-        : editingDebt.product_names;
+        ? formatProductsToArray(productEntries)
+        : normalizeProductNames(editingDebt.product_names);
 
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
         method: "POST",
@@ -801,7 +796,7 @@ export default function DebtManagement() {
 
         <div class="total-section">
           <div class="total-row">
-            ИТОГО: ${debt.amount.toLocaleString()} Rubl
+            ИТОГО: ${debt.amount.toLocaleString()} ?
           </div>
           <div style="margin-top: 10px;">
             <span class="info-label">Статус:</span> ${debt.isreturned ? 'Оплачено' : 'Ожидается'}
@@ -890,17 +885,17 @@ export default function DebtManagement() {
             ${debtsHTML}
             <tr class="total-row">
               <td colspan="3">JAMI</td>
-              <td>${totalAmount.toLocaleString()} Rubl</td>
+              <td>${totalAmount.toLocaleString()} ?</td>
               <td></td>
             </tr>
             <tr class="total-row">
               <td colspan="3">Qaytarilgan</td>
-              <td>${returnedAmount.toLocaleString()} Rubl</td>
+              <td>${returnedAmount.toLocaleString()} ?</td>
               <td></td>
             </tr>
             <tr class="total-row">
               <td colspan="3">Qaytarilmagan</td>
-              <td>${unreturnedAmount.toLocaleString()} Rubl</td>
+              <td>${unreturnedAmount.toLocaleString()} ?</td>
               <td></td>
             </tr>
           </tbody>
@@ -970,11 +965,11 @@ export default function DebtManagement() {
             <div class="debtor-summary">
               <div class="summary-item">
                 <span class="label">Jami:</span>
-                <span class="value">${debtorTotal.toLocaleString()} Rubl</span>
+                <span class="value">${debtorTotal.toLocaleString()} ?</span>
               </div>
               <div class="summary-item">
                 <span class="label">Qaytarilgan:</span>
-                <span class="value paid">${debtorReturned.toLocaleString()} Rubl</span>
+                <span class="value paid">${debtorReturned.toLocaleString()} ?</span>
               </div>
             </div>
           </div>
@@ -1047,11 +1042,11 @@ export default function DebtManagement() {
           <div class="grand-total-grid">
             <div class="grand-total-item">
               <span class="label">Jami Summa</span>
-              <span class="value">${grandTotal.toLocaleString()}Rubl</span>
+              <span class="value">${grandTotal.toLocaleString()}?</span>
             </div>
             <div class="grand-total-item">
               <span class="label">Jami To'langan</span>
-              <span class="value" style="color: #28a745;">${grandPaid.toLocaleString()}Rubl</span>
+              <span class="value" style="color: #28a745;">${grandPaid.toLocaleString()}?</span>
             </div>
           </div>
         </div>
@@ -1167,64 +1162,6 @@ export default function DebtManagement() {
         </button>
       </header>
 
-      {/* Statistics Cards */}
-      {statistics && (
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <div
-            onClick={() => {
-              setDebtTypeFilter("given");
-              setViewMode("folders");
-              setSelectedDebtor(null);
-            }}
-            className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">Berilgan Nasiya</p>
-              <DollarSign size={20} className="opacity-50 hidden md:block" />
-            </div>
-            <p className="text-2xl sm:text-4xl font-bold">{debts.filter(d => d.branch_id !== 1).length}</p>
-            <p className="text-xs sm:text-sm opacity-75 mt-1">Berilgan Qarzlar</p>
-          </div>
-
-          <div
-            onClick={() => {
-              setDebtTypeFilter("taken");
-              setViewMode("folders");
-              setSelectedDebtor(null);
-            }}
-            className="bg-gradient-to-br from-red-500 to-red-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">Nasiyam</p>
-              <X size={20} className="opacity-50 hidden md:block" />
-            </div>
-            <p className="text-2xl sm:text-4xl font-bold">{debts.filter(d => d.branch_id === 1).length}</p>
-            <p className="text-xs sm:text-sm opacity-75 mt-1 sm:mt-2">{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl</p>
-          </div>
-
-          <div
-            onClick={() => setViewMode("statistics")}
-            className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">Statistika</p>
-              <Check size={20} className="opacity-50 hidden md:block" />
-            </div>
-            <p className="text-2xl sm:text-4xl font-bold">{statistics.returned_count}</p>
-            <p className="text-xs sm:text-sm opacity-75 mt-1 sm:mt-2">Batafsil Ko'rish</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">Jami Summa</p>
-              <DollarSign size={20} className="opacity-50 hidden md:block" />
-            </div>
-            <p className="text-2xl sm:text-4xl font-bold">{parseFloat(statistics.total_amount).toLocaleString()}</p>
-            <p className="text-xs sm:text-sm opacity-75 mt-1 sm:mt-2">so'm</p>
-          </div>
-        </div>
-      )}
-
       {/* View Mode Toggle */}
       <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mb-4 sm:mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
@@ -1286,9 +1223,12 @@ export default function DebtManagement() {
                 placeholder="Mijoz nomi bo'yicha qidirish..."
                 value={searchName}
                 onChange={(e) => {
-                  setSearchName(e.target.value);
-                  if (e.target.value.length > 2) {
-                    fetchDebtsByCustomer(e.target.value);
+                  const value = e.target.value;
+                  setSearchName(value);
+                  if (value.length > 2) {
+                    fetchDebtsByCustomer(value);
+                  } else if (value.length === 0) {
+                    fetchDebts();
                   }
                 }}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -1461,13 +1401,13 @@ export default function DebtManagement() {
                   <div className="flex justify-between py-2 border-b border-blue-200">
                     <span className="text-gray-700">Jami Summa:</span>
                     <span className="font-bold text-blue-900">
-                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + d.amount, 0).toLocaleString()}Rubl
+                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + d.amount, 0).toLocaleString()}?
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-blue-200">
                     <span className="text-gray-700">To'langan Summa:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 0 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
+                      {debts.filter(d => d.branch_id === 0 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} ?
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
@@ -1498,13 +1438,13 @@ export default function DebtManagement() {
                   <div className="flex justify-between py-2 border-b border-red-200">
                     <span className="text-gray-700">Jami Summa:</span>
                     <span className="font-bold text-red-900">
-                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + d.amount, 0).toLocaleString()}Rubl
+                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + d.amount, 0).toLocaleString()}?
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-red-200">
                     <span className="text-gray-700">To'langan Summa:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 1 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
+                      {debts.filter(d => d.branch_id === 1 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} ?
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
@@ -1547,13 +1487,13 @@ export default function DebtManagement() {
                 <div className="flex justify-between py-2">
                   <span className="text-gray-700">Men Olishim Kerak:</span>
                   <span className="font-bold text-green-700 text-lg">
-                    +{debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
+                    +{debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} ?
                   </span>
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="text-gray-700">Men To'lashim Kerak:</span>
                   <span className="font-bold text-red-700 text-lg">
-                    -{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
+                    -{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} ?
                   </span>
                 </div>
                 <div className="flex justify-between py-3 border-t-2 border-gray-300 mt-3">
@@ -1565,7 +1505,7 @@ export default function DebtManagement() {
                       : "text-red-700"
                   }`}>
                     {(debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0) -
-                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)).toLocaleString()} Rubl
+                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)).toLocaleString()} ?
                   </span>
                 </div>
               </div>
@@ -1698,7 +1638,7 @@ export default function DebtManagement() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Jami Summa:</span>
                       <span className="font-semibold text-gray-900">
-                        {debt.amount.toLocaleString()}Rubl
+                        {debt.amount.toLocaleString()}?
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -1857,7 +1797,7 @@ export default function DebtManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-semibold text-gray-900">
-                            {debt.amount.toLocaleString()}Rubl
+                            {debt.amount.toLocaleString()}?
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1937,13 +1877,13 @@ export default function DebtManagement() {
                       TOTAL:
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-gray-900">
-                      {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}Rubl
+                      {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString()}?
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-green-700">
-                      {filteredAndSorted.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
+                      {filteredAndSorted.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} ?
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-red-700">
-                      {filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} Rubl
+                      {filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString()} ?
                     </td>
                     <td colSpan={3}></td>
                   </tr>
@@ -1985,7 +1925,7 @@ export default function DebtManagement() {
               {/* Amount */}
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <p className="text-xs font-medium text-purple-700 mb-1">Jami Summa</p>
-                <p className="text-3xl font-bold text-purple-900">{selectedDebt.amount.toLocaleString()}Rubl</p>
+                <p className="text-3xl font-bold text-purple-900">{selectedDebt.amount.toLocaleString()}?</p>
               </div>
 
               {/* Status */}
@@ -2022,15 +1962,10 @@ export default function DebtManagement() {
                           <div className="flex-1">
                             <p className="font-medium text-gray-900">{product.name}</p>
                             <p className="text-xs text-gray-600 mt-1">
-                              {product.quantity} × {product.price.toLocaleString()}Rubl = {(product.quantity * product.price).toLocaleString()}Rubl
+                              {product.quantity} × {product.price.toLocaleString()}? = {(product.quantity * product.price).toLocaleString()}?
                             </p>
                           </div>
                         </div>
-                        {product.totalPaid > 0 && (
-                          <p className="text-xs text-green-600 font-medium mt-2">
-                            To'langan: {product.totalPaid.toLocaleString()}Rubl
-                          </p>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -2253,44 +2188,6 @@ export default function DebtManagement() {
                   )}
                 </div>
 
-                {/* Debt Type Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Qarz Turi <span className="text-red-500">*</span>
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ 
-                        ...formData, 
-                      
-                        branch_id: isSuperAdmin ? 1 : (authData.user as unknown as Admin).branch
-                      })}
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${
-                        formData.branch_id===0
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      💰 Berilgan Nasiya
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ 
-                        ...formData, 
-                        branch_id: 0
-                      })}
-                      className={`px-4 py-3 rounded-lg border-2 font-medium transition ${
-                        formData.branch_id === 0
-                          ? "border-red-500 bg-red-50 text-red-700"
-                          : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                      }`}
-                    >
-                      💳 Nasiyam
-                    </button>
-                  </div>
-                </div>
-
                 {/* Products Manual Entry Section - UPDATED */}
                 <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
                   <h3 className="text-base font-bold text-gray-900 mb-4">📦 Mahsulotlar</h3>
@@ -2318,7 +2215,7 @@ export default function DebtManagement() {
                           onChange={(e) =>
                             setCurrentProduct({
                               ...currentProduct,
-                              quantity: parseInt(e.target.value) || 1,
+                              quantity: e.target.value === "" ? "" : parseInt(e.target.value) || 1,
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -2334,38 +2231,21 @@ export default function DebtManagement() {
                           onChange={(e) =>
                             setCurrentProduct({
                               ...currentProduct,
-                              price: parseFloat(e.target.value) || 0,
+                              price: e.target.value === "" ? "" : parseFloat(e.target.value) || 0,
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           min="0"
                           placeholder="0"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Toʻlangan Summa (so'm)</label>
-                        <input
-                          type="number"
-                          value={currentProduct.totalPaid}
-                          onChange={(e) =>
-                            setCurrentProduct({
-                              ...currentProduct,
-                              totalPaid: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          min="0"
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
+                      </div></div>
 
                     {/* Quick Info */}
                     {currentProduct.price > 0 && currentProduct.quantity > 0 && (
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(currentProduct.price * currentProduct.quantity).toLocaleString()}Rubl
+                            {(currentProduct.price * currentProduct.quantity).toLocaleString()}?
                           </span>
                         </p>
                       </div>
@@ -2407,7 +2287,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} × {product.price.toLocaleString()}Rubl = {(product.quantity * product.price).toLocaleString()}Rubl
+                                  {product.quantity} × {product.price.toLocaleString()}? = {(product.quantity * product.price).toLocaleString()}?
                                 </p>
                               </div>
                               <button
@@ -2418,11 +2298,6 @@ export default function DebtManagement() {
                                 <Trash2 size={16} />
                               </button>
                             </div>
-                            {product.totalPaid > 0 && (
-                              <p className="text-xs text-green-600 font-medium">
-                                To'langan: {product.totalPaid.toLocaleString()}Rubl
-                              </p>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -2431,7 +2306,7 @@ export default function DebtManagement() {
                       <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between font-bold text-gray-900">
                         <span>Jami Summa:</span>
                         <span className="text-lg text-blue-900">
-                          {calculateTotalFromProducts(productEntries).toLocaleString()}Rubl
+                          {calculateTotalFromProducts(productEntries).toLocaleString()}?
                         </span>
                       </div>
                     </div>
@@ -2547,7 +2422,7 @@ export default function DebtManagement() {
                           onChange={(e) =>
                             setCurrentProduct({
                               ...currentProduct,
-                              quantity: parseInt(e.target.value) || 1,
+                              quantity: e.target.value === "" ? "" : parseInt(e.target.value) || 1,
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -2563,38 +2438,21 @@ export default function DebtManagement() {
                           onChange={(e) =>
                             setCurrentProduct({
                               ...currentProduct,
-                              price: parseFloat(e.target.value) || 0,
+                              price: e.target.value === "" ? "" : parseFloat(e.target.value) || 0,
                             })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           min="0"
                           placeholder="0"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Toʻlangan Summa (so'm)</label>
-                        <input
-                          type="number"
-                          value={currentProduct.totalPaid}
-                          onChange={(e) =>
-                            setCurrentProduct({
-                              ...currentProduct,
-                              totalPaid: parseFloat(e.target.value) || 0,
-                            })
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          min="0"
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
+                      </div></div>
 
                     {/* Quick Info */}
                     {currentProduct.price > 0 && currentProduct.quantity > 0 && (
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(currentProduct.price * currentProduct.quantity).toLocaleString()}Rubl
+                            {(currentProduct.price * currentProduct.quantity).toLocaleString()}?
                           </span>
                         </p>
                       </div>
@@ -2636,7 +2494,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} × {product.price.toLocaleString()}Rubl = {(product.quantity * product.price).toLocaleString()}Rubl
+                                  {product.quantity} × {product.price.toLocaleString()}? = {(product.quantity * product.price).toLocaleString()}?
                                 </p>
                               </div>
                               <button
@@ -2647,11 +2505,6 @@ export default function DebtManagement() {
                                 <Trash2 size={16} />
                               </button>
                             </div>
-                            {product.totalPaid > 0 && (
-                              <p className="text-xs text-green-600 font-medium">
-                                To'langan: {product.totalPaid.toLocaleString()}Rubl
-                              </p>
-                            )}
                           </div>
                         ))}
                       </div>
@@ -2660,29 +2513,14 @@ export default function DebtManagement() {
                       <div className="mt-3 pt-3 border-t border-orange-200 flex justify-between font-bold text-gray-900">
                         <span>Jami Summa:</span>
                         <span className="text-lg text-orange-900">
-                          {calculateTotalFromProducts(productEntries).toLocaleString()}Rubl
+                          {calculateTotalFromProducts(productEntries).toLocaleString()}?
                         </span>
                       </div>
                     </div>
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Filial *</label>
-                  <select
-                    value={formData.branch_id}
-                    onChange={(e) => setFormData({ ...formData, branch_id: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
-                  >
-                    <option value="">Filialni tanlang</option>
-                    {branches.branches?.map((branch) => (
-                          <option key={String(branch.id)} value={branch.id}>
-                            {branch.name || "Unknown"}
-                          </option>
-                        ))}
-                  </select>
-                </div>
+                {/* Branch is set automatically */}
 
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex justify-between items-center">
@@ -2766,7 +2604,7 @@ export default function DebtManagement() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between py-2 border-b border-gray-200">
                   <span className="text-gray-600">Qarz Miqdori:</span>
-                  <span className="font-bold text-gray-900">{paymentDebt.amount.toLocaleString()} Rubl</span>
+                  <span className="font-bold text-gray-900">{paymentDebt.amount.toLocaleString()} ?</span>
                 </div>
                 <div className="flex justify-between py-2 bg-yellow-50 px-3 rounded-lg">
                   <span className="font-bold text-gray-900">Holat:</span>
@@ -2803,16 +2641,14 @@ export default function DebtManagement() {
                           "Content-Type": "application/json",
                           authorization: token ?? "",
                         },
-                        body: JSON.stringify({
-                          id: paymentDebt.id,
-                          name: paymentDebt.name,
-                          amount: paymentDebt.amount,
-                          product_names: typeof paymentDebt.product_names === 'string' 
-                            ? paymentDebt.product_names 
-                            : JSON.stringify(paymentDebt.product_names),
-                          branch_id: paymentDebt.branch_id,
-                          isreturned: true,
-                        }),
+                          body: JSON.stringify({
+                            id: paymentDebt.id,
+                            name: paymentDebt.name,
+                            amount: paymentDebt.amount,
+                            product_names: normalizeProductNames(paymentDebt.product_names),
+                            branch_id: paymentDebt.branch_id,
+                            isreturned: true,
+                          }),
                       });
 
                       if (!res.ok) {

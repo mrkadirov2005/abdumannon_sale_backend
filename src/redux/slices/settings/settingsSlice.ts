@@ -12,7 +12,7 @@ export type SettingsState = {
 const initialState: SettingsState = {
   general: {
     storeName: "",
-    currency: "USD",
+    currency: "RUB",
     timezone: "UTC",
     dateFormat: "MM/DD/YYYY",
   },

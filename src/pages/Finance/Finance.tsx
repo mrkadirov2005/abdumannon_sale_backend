@@ -12,6 +12,7 @@ import type { ViewMode } from "./types";
 
 const Finance: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("folders");
+  const [source, setSource] = useState<"wagons" | "debts">("wagons");
   const {
     loading,
     searchQuery,
@@ -22,6 +23,7 @@ const Finance: React.FC = () => {
     filteredPersons,
     selectedPersonData,
     wagons,
+    debts,
     financeRecords,
     setSearchQuery,
     setSelectedPerson,
@@ -31,7 +33,7 @@ const Finance: React.FC = () => {
     handleDeleteFinanceRecord,
     handleDeleteWagon,
     handleAddPayment,
-  } = useFinanceLogic();
+  } = useFinanceLogic(source);
 
   useEffect(() => {
     fetchData();
@@ -50,7 +52,16 @@ const Finance: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6 md:p-8">
-      <FinanceHeader searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+      <FinanceHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        source={source}
+        onSourceChange={(next) => {
+          setSource(next);
+          setSelectedPerson(null);
+          setViewMode("folders");
+        }}
+      />
 
       <FinanceStats
         uniquePersons={uniquePersons}
@@ -73,9 +84,15 @@ const Finance: React.FC = () => {
           persons={filteredPersons}
           selectedPerson={selectedPerson}
           onPersonSelect={setSelectedPerson}
+          source={source}
         />
       ) : (
-        <ListView wagons={wagons} onDeleteWagon={handleDeleteWagon} />
+        <ListView
+          wagons={wagons}
+          debts={debts}
+          source={source}
+          onDeleteWagon={handleDeleteWagon}
+        />
       )}
 
       {/* Details Panel */}
@@ -86,6 +103,7 @@ const Finance: React.FC = () => {
           onAddPayment={() => setShowPaymentModal(true)}
           onDeleteWagon={handleDeleteWagon}
           onDeleteFinanceRecord={handleDeleteFinanceRecord}
+          source={source}
         />
       )}
 
