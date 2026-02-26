@@ -39,6 +39,7 @@ interface SoldProduct {
   productid: string;
   salesid: string;
   shop_id: string;
+  unit?: string | null;
 }
 
 export default function SaleBoard() {
@@ -638,7 +639,7 @@ export default function SaleBoard() {
       <tr>
         <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 5%;">${i + 1}</td>
         <td style="border: 1px solid #000; padding: 5px; width: 40%;">${p.product_name}</td>
-        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 15%;">${p.amount}</td>
+        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 15%;">${p.amount}${p.unit ? ` ${p.unit}` : ""}</td>
         <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${p.sell_price.toLocaleString()}</td>
         <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${(p.sell_price * p.amount).toLocaleString()}</td>
       </tr>
@@ -823,7 +824,7 @@ export default function SaleBoard() {
         // Word wrap for long product names
         const splitName = doc.splitTextToSize(productName, 35);
         doc.text(splitName, leftMargin, yPos);
-        doc.text(product.amount.toString(), 45, yPos, { align: 'center' });
+        doc.text(`${product.amount}${product.unit ? ` ${product.unit}` : ""}`, 45, yPos, { align: 'center' });
         doc.text(product.sell_price as unknown as string, 57, yPos, { align: 'right' });
         doc.text(total.toFixed(2), rightMargin, yPos, { align: 'right' });
 
@@ -1632,7 +1633,9 @@ export default function SaleBoard() {
                         <tr key={product.id} className="border-b border-gray-200 hover:bg-blue-50 transition">
                           <td className="px-4 py-3 text-gray-700">{index + 1}</td>
                           <td className="px-4 py-3 font-medium text-gray-900">{product.product_name}</td>
-                          <td className="px-4 py-3 text-gray-700">{product.amount}</td>
+                          <td className="px-4 py-3 text-gray-700">
+                            {product.amount}{product.unit ? ` ${product.unit}` : ""}
+                          </td>
                           <td className="px-4 py-3 text-gray-700">{product.net_price}</td>
                           <td className="px-4 py-3 text-gray-700">{product.sell_price}</td>
                           <td className="px-4 py-3 font-semibold text-gray-900">{total.toFixed(2)}</td>
