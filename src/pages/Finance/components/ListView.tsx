@@ -16,20 +16,6 @@ export const ListView: React.FC<ListViewProps> = ({
   source,
   onDeleteWagon,
 }) => {
-  const formatUnitLabel = (unit: string | undefined | null) => {
-    const normalized = unit || "pcs";
-    switch (normalized) {
-      case "kg":
-        return "Kg";
-      case "t":
-        return "Tonna";
-      case "l":
-        return "Litr";
-      case "pcs":
-      default:
-        return "Dona";
-    }
-  };
 
   const printDebt = (debt: Debt) => {
     const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
@@ -46,7 +32,7 @@ export const ListView: React.FC<ListViewProps> = ({
         price: debt.amount,
         total: debt.amount,
       }],
-      total: debt.amount,
+      totalAmount: debt.amount,
       status: debt.isreturned ? "✓ Қайтарилган" : "⏳ Қайтарилмаган",
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",

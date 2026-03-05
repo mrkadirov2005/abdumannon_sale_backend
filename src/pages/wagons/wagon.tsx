@@ -15,7 +15,7 @@ import {
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { useSelector } from "react-redux";
 import { accessTokenFromStore } from "../../redux/selectors";
-import { printCheque, formatUnitLabel as chequeFormatUnit } from "../../components/ui/ChequeProvider";
+import { printCheque } from "../../components/ui/ChequeProvider";
 
 // Types
 interface Product {

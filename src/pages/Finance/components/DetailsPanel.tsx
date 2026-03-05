@@ -1,6 +1,6 @@
 import React from "react";
 import { Plus, Trash2, Printer } from "lucide-react";
-import type { Person, FinanceRecord, Debt, Wagon, Product } from "../types";
+import type { Person, FinanceRecord, Debt, Wagon } from "../types";
 import { printCheque } from "../../../components/ui/ChequeProvider";
 
 interface DetailsPanelProps {
@@ -20,7 +20,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   onDeleteFinanceRecord,
   source,
 }) => {
-  const formatUnitLabel = (unit: string | undefined | null) => {
+  const _formatUnitLabel = (unit: string | undefined | null) => {
     const normalized = unit || "pcs";
     switch (normalized) {
       case "kg":
@@ -57,7 +57,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         price: Number(p.price ?? 0),
         total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
       })),
-      total: Number(wagon.total),
+      totalAmount: Number(wagon.total),
       status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
@@ -85,7 +85,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       supplier: "HC COMPANY",
       buyer: person.name,
       products: allProducts,
-      total: grandTotal,
+      totalAmount: grandTotal,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -106,7 +106,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         price: debt.amount,
         total: debt.amount,
       }],
-      total: debt.amount,
+      totalAmount: debt.amount,
       status: debt.isreturned ? "✓ Қайтарилган" : "⏳ Қайтарилмаган",
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
@@ -131,7 +131,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           total: d.amount,
         };
       }),
-      total: debts.reduce((s, d) => s + d.amount, 0),
+      totalAmount: debts.reduce((s, d) => s + d.amount, 0),
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -185,7 +185,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       supplier: "HC COMPANY",
       buyer: person.name,
       products,
-      total: person.totalAmount,
+      totalAmount: person.totalAmount,
       status: `To'langan: ${person.paidAmount.toLocaleString()} | Qoldiq: ${person.remainingAmount.toLocaleString()}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",

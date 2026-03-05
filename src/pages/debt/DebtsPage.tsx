@@ -12,7 +12,7 @@ import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { toast } from "react-toastify";
 import { Search, Plus, Edit2, Trash2, Check, X, DollarSign, Eye, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight } from "lucide-react";
 import type { Admin } from "../../../types/types";
-import { printCheque, generateChequeHTML } from "../../components/ui/ChequeProvider";
+import { printCheque } from "../../components/ui/ChequeProvider";
 
 /* ================= TYPES ================= */
 
