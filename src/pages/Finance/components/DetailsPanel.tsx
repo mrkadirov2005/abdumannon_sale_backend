@@ -20,21 +20,6 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   onDeleteFinanceRecord,
   source,
 }) => {
-  const _formatUnitLabel = (unit: string | undefined | null) => {
-    const normalized = unit || "pcs";
-    switch (normalized) {
-      case "kg":
-        return "Kg";
-      case "t":
-        return "Tonna";
-      case "l":
-        return "Litr";
-      case "pcs":
-      default:
-        return "Dona";
-    }
-  };
-
   const personFinanceRecords = financeRecords.filter((record) =>
     record.description?.startsWith(person.name)
   );

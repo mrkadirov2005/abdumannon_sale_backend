@@ -55,7 +55,7 @@ export const ListView: React.FC<ListViewProps> = ({
         price: Number(p.price ?? 0),
         total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
       })),
-      total: Number(wagon.total),
+      totalAmount: Number(wagon.total),
       status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
