@@ -13,9 +13,9 @@ import { BarChart } from "@mui/icons-material";
 import { type AppDispatch } from "../../redux/store";
 import { setSales } from "../../redux/slices/sales/salesReducer";
 import { toast } from "react-toastify";
-import jsPDF from "jspdf";
 import SalesStatistics from "./SalesStatistics";
 import { Search, X } from "lucide-react";
+import { printCheque } from "../../components/ui/ChequeProvider";
 
 type PaymentMethod = "cash" | "card" | "mobile" | "" | null;
 
@@ -97,6 +97,9 @@ export default function SaleBoard() {
 
   // Delete sale state
   const [deletingSaleId, setDeletingSaleId] = useState<number | null>(null);
+
+  // Payment status tab: "all" | "paid" | "debt"
+  const [paymentTab, setPaymentTab] = useState<"all" | "paid" | "debt">("all");
 
   // View sale products states
   const [viewingProductsSaleId, setViewingProductsSaleId] = useState<string | null>(null);
@@ -232,6 +235,29 @@ export default function SaleBoard() {
 
     return rows;
   }, [data, sortKey, sortOrder, paymentFilter, search, extraSort, selectedAdmin, dateFilter]);
+
+  // Filter by payment tab (paid vs debt)
+  const tabFilteredData = useMemo(() => {
+    if (paymentTab === "paid") {
+      return filteredData.filter((sale) => Number(sale.profit) >= Number(sale.total_price));
+    }
+    if (paymentTab === "debt") {
+      return filteredData.filter((sale) => Number(sale.profit) < Number(sale.total_price));
+    }
+    return filteredData;
+  }, [filteredData, paymentTab]);
+
+  // Totals for the active tab
+  const tabTotals = useMemo(() => {
+    return tabFilteredData.reduce(
+      (acc, sale) => {
+        acc.totalPrice += Number(sale.total_price) ?? 0;
+        acc.totalProfit += Number(sale.profit) ?? 0;
+        return acc;
+      },
+      { totalPrice: 0, totalProfit: 0 }
+    );
+  }, [tabFilteredData]);
 
   // Extract unique dates from sales data
   const availableDates = useMemo(() => {
@@ -630,404 +656,55 @@ export default function SaleBoard() {
 
   // Print individual sale as invoice
   const printSaleAsInvoice = (sale: Sale) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+    const paymentLabel =
+      sale.payment_method === "cash" ? "Наличные" :
+      sale.payment_method === "card" ? "Карта" : "Мобильная";
 
-    const productsHtml = saleProducts
-      .map(
-        (p, i) => `
-      <tr>
-        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 5%;">${i + 1}</td>
-        <td style="border: 1px solid #000; padding: 5px; width: 40%;">${p.product_name}</td>
-        <td style="border: 1px solid #000; padding: 5px; text-align: center; width: 15%;">${p.amount}${p.unit ? ` ${p.unit}` : ""}</td>
-        <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${p.sell_price.toLocaleString()}</td>
-        <td style="border: 1px solid #000; padding: 5px; text-align: right; width: 20%;">${(p.sell_price * p.amount).toLocaleString()}</td>
-      </tr>
-    `
-      )
-      .join("");
-
-    const totalAmount = saleProducts.reduce((sum, p) => sum + (p.sell_price * p.amount), 0);
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Накладная #${sale.sale_id}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
-            .header { margin-bottom: 20px; }
-            .header-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
-            .info-section { margin-bottom: 15px; font-size: 12px; line-height: 1.6; }
-            .info-label { font-weight: bold; }
-            table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 11px; }
-            th { border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; background: #f5f5f5; }
-            td { border: 1px solid #000; padding: 8px; }
-            .total-section { margin-top: 20px; text-align: right; font-size: 12px; }
-            .total-row { font-weight: bold; font-size: 14px; margin-top: 10px; }
-            .signature-section { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; font-size: 11px; }
-            .signature-line { text-align: center; }
-            .signature-blank { margin-bottom: 30px; border-bottom: 1px solid #000; height: 30px; }
-            button { margin-top: 20px; padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; }
-            @media print { button { display: none; } }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <div class="header-title">НАКЛАДНАЯ № ${sale.sale_id}  ${new Date(sale.sale_time).toLocaleDateString('uz-UZ')}</div>
-          </div>
-
-          <div class="info-section">
-            <p><span class="info-label">Поставщик:</span> HC COMPANY</p>
-            <p>г. Москва, рынок «Фуд Сити»</p>
-            <p>Торговая точка: ${sale.id || '___'}</p>
-            <p>Тел: 8-915-016-16-15, 8-916-576-07-07</p>
-            <p><span class="info-label">Возврат товара в течение 14 дней</span></p>
-          </div>
-
-          <div class="info-section">
-            <p><span class="info-label">Продавец:</span> ${sale.admin_name || 'N/A'}</p>
-            <p><span class="info-label">Способ оплаты:</span> ${sale.payment_method === 'cash' ? 'Наличные' : sale.payment_method === 'card' ? 'Карта' : 'Мобильная'}</p>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 5%;">№</th>
-                <th style="width: 40%;">Наименование товара</th>
-                <th style="width: 15%;">Количество</th>
-                <th style="width: 20%;">Себестоимость</th>
-                <th style="width: 20%;">Сумма</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${productsHtml}
-            </tbody>
-          </table>
-
-          <div class="total-section">
-            <div class="total-row">
-              ИТОГО: ${totalAmount.toLocaleString()} ?
-            </div>
-          </div>
-
-          <div class="signature-section">
-            <div class="signature-line">
-              <div class="signature-blank"></div>
-              <p>Продавец (подпись)</p>
-            </div>
-            <div class="signature-line">
-              <div class="signature-blank"></div>
-              <p>Покупатель (подпись)</p>
-            </div>
-          </div>
-
-          <button onclick="window.print()">Печать</button>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printCheque({
+      title: "Накладная",
+      number: sale.sale_id,
+      date: sale.sale_time,
+      supplier: "HC COMPANY, г. Москва, рынок «Фуд Сити», Тел: 8-915-016-16-15, 8-916-576-07-07",
+      buyer: `Продавец: ${sale.admin_name || "N/A"} | Способ оплаты: ${paymentLabel}`,
+      products: saleProducts.map((p) => ({
+        name: p.product_name,
+        quantity: p.amount,
+        unit: p.unit || "pcs",
+        price: p.sell_price,
+        total: p.sell_price * p.amount,
+      })),
+      extraNote: "Возврат товара в течение 14 дней",
+      signatureLeft: "Продавец (подпись)",
+      signatureRight: "Покупатель (подпись)",
+    });
   };
 
-  // Handle print check as PDF
-  function handlePrintCheck() {
-    if (saleProducts.length === 0) {
-      toast.error("Chop etish uchun mahsulot yo'q");
-      return;
-    }
-    
-    const sale = data.find(s => s.sale_id === viewingProductsSaleId);
-    if (!sale) return;
-    
-    try {
-      const totalAmount = saleProducts.reduce((sum, p) => sum + (p.sell_price * p.amount), 0);
-      const totalProfit = saleProducts.reduce((sum, p) => sum + ((p.sell_price - p.net_price) * p.amount), 0);
-
-      // Create PDF
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: [80, 297] // Receipt width
-      });
-
-      let yPos = 10;
-      const leftMargin = 5;
-      const rightMargin = 75;
-      const lineHeight = 5;
-      
-      // Header
-      doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
-      doc.text('SOTUV CHEKI', 40, yPos, { align: 'center' });
-      yPos += lineHeight + 2;
-      
-      // Line
-      doc.setLineWidth(0.3);
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-      
-      // Date and time
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Sana: ${new Date(sale.sale_time).toLocaleDateString('uz-UZ')}`, leftMargin, yPos);
-      yPos += lineHeight;
-      doc.text(`Vaqt: ${new Date(sale.sale_time).toLocaleTimeString('uz-UZ')}`, leftMargin, yPos);
-      yPos += lineHeight;
-      doc.text(`Chek №: ${sale.sale_id}`, leftMargin, yPos);
-      yPos += lineHeight + 2;
-
-      // Line
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-      
-      // Info section
-      doc.setFont('helvetica', 'bold');
-      doc.text('Sotuvchi:', leftMargin, yPos);
-      doc.setFont('helvetica', 'normal');
-      doc.text(sale.admin_name || 'N/A', 30, yPos);
-      yPos += lineHeight;
-      
-      const paymentText = sale.payment_method === 'cash' ? 'Naqd' :
-      sale.payment_method === 'card' ? 'Karta' :
-      sale.payment_method === 'mobile' ? 'Mobil' :
-            sale.payment_method || 'N/A';
-            doc.setFont('helvetica', 'bold');
-      doc.text("To'lov:", leftMargin, yPos);
-      doc.setFont('helvetica', 'normal');
-      doc.text(paymentText, 30, yPos);
-      yPos += lineHeight + 2;
-      
-      // Line
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-      
-      // Products table header
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.text('Mahsulot', leftMargin, yPos);
-      doc.text('Soni', 45, yPos, { align: 'center' });
-      doc.text('Narxi', 57, yPos, { align: 'right' });
-      doc.text('Jami', rightMargin, yPos, { align: 'right' });
-      yPos += lineHeight;
-
-      // Line
-      doc.setLineWidth(0.5);
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-      
-      // Products
-      doc.setFont('helvetica', 'normal');
-      saleProducts.forEach((product, index) => {
-        const total = product.sell_price * product.amount;
-        const productName = `${index + 1}. ${product.product_name}`;
-
-        // Word wrap for long product names
-        const splitName = doc.splitTextToSize(productName, 35);
-        doc.text(splitName, leftMargin, yPos);
-        doc.text(`${product.amount}${product.unit ? ` ${product.unit}` : ""}`, 45, yPos, { align: 'center' });
-        doc.text(product.sell_price as unknown as string, 57, yPos, { align: 'right' });
-        doc.text(total.toFixed(2), rightMargin, yPos, { align: 'right' });
-
-        yPos += lineHeight * splitName.length;
-
-        // Thin line
-        doc.setLineWidth(0.1);
-        doc.line(leftMargin, yPos, rightMargin, yPos);
-        yPos += lineHeight;
-      });
-      
-      // Line before totals
-      doc.setLineWidth(0.5);
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-      
-      // Totals section
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Mahsulotlar soni:', leftMargin, yPos);
-      doc.text(`${saleProducts.length} ta`, rightMargin, yPos, { align: 'right' });
-      yPos += lineHeight;
-      
-      doc.text('Foyda:', leftMargin, yPos);
-      doc.text(`${totalProfit.toFixed(2)} ?`, rightMargin, yPos, { align: 'right' });
-      yPos += lineHeight + 2;
-      
-      // Grand total
-      doc.setLineWidth(0.5);
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-      
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.text("JAMI TO'LOV:", leftMargin, yPos);
-      doc.text(`${totalAmount.toFixed(2)} ?`, rightMargin, yPos, { align: 'right' });
-      yPos += lineHeight + 3;
-      
-      // Line
-      doc.setLineWidth(0.3);
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-
-      // Footer
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.text('Xaridingiz uchun rahmat!', 40, yPos, { align: 'center' });
-      yPos += lineHeight;
-      doc.text('Yana kutamiz!', 40, yPos, { align: 'center' });
-      
-      // Save PDF
-      const fileName = `Chek_${sale.sale_id}_${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
-      toast.success('PDF yuklandi!');
-    } catch (error) {
-      console.error('PDF yaratishda xatolik:', error);
-      toast.error('PDF yaratishda xatolik yuz berdi');
-    }
-  }
-  
-  handlePrintCheck
   // Handle print all sales for selected admin
   const handlePrintAllAdminSales = () => {
     if (!selectedAdmin || filteredData.length === 0) {
       toast.error("Chop etish uchun sotuvlar yo'q");
       return;
     }
-    
-    try {
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
 
-      let yPos = 15;
-      const leftMargin = 15;
-      const rightMargin = 195;
-      const lineHeight = 7;
-      const pageHeight = 280;
+    const totalAmount = filteredData.reduce((s, sale) => s + (Number(sale.total_price) || 0), 0);
 
-      // Header
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${selectedAdmin} - Sotuvlar Hisoboti`, 105, yPos, { align: 'center' });
-      yPos += lineHeight + 2;
-
-      // Date range and info
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Sana: ${new Date().toLocaleDateString('uz-UZ')}`, leftMargin, yPos);
-      yPos += lineHeight;
-      doc.text(`Jami sotuvlar: ${filteredData.length}`, leftMargin, yPos);
-      yPos += lineHeight + 2;
-
-      // Line
-      doc.setLineWidth(0.5);
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-
-      // Table header
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text('№', leftMargin, yPos);
-      doc.text('Sana/Vaqt', leftMargin + 10, yPos);
-      doc.text('Chek №', leftMargin + 50, yPos);
-      doc.text("To'lov", leftMargin + 90, yPos);
-      doc.text('Summa', rightMargin - 40, yPos, { align: 'right' });
-      doc.text('Foyda', rightMargin, yPos, { align: 'right' });
-      yPos += lineHeight;
-
-      // Line
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-
-      // Sales data
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-
-      let totalAmount = 0;
-      let totalProfit = 0;
-
-      filteredData.forEach((sale, index) => {
-        // Check if we need a new page
-        if (yPos > pageHeight) {
-          doc.addPage();
-          yPos = 15;
-          
-          // Repeat header on new page
-          doc.setFont('helvetica', 'bold');
-          doc.setFontSize(9);
-          doc.text('№', leftMargin, yPos);
-          doc.text('Sana/Vaqt', leftMargin + 10, yPos);
-          doc.text('Chek №', leftMargin + 50, yPos);
-          doc.text("To'lov", leftMargin + 90, yPos);
-          doc.text('Summa', rightMargin - 40, yPos, { align: 'right' });
-          doc.text('Foyda', rightMargin, yPos, { align: 'right' });
-          yPos += lineHeight;
-          doc.line(leftMargin, yPos, rightMargin, yPos);
-          yPos += lineHeight;
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(8);
-        }
-
-        const paymentText = sale.payment_method === 'cash' ? 'Naqd' : 
-                           sale.payment_method === 'card' ? 'Karta' : 
-                           sale.payment_method === 'mobile' ? 'Mobil' : 
-                           sale.payment_method || 'N/A';
-
-        doc.text(`${index + 1}`, leftMargin, yPos);
-        doc.text(new Date(sale.sale_time).toLocaleString('uz-UZ', { 
-          year: 'numeric', 
-          month: '2-digit', 
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        }), leftMargin + 10, yPos);
-        doc.text(sale.sale_id, leftMargin + 50, yPos);
-        doc.text(paymentText, leftMargin + 90, yPos);
-        doc.text(Number(sale.total_price).toFixed(2), rightMargin - 40, yPos, { align: 'right' });
-        doc.text(Number(sale.profit).toFixed(2), rightMargin, yPos, { align: 'right' });
-
-        totalAmount += Number(sale.total_price) || 0;
-        totalProfit += Number(sale.profit) || 0;
-
-        yPos += lineHeight;
-
-        // Thin line between rows
-        doc.setLineWidth(0.1);
-        doc.line(leftMargin, yPos, rightMargin, yPos);
-        yPos += lineHeight;
-      });
-
-      // Totals section
-      yPos += 2;
-      doc.setLineWidth(0.5);
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-      yPos += lineHeight;
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text('JAMI:', leftMargin, yPos);
-      doc.text(`${totalAmount.toFixed(2)} ?`, rightMargin - 40, yPos, { align: 'right' });
-      doc.text(`${totalProfit.toFixed(2)} ?`, rightMargin, yPos, { align: 'right' });
-      yPos += lineHeight;
-
-      doc.setLineWidth(0.5);
-      doc.line(leftMargin, yPos, rightMargin, yPos);
-
-      // Footer
-      yPos = pageHeight;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.text(`Hisobot yaratilgan: ${new Date().toLocaleString('uz-UZ')}`, 105, yPos, { align: 'center' });
-
-      // Save PDF
-      const fileName = `${selectedAdmin}_Sotuvlar_${new Date().toISOString().split('T')[0]}.pdf`;
-      doc.save(fileName);
-      toast.success('Barcha sotuvlar PDF yuklandi!');
-    } catch (error) {
-      console.error('PDF yaratishda xatolik:', error);
-      toast.error('PDF yaratishda xatolik yuz berdi');
-    }
+    printCheque({
+      title: "Отчёт по продажам",
+      number: selectedAdmin,
+      date: new Date(),
+      supplier: "HC COMPANY",
+      buyer: `Продавец: ${selectedAdmin} | Всего продаж: ${filteredData.length}`,
+      products: filteredData.map((sale) => ({
+        name: `Чек ${sale.sale_id} (${new Date(sale.sale_time).toLocaleDateString("uz-UZ")})`,
+        quantity: 1,
+        unit: "pcs",
+        price: Number(sale.total_price),
+        total: Number(sale.total_price),
+      })),
+      totalAmount,
+      signatureLeft: "Руководитель",
+      signatureRight: "Бухгалтер",
+    });
   };
 
   const headers: { key: keyof Sale | 'actions' | 'payment_status'; label: string }[] = [
@@ -1040,13 +717,14 @@ export default function SaleBoard() {
     { key: "actions", label: "Amallar" },
   ];
 
-  const isFilterActive = search !== "" || paymentFilter !== "all" || extraSort !== "default" || selectedAdmin !== null || dateFilter !== "all";
+  const isFilterActive = search !== "" || paymentFilter !== "all" || extraSort !== "default" || selectedAdmin !== null || dateFilter !== "all" || paymentTab !== "all";
 
   const handleBackToAdmins = () => {
     setSelectedAdmin(null);
     setPaymentFilter("all");
     setExtraSort("default");
     setDateFilter("all");
+    setPaymentTab("all");
   };
 
   return (
@@ -1240,7 +918,7 @@ export default function SaleBoard() {
         {selectedAdmin && (
           <div className="mt-4 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm md:text-base text-gray-700">
-              <span className="font-bold text-blue-900">{filteredData.length}</span> ta sotuv topildi • Jami: <span className="font-bold text-blue-900">{totals.totalPrice.toFixed(2)}</span> ?
+              <span className="font-bold text-blue-900">{filteredData.length}</span> ta sotuv topildi • Jami: <span className="font-bold text-blue-900">{totals.totalPrice.toFixed(2)}</span>
             </p>
           </div>
         )}
@@ -1300,20 +978,54 @@ export default function SaleBoard() {
         </>
       ) : (
         <>
+          {/* Payment Status Tabs */}
+          <div className="flex gap-2 mb-6 bg-white rounded-lg shadow-sm p-1.5">
+            <button
+              onClick={() => setPaymentTab("all")}
+              className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition ${
+                paymentTab === "all"
+                  ? "bg-blue-600 text-white shadow"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Barchasi ({filteredData.length})
+            </button>
+            <button
+              onClick={() => setPaymentTab("paid")}
+              className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition ${
+                paymentTab === "paid"
+                  ? "bg-green-600 text-white shadow"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              ✓ To'liq to'langan ({filteredData.filter((s) => Number(s.profit) >= Number(s.total_price)).length})
+            </button>
+            <button
+              onClick={() => setPaymentTab("debt")}
+              className={`flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition ${
+                paymentTab === "debt"
+                  ? "bg-red-600 text-white shadow"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              ✗ Qarzlar ({filteredData.filter((s) => Number(s.profit) < Number(s.total_price)).length})
+            </button>
+          </div>
+
           {/* Detailed Sales View - Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
               <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Jami Sotuvlar</p>
-              <p className="text-3xl md:text-4xl font-bold">{filteredData.length}</p>
+              <p className="text-3xl md:text-4xl font-bold">{tabFilteredData.length}</p>
             </div>
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
               <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Jami Summa</p>
-              <p className="text-3xl md:text-4xl font-bold">{totals.totalPrice.toFixed(2)}</p>
+              <p className="text-3xl md:text-4xl font-bold">{tabTotals.totalPrice.toFixed(2)}</p>
               <p className="text-xs md:text-sm opacity-75 mt-1">?</p>
             </div>
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
-              <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Jami Foyda</p>
-              <p className="text-3xl md:text-4xl font-bold">{totals.totalProfit.toFixed(2)}</p>
+              <p className="text-sm md:text-base font-semibold opacity-90 mb-2">{paymentTab === "debt" ? "Jami To'langan" : "Jami Foyda"}</p>
+              <p className="text-3xl md:text-4xl font-bold">{tabTotals.totalProfit.toFixed(2)}</p>
               <p className="text-xs md:text-sm opacity-75 mt-1">?</p>
             </div>
           </div>
@@ -1341,15 +1053,15 @@ export default function SaleBoard() {
               </thead>
 
               <tbody>
-                {filteredData.length === 0 && (
+                {tabFilteredData.length === 0 && (
                   <tr>
                     <td colSpan={7} className="text-center py-8 text-gray-500">
-                      <p className="text-base">Ma'lumot topilmadi</p>
+                      <p className="text-base">{paymentTab === "paid" ? "To'liq to'langan sotuvlar topilmadi" : paymentTab === "debt" ? "Qarzlar topilmadi" : "Ma'lumot topilmadi"}</p>
                     </td>
                   </tr>
                 )}
 
-                {filteredData.map((row) => (
+                {tabFilteredData.map((row) => (
                   <tr key={row.id} className="border-b border-gray-200 hover:bg-blue-50 transition group">
                     <td className="px-4 md:px-5 py-3 md:py-4 text-sm text-gray-700">{new Date(row.sale_time).toLocaleString('uz-UZ')}</td>
                     <td className="px-4 md:px-5 py-3 md:py-4 text-sm">
@@ -1571,10 +1283,10 @@ export default function SaleBoard() {
                   <td className="px-4 md:px-5 py-3 md:py-4 text-right" colSpan={2}>
                     Jami:
                   </td>
-                  <td className="px-4 md:px-5 py-3 md:py-4 text-gray-900">{totals.totalPrice.toFixed(2)}</td>
-                  <td className="px-4 md:px-5 py-3 md:py-4 text-green-600">{totals.totalProfit.toFixed(2)}</td>
+                  <td className="px-4 md:px-5 py-3 md:py-4 text-gray-900">{tabTotals.totalPrice.toFixed(2)}</td>
+                  <td className="px-4 md:px-5 py-3 md:py-4 text-green-600">{tabTotals.totalProfit.toFixed(2)}</td>
                   <td className="px-4 md:px-5 py-3 md:py-4" colSpan={3}>
-                    {filteredData.length} sotuv
+                    {tabFilteredData.length} sotuv
                   </td>
                 </tr>
               </tfoot>
@@ -1583,7 +1295,7 @@ export default function SaleBoard() {
           </div>
 
           <div className="mt-4 text-center text-sm text-gray-500">
-            {data.length} dan {filteredData.length} sotuv ko'rsatilmoqda
+            {data.length} dan {tabFilteredData.length} sotuv ko'rsatilmoqda
           </div>
         </>
       )}
@@ -1664,7 +1376,11 @@ export default function SaleBoard() {
               <button
                 onClick={() => {
                   const sale = data.find(s => s.sale_id === viewingProductsSaleId);
-                  if (sale) printSaleAsInvoice(sale);
+                  if (!sale) {
+                    toast.error("Sotuv topilmadi");
+                    return;
+                  }
+                  printSaleAsInvoice(sale);
                 }}
                 disabled={loadingProducts || saleProducts.length === 0}
                 className="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition"

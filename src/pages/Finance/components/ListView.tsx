@@ -1,6 +1,7 @@
 import React from "react";
 import { Trash2, Printer } from "lucide-react";
 import type { Wagon, Debt } from "../types";
+import { printCheque } from "../../../components/ui/ChequeProvider";
 
 interface ListViewProps {
   wagons: Wagon[];
@@ -31,118 +32,48 @@ export const ListView: React.FC<ListViewProps> = ({
   };
 
   const printDebt = (debt: Debt) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-    const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(
-      debt.day
-    ).padStart(2, "0")}`;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Qarz - ${debt.name}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background: #f5f5f5; }
-          @media print { button { display: none; } body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <h1>Qarz</h1>
-        <table>
-          <thead>
-            <tr>
-              <th>Mijoz</th>
-              <th>Sana</th>
-              <th>Summa</th>
-              <th>Holat</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${debt.name}</td>
-              <td>${date}</td>
-              <td>${debt.amount.toLocaleString()}</td>
-              <td>${debt.isreturned ? "Qaytarilgan" : "Qaytarilmagan"}</td>
-            </tr>
-          </tbody>
-        </table>
-        <button onclick="window.print()">Chop Etish</button>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
+    printCheque({
+      title: "Қарз накладная",
+      number: String(debt.id),
+      date,
+      supplier: "HC COMPANY",
+      buyer: debt.name,
+      products: [{
+        name: debt.name,
+        quantity: 1,
+        unit: "pcs",
+        price: debt.amount,
+        total: debt.amount,
+      }],
+      total: debt.amount,
+      status: debt.isreturned ? "✓ Қайтарилган" : "⏳ Қайтарилмаган",
+      signatureLeft: "Поставщик",
+      signatureRight: "Получатель",
+    });
   };
 
   const printWagon = (wagon: Wagon) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    const productsHtml = (wagon.products || [])
-      .map((product, idx) => {
-        const name = product.product_name || product.name || "";
-        const quantity = Number(product.amount ?? 0);
-        const unit = formatUnitLabel(product.unit);
-        const price = Number(product.price ?? 0);
-        const subtotal =
-          product.subtotal !== undefined
-            ? Number(product.subtotal)
-            : quantity * price;
-
-        return `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${name}</td>
-            <td style="text-align: right;">${quantity} ${unit}</td>
-            <td style="text-align: right;">${price.toLocaleString()}</td>
-            <td style="text-align: right;">${subtotal.toLocaleString()}</td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Vagon - ${wagon.wagon_number}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background: #f5f5f5; }
-          .meta { color: #555; margin-bottom: 8px; }
-          @media print { button { display: none; } body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <h1>Vagon: ${wagon.wagon_number}</h1>
-        <div class="meta">
-          Jami: ${Number(wagon.total).toLocaleString()} |
-          To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Mahsulot</th>
-              <th style="text-align: right;">Miqdor</th>
-              <th style="text-align: right;">Narx</th>
-              <th style="text-align: right;">Jami</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${productsHtml || `<tr><td colspan="5">Mahsulotlar topilmadi</td></tr>`}
-          </tbody>
-        </table>
-        <button onclick="window.print()">Chop Etish</button>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    const parts = wagon.wagon_number.split(",");
+    const wagonNumber = parts[1] || wagon.wagon_number;
+    printCheque({
+      title: "Вагон накладная",
+      number: wagonNumber,
+      date: new Date().toLocaleDateString("ru-RU"),
+      supplier: "HC COMPANY",
+      buyer: wagon.wagon_number.split(",")[0] || "",
+      products: (wagon.products || []).map((p) => ({
+        name: p.product_name || p.name || "",
+        quantity: Number(p.amount ?? 0),
+        unit: p.unit || "pcs",
+        price: Number(p.price ?? 0),
+        total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
+      })),
+      total: Number(wagon.total),
+      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}`,
+      signatureLeft: "Поставщик",
+      signatureRight: "Получатель",
+    });
   };
 
   if (source === "debts") {

@@ -1,6 +1,7 @@
 import React from "react";
 import { Plus, Trash2, Printer } from "lucide-react";
 import type { Person, FinanceRecord, Debt, Wagon, Product } from "../types";
+import { printCheque } from "../../../components/ui/ChequeProvider";
 
 interface DetailsPanelProps {
   person: Person;
@@ -41,424 +42,154 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   const debts: Debt[] = person.debts || [];
 
   const printWagon = (wagon: Wagon) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
     const parts = wagon.wagon_number.split(",");
     const wagonNumber = parts[1] || wagon.wagon_number;
-    const productsHtml = (wagon.products || [])
-      .map((product: Product, idx: number) => {
-        const name = product.product_name || product.name || "";
-        const quantity = Number(product.amount ?? 0);
-        const unit = formatUnitLabel(product.unit);
-        const price = Number(product.price ?? 0);
-        const subtotal =
-          product.subtotal !== undefined
-            ? Number(product.subtotal)
-            : quantity * price;
-
-        return `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${name}</td>
-            <td style="text-align: right;">${quantity} ${unit}</td>
-            <td style="text-align: right;">${price.toLocaleString()}</td>
-            <td style="text-align: right;">${subtotal.toLocaleString()}</td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Vagon - ${wagonNumber}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { margin-bottom: 6px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background: #f5f5f5; }
-          .meta { color: #555; margin-bottom: 8px; }
-          @media print { button { display: none; } body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <h1>Vagon: ${wagonNumber}</h1>
-        <div class="meta">
-          Jami: ${Number(wagon.total).toLocaleString()} |
-          To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Mahsulot</th>
-              <th style="text-align: right;">Miqdor</th>
-              <th style="text-align: right;">Narx</th>
-              <th style="text-align: right;">Jami</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${productsHtml || `<tr><td colspan="5">Mahsulotlar topilmadi</td></tr>`}
-          </tbody>
-        </table>
-        <button onclick="window.print()">Chop Etish</button>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printCheque({
+      title: "Вагон накладная",
+      number: wagonNumber,
+      date: new Date().toLocaleDateString("ru-RU"),
+      supplier: "HC COMPANY",
+      buyer: person.name,
+      products: (wagon.products || []).map((p) => ({
+        name: p.product_name || p.name || "",
+        quantity: Number(p.amount ?? 0),
+        unit: p.unit || "pcs",
+        price: Number(p.price ?? 0),
+        total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
+      })),
+      total: Number(wagon.total),
+      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}`,
+      signatureLeft: "Поставщик",
+      signatureRight: "Получатель",
+    });
   };
 
   const printAllWagons = () => {
     if (!person.wagons || person.wagons.length === 0) return;
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    const wagonsHtml = person.wagons
-      .map((wagon, wagonIndex) => {
-        const parts = wagon.wagon_number.split(",");
-        const wagonNumber = parts[1] || wagon.wagon_number;
-        const productsHtml = (wagon.products || [])
-          .map((product, idx) => {
-            const name = product.product_name || product.name || "";
-            const quantity = Number(product.amount ?? 0);
-            const unit = formatUnitLabel(product.unit);
-            const price = Number(product.price ?? 0);
-            const subtotal =
-              product.subtotal !== undefined
-                ? Number(product.subtotal)
-                : quantity * price;
-
-            return `
-              <tr>
-                <td>${idx + 1}</td>
-                <td>${name}</td>
-                <td style="text-align: right;">${quantity} ${unit}</td>
-                <td style="text-align: right;">${price.toLocaleString()}</td>
-                <td style="text-align: right;">${subtotal.toLocaleString()}</td>
-              </tr>
-            `;
-          })
-          .join("");
-
-        return `
-          <div class="section">
-            <h3>Vagon #${wagonIndex + 1}: ${wagonNumber}</h3>
-            <div class="meta">
-              Jami: ${Number(wagon.total).toLocaleString()} |
-              To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Mahsulot</th>
-                  <th style="text-align: right;">Miqdor</th>
-                  <th style="text-align: right;">Narx</th>
-                  <th style="text-align: right;">Jami</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${productsHtml || `<tr><td colspan="5">Mahsulotlar topilmadi</td></tr>`}
-              </tbody>
-            </table>
-          </div>
-        `;
-      })
-      .join("");
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Vagonlar - ${person.name}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { margin-bottom: 6px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-          th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background: #f5f5f5; }
-          .section { margin-top: 20px; }
-          .meta { color: #555; margin-bottom: 6px; }
-          @media print { button { display: none; } body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <h1>${person.name} - Vagonlar</h1>
-        ${wagonsHtml}
-        <button onclick="window.print()">Chop Etish</button>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    const allProducts = person.wagons.flatMap((wagon) => {
+      const parts = wagon.wagon_number.split(",");
+      const wagonNumber = parts[1] || wagon.wagon_number;
+      return (wagon.products || []).map((p) => ({
+        name: `[${wagonNumber}] ${p.product_name || p.name || ""}`,
+        quantity: Number(p.amount ?? 0),
+        unit: p.unit || "pcs",
+        price: Number(p.price ?? 0),
+        total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
+      }));
+    });
+    const grandTotal = person.wagons.reduce((s, w) => s + Number(w.total), 0);
+    printCheque({
+      title: "Вагонлар рўйхати",
+      number: person.name,
+      date: new Date().toLocaleDateString("ru-RU"),
+      supplier: "HC COMPANY",
+      buyer: person.name,
+      products: allProducts,
+      total: grandTotal,
+      signatureLeft: "Поставщик",
+      signatureRight: "Получатель",
+    });
   };
 
   const printDebt = (debt: Debt) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(
-      debt.day
-    ).padStart(2, "0")}`;
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Qarz - ${debt.name}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background: #f5f5f5; }
-          @media print { button { display: none; } body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <h1>Qarz</h1>
-        <table>
-          <thead>
-            <tr>
-              <th>Mijoz</th>
-              <th>Sana</th>
-              <th>Summa</th>
-              <th>Holat</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>${debt.name}</td>
-              <td>${date}</td>
-              <td>${debt.amount.toLocaleString()}</td>
-              <td>${debt.isreturned ? "Qaytarilgan" : "Qaytarilmagan"}</td>
-            </tr>
-          </tbody>
-        </table>
-        <button onclick="window.print()">Chop Etish</button>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
+    printCheque({
+      title: "Қарз накладная",
+      number: String(debt.id),
+      date,
+      supplier: "HC COMPANY",
+      buyer: debt.name,
+      products: [{
+        name: debt.name,
+        quantity: 1,
+        unit: "pcs",
+        price: debt.amount,
+        total: debt.amount,
+      }],
+      total: debt.amount,
+      status: debt.isreturned ? "✓ Қайтарилган" : "⏳ Қайтарилмаган",
+      signatureLeft: "Поставщик",
+      signatureRight: "Получатель",
+    });
   };
 
   const printAllDebts = () => {
     if (debts.length === 0) return;
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
-    const debtsHtml = debts
-      .map((debt, idx) => {
-        const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(
-          debt.day
-        ).padStart(2, "0")}`;
-        return `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${debt.name}</td>
-            <td>${date}</td>
-            <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
-            <td>${debt.isreturned ? "Qaytarilgan" : "Qaytarilmagan"}</td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Qarzlar - ${person.name}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-          th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background: #f5f5f5; }
-          @media print { button { display: none; } body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <h1>${person.name} - Qarzlar</h1>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Mijoz</th>
-              <th>Sana</th>
-              <th style="text-align: right;">Summa</th>
-              <th>Holat</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${debtsHtml}
-          </tbody>
-        </table>
-        <button onclick="window.print()">Chop Etish</button>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printCheque({
+      title: "Қарзлар рўйхати",
+      number: person.name,
+      date: new Date().toLocaleDateString("ru-RU"),
+      supplier: "HC COMPANY",
+      buyer: person.name,
+      products: debts.map((d) => {
+        const date = `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
+        return {
+          name: `${d.name} (${date}) ${d.isreturned ? "✓" : "⏳"}`,
+          quantity: 1,
+          unit: "pcs",
+          price: d.amount,
+          total: d.amount,
+        };
+      }),
+      total: debts.reduce((s, d) => s + d.amount, 0),
+      signatureLeft: "Поставщик",
+      signatureRight: "Получатель",
+    });
   };
   const printPerson = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+    let products: { name: string; quantity: number; unit: string; price: number; total: number }[] = [];
 
-    const wagonsHtml = (person.wagons || [])
-      .map((wagon, wagonIndex) => {
+    if (source === "wagons") {
+      products = (person.wagons || []).flatMap((wagon) => {
         const parts = wagon.wagon_number.split(",");
         const wagonNumber = parts[1] || wagon.wagon_number;
+        return (wagon.products || []).map((p) => ({
+          name: `[${wagonNumber}] ${p.product_name || p.name || ""}`,
+          quantity: Number(p.amount ?? 0),
+          unit: p.unit || "pcs",
+          price: Number(p.price ?? 0),
+          total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
+        }));
+      });
+    } else {
+      products = debts.map((d) => {
+        const date = `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
+        return {
+          name: `${d.name} (${date}) ${d.isreturned ? "✓" : "⏳"}`,
+          quantity: 1,
+          unit: "pcs",
+          price: d.amount,
+          total: d.amount,
+        };
+      });
+    }
 
-        const productsHtml = (wagon.products || [])
-          .map((product, idx) => {
-            const name = product.product_name || product.name || "";
-            const quantity = Number(product.amount ?? 0);
-            const unit = formatUnitLabel(product.unit);
-            const price = Number(product.price ?? 0);
-            const subtotal =
-              product.subtotal !== undefined
-                ? Number(product.subtotal)
-                : quantity * price;
+    // Add payment records as additional rows
+    personFinanceRecords.forEach((record) => {
+      const desc = record.description?.split(": ")[1] || record.description || "";
+      const date = new Date(record.date).toLocaleDateString("uz-UZ");
+      const amt = Number(record.amount);
+      products.push({
+        name: `💰 ${desc} (${date})`,
+        quantity: 1,
+        unit: "pcs",
+        price: record.type === "income" ? amt : -amt,
+        total: record.type === "income" ? amt : -amt,
+      });
+    });
 
-            return `
-              <tr>
-                <td>${idx + 1}</td>
-                <td>${name}</td>
-                <td style="text-align: right;">${quantity} ${unit}</td>
-                <td style="text-align: right;">${price.toLocaleString()}</td>
-                <td style="text-align: right;">${subtotal.toLocaleString()}</td>
-              </tr>
-            `;
-          })
-          .join("");
-
-        return `
-          <div class="section">
-            <h3>Vagon #${wagonIndex + 1}: ${wagonNumber}</h3>
-            <div class="meta">
-              <span>Jami: ${Number(wagon.total).toLocaleString()}</span>
-              <span>To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}</span>
-            </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Mahsulot</th>
-                  <th style="text-align: right;">Miqdor</th>
-                  <th style="text-align: right;">Narx</th>
-                  <th style="text-align: right;">Jami</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${productsHtml || `<tr><td colspan="5">Mahsulotlar topilmadi</td></tr>`}
-              </tbody>
-            </table>
-          </div>
-        `;
-      })
-      .join("");
-
-    const debtsHtml = debts
-      .map((debt, idx) => {
-        const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(
-          debt.day
-        ).padStart(2, "0")}`;
-        return `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${date}</td>
-            <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
-            <td>${debt.isreturned ? "Qaytarilgan" : "Qaytarilmagan"}</td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    const paymentsHtml = personFinanceRecords
-      .map((record, idx) => {
-        const desc = record.description?.split(": ")[1] || record.description || "";
-        const date = new Date(record.date).toLocaleDateString("uz-UZ");
-        const amount = `${record.type === "income" ? "+" : "-"}${Number(
-          record.amount
-        ).toLocaleString()}`;
-        return `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${desc}</td>
-            <td>${date}</td>
-            <td style="text-align: right;">${amount}</td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Moliya - ${person.name}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          h1 { margin-bottom: 4px; }
-          .meta { display: flex; gap: 16px; color: #555; margin-bottom: 8px; }
-          .section { margin-top: 24px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-          th, td { border-bottom: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background: #f5f5f5; }
-          .summary { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-          .card { border: 1px solid #ddd; padding: 8px; border-radius: 6px; }
-          @media print { button { display: none; } body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <h1>${person.name}</h1>
-        <div class="summary">
-          <div class="card">Jami: ${person.totalAmount.toLocaleString()}</div>
-          <div class="card">To'langan: ${person.paidAmount.toLocaleString()}</div>
-          <div class="card">Qoldiq: ${person.remainingAmount.toLocaleString()}</div>
-        </div>
-
-        ${source === "wagons" ? wagonsHtml : `
-          <div class="section">
-            <h3>Qarzlar (${debts.length})</h3>
-            <table>
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Sana</th>
-                  <th style="text-align: right;">Summa</th>
-                  <th>Holat</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${debtsHtml || `<tr><td colspan="4">Qarzlar topilmadi</td></tr>`}
-              </tbody>
-            </table>
-          </div>
-        `}
-
-        <div class="section">
-          <h3>Pul berish tarixi (${personFinanceRecords.length})</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Izoh</th>
-                <th>Sana</th>
-                <th style="text-align: right;">Miqdor</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${paymentsHtml || `<tr><td colspan="4">Pul berish tarixi yo'q</td></tr>`}
-            </tbody>
-          </table>
-        </div>
-
-        <button onclick="window.print()">Chop Etish</button>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printCheque({
+      title: "Молия ҳисоботи",
+      number: person.name,
+      date: new Date().toLocaleDateString("ru-RU"),
+      supplier: "HC COMPANY",
+      buyer: person.name,
+      products,
+      total: person.totalAmount,
+      status: `To'langan: ${person.paidAmount.toLocaleString()} | Qoldiq: ${person.remainingAmount.toLocaleString()}`,
+      signatureLeft: "Поставщик",
+      signatureRight: "Получатель",
+    });
   };
 
   return (

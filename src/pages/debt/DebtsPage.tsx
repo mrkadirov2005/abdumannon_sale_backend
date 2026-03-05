@@ -12,6 +12,7 @@ import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { toast } from "react-toastify";
 import { Search, Plus, Edit2, Trash2, Check, X, DollarSign, Eye, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight } from "lucide-react";
 import type { Admin } from "../../../types/types";
+import { printCheque, generateChequeHTML } from "../../components/ui/ChequeProvider";
 
 /* ================= TYPES ================= */
 
@@ -760,361 +761,98 @@ export default function DebtManagement() {
 
   // NEW: Print individual debt
   const printDebt = (debt: Debt) => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
     const parsedProducts = parseProductsFromString(debt.product_names);
-    const productsHtml = parsedProducts.length > 0
-      ? parsedProducts
-        .map((p, i) => `
-            <tr>
-              <td style="text-align: center;">${i + 1}</td>
-              <td>${p.name}</td>
-              <td style="text-align: center;">${p.quantity} ${formatUnitLabel(p.unit)}</td>
-              <td style="text-align: right;">${Number(p.price).toLocaleString()}</td>
-              <td style="text-align: right;">${(Number(p.price) * Number(p.quantity)).toLocaleString()}</td>
-            </tr>
-          `)
-        .join("")
-      : `
-          <tr>
-            <td style="text-align: center;">1</td>
-            <td>${formatProductsForDisplay(debt.product_names) || "—"}</td>
-            <td style="text-align: center;">1</td>
-            <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
-            <td style="text-align: right;">${debt.amount.toLocaleString()}</td>
-          </tr>
-        `;
+    const products = parsedProducts.length > 0
+      ? parsedProducts.map((p) => ({
+          name: p.name,
+          quantity: Number(p.quantity),
+          unit: p.unit || "pcs",
+          price: Number(p.price),
+          total: Number(p.price) * Number(p.quantity),
+        }))
+      : [{
+          name: formatProductsForDisplay(debt.product_names) || "—",
+          quantity: 1,
+          unit: "pcs",
+          price: debt.amount,
+          total: debt.amount,
+        }];
 
-    const totalAmount = parsedProducts.length > 0
-      ? parsedProducts.reduce(
-        (sum, p) => sum + Number(p.price) * Number(p.quantity),
-        0
-      )
-      : debt.amount;
-    
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Накладная #${debt.id}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
-          .header { margin-bottom: 20px; }
-          .header-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
-          .info-section { margin-bottom: 15px; font-size: 12px; line-height: 1.6; }
-          .info-label { font-weight: bold; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 11px; }
-          th { border: 1px solid #000; padding: 8px; text-align: center; font-weight: bold; background: #f5f5f5; }
-          td { border: 1px solid #000; padding: 8px; }
-          .total-section { margin-top: 20px; text-align: right; font-size: 12px; }
-          .total-row { font-weight: bold; font-size: 14px; margin-top: 10px; }
-          .signature-section { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; font-size: 11px; }
-          .signature-line { text-align: center; }
-          .signature-blank { margin-bottom: 30px; border-bottom: 1px solid #000; height: 30px; }
-          button { margin-top: 20px; padding: 10px 20px; background: #4F46E5; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; }
-          @media print { button { display: none; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <div class="header-title">НАКЛАДНАЯ № ${debt.id}  ${formatDate(debt)}</div>
-        </div>
-
-        <div class="info-section">
-          <p><span class="info-label">Поставщик:</span> HC COMPANY</p>
-          <p>г. Москва, рынок «Фуд Сити»</p>
-          <p>Торговая точка: ${debt.shop_id || '___'}</p>
-          <p>Тел: 8-915-016-16-15, 8-916-576-07-07</p>
-          <p><span class="info-label">Возврат товара в течение 14 дней</span></p>
-        </div>
-
-        <div class="info-section">
-          <p><span class="info-label">Покупатель:</span> ${debt.name}</p>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 5%;">№</th>
-              <th style="width: 40%;">Наименование товара</th>
-              <th style="width: 15%;">Количество</th>
-              <th style="width: 20%;">Цена за единицу</th>
-              <th style="width: 20%;">Сумма</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${productsHtml}
-          </tbody>
-        </table>
-
-        <div class="total-section">
-          <div class="total-row">
-            ИТОГО: ${totalAmount.toLocaleString()} ?
-          </div>
-          <div style="margin-top: 10px;">
-            <span class="info-label">Статус:</span> ${debt.isreturned ? 'Оплачено' : 'Ожидается'}
-          </div>
-        </div>
-
-        <div class="signature-section">
-          <div class="signature-line">
-            <div class="signature-blank"></div>
-            <p>Поставщик (подпись)</p>
-          </div>
-          <div class="signature-line">
-            <div class="signature-blank"></div>
-            <p>Покупатель (подпись)</p>
-          </div>
-        </div>
-
-        <button onclick="window.print()">Печать</button>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printCheque({
+      title: "Накладная",
+      number: debt.id,
+      date: formatDate(debt),
+      supplier: "HC COMPANY, г. Москва, рынок «Фуд Сити», Тел: 8-915-016-16-15, 8-916-576-07-07",
+      buyer: debt.name,
+      products,
+      extraNote: "Возврат товара в течение 14 дней",
+      status: debt.isreturned ? "Оплачено" : "Ожидается",
+      signatureLeft: "Поставщик (подпись)",
+      signatureRight: "Покупатель (подпись)",
+    });
   };
 
   // NEW: Print all debts
   const printAllDebts = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
     const totalAmount = filteredAndSorted.reduce((sum, d) => sum + d.amount, 0);
     const returnedAmount = filteredAndSorted.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0);
     const unreturnedAmount = filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0);
 
-    const debtsHTML = filteredAndSorted.map((debt, index) => {
-      return `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${formatDate(debt)}</td>
-          <td>${debt.name}</td>
-          <td>${debt.amount.toLocaleString()}</td>
-          <td><span class="status ${debt.isreturned ? 'returned' : 'pending'}">
-            ${debt.isreturned ? '✓ Qaytarilgan' : '⏳ Kutilmoqda'}
-          </span></td>
-        </tr>
-      `;
-    }).join("");
-
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Barcha Qarzlar Hisoboti</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 20px; }
-          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-          th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-          th { background: #f0f0f0; font-weight: bold; }
-          tr:hover { background: #f9f9f9; }
-          .total-row { background: #e3f2fd; font-weight: bold; font-size: 16px; }
-          .status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
-          .status.returned { background: #d4edda; color: #155724; }
-          .status.pending { background: #f8d7da; color: #721c24; }
-          .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
-          @media print { body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>📊 Barcha Qarzlar Hisoboti</h1>
-          <p>Yaratilgan vaqt: ${new Date().toLocaleString()}</p>
-          <p>Jami Yozuvlar: ${filteredAndSorted.length}</p>
-        </div>
-        
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Sana</th>
-              <th>Mijoz</th>
-              <th>Summa</th>
-              <th>Holat</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${debtsHTML}
-            <tr class="total-row">
-              <td colspan="3">JAMI</td>
-              <td>${totalAmount.toLocaleString()} ?</td>
-              <td></td>
-            </tr>
-            <tr class="total-row">
-              <td colspan="3">Qaytarilgan</td>
-              <td>${returnedAmount.toLocaleString()} ?</td>
-              <td></td>
-            </tr>
-            <tr class="total-row">
-              <td colspan="3">Qaytarilmagan</td>
-              <td>${unreturnedAmount.toLocaleString()} ?</td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="footer">
-          <p>Debt Management System</p>
-        </div>
-
-        <script>
-          window.onload = () => {
-            window.print();
-            window.onafterprint = () => window.close();
-          };
-        </script>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printCheque({
+      title: "Отчёт по долгам",
+      number: `${filteredAndSorted.length}`,
+      date: new Date(),
+      supplier: "HC COMPANY",
+      buyer: `Итого записей: ${filteredAndSorted.length} | Возвращено: ${returnedAmount.toLocaleString()} | Не возвращено: ${unreturnedAmount.toLocaleString()}`,
+      products: filteredAndSorted.map((debt) => ({
+        name: `${debt.name} (${formatDate(debt)}) ${debt.isreturned ? "✓" : "⏳"}`,
+        quantity: 1,
+        unit: "pcs",
+        price: debt.amount,
+        total: debt.amount,
+      })),
+      totalAmount,
+      signatureLeft: "Руководитель",
+      signatureRight: "Бухгалтер",
+    });
   };
 
   // NEW: Print by debtors (grouped)
   const printByDebtors = () => {
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
-
     const debtors = getUniqueDebtors;
-    const filteredDebtors = debtTypeFilter === "all" 
-      ? debtors 
-      : debtTypeFilter === "given" 
+    const filteredDebtors = debtTypeFilter === "all"
+      ? debtors
+      : debtTypeFilter === "given"
       ? debtors.filter(d => d.debts.some(debt => debt.branch_id !== 1))
       : debtors.filter(d => d.debts.some(debt => debt.branch_id === 1));
 
-    const debtorsHTML = filteredDebtors.map((debtor) => {
-      const relevantDebts = debtTypeFilter === "all"
-        ? debtor.debts
-        : debtTypeFilter === "given"
-        ? debtor.debts.filter(d => d.branch_id !== 1)
-        : debtor.debts.filter(d => d.branch_id === 1);
-
-      const debtsRows = relevantDebts.map((debt, idx) => {
-        return `
-          <tr>
-            <td>${idx + 1}</td>
-            <td>${formatDate(debt)}</td>
-            <td>${debt.amount.toLocaleString()}</td>
-            <td><span class="status ${debt.isreturned ? 'returned' : 'pending'}">
-              ${debt.isreturned ? '✓ Returned' : '⏳ Pending'}
-            </span></td>
-          </tr>
-        `;
-      }).join("");
-
-      const debtorTotal = relevantDebts.reduce((sum, d) => sum + d.amount, 0);
-      const debtorReturned = relevantDebts.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0);
-
-      return `
-        <div class="debtor-section">
-          <div class="debtor-header">
-            <div class="debtor-info">
-              <div class="debtor-avatar">${debtor.name.charAt(0).toUpperCase()}</div>
-              <div>
-                <h3>${debtor.name}</h3>
-                <p class="debtor-meta">${relevantDebts.length} qarz</p>
-              </div>
-            </div>
-            <div class="debtor-summary">
-              <div class="summary-item">
-                <span class="label">Jami:</span>
-                <span class="value">${debtorTotal.toLocaleString()} ?</span>
-              </div>
-              <div class="summary-item">
-                <span class="label">Qaytarilgan:</span>
-                <span class="value paid">${debtorReturned.toLocaleString()} ?</span>
-              </div>
-            </div>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Sana</th>
-                <th>Summa</th>
-                <th>To'langan</th>
-                <th>Holat</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${debtsRows}
-            </tbody>
-          </table>
-        </div>
-      `;
-    }).join("");
-
     const grandTotal = filteredDebtors.reduce((sum, d) => sum + d.totalAmount, 0);
-    const grandPaid = filteredDebtors.reduce((sum, d) => {
-      const relevantDebts = debtTypeFilter === "all"
-        ? d.debts
-        : debtTypeFilter === "given"
-        ? d.debts.filter(debt => debt.branch_id !== 1)
-        : d.debts.filter(debt => debt.branch_id === 1);
-      return sum + relevantDebts.filter(debt => debt.isreturned).reduce((s, debt) => s + debt.amount, 0);
-    }, 0);
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Qarzdorlar Bo'yicha Hisobot</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; }
-          .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
-          .debtor-section { margin-bottom: 30px; page-break-inside: avoid; border: 2px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
-          .debtor-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
-          .debtor-info { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-          .debtor-avatar { width: 50px; height: 50px; background: white; color: #667eea; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; }
-          .debtor-info h3 { margin: 0; font-size: 24px; }
-          .debtor-meta { margin: 5px 0 0 0; opacity: 0.9; font-size: 14px; }
-          .debtor-summary { display: flex; gap: 20px; }
-          .summary-item { flex: 1; }
-          .summary-item .label { display: block; font-size: 12px; opacity: 0.8; margin-bottom: 5px; }
-          .summary-item .value { display: block; font-size: 18px; font-weight: bold; }
-          .products { margin: 20px 0; padding: 15px; background: #f9f9f9; border-radius: 5px; }
-          .footer { margin-top: 40px; text-align: center; color: #666; font-size: 12px; }
-          .status { display: inline-block; padding: 5px 15px; border-radius: 20px; font-size: 14px; }
-          .status.returned { background: #d4edda; color: #155724; }
-          .status.pending { background: #f8d7da; color: #721c24; }
-          @media print { body { padding: 10px; } }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>📊 Qarzdorlar Bo'yicha Hisobot</h1>
-          <p>Tur: ${debtTypeFilter === "given" ? "Berilgan Nasiya" : debtTypeFilter === "taken" ? "Nasiyam" : "Barcha Qarzlar"}</p>
-          <p>Yaratilgan vaqt: ${new Date().toLocaleString()}</p>
-          <p>Jami Qarzdorlar: ${filteredDebtors.length}</p>
-        </div>
-        
-        ${debtorsHTML}
-
-        <div class="grand-total">
-          <h3>📈 Umumiy Jami</h3>
-          <div class="grand-total-grid">
-            <div class="grand-total-item">
-              <span class="label">Jami Summa</span>
-              <span class="value">${grandTotal.toLocaleString()}?</span>
-            </div>
-            <div class="grand-total-item">
-              <span class="label">Jami To'langan</span>
-              <span class="value" style="color: #28a745;">${grandPaid.toLocaleString()}?</span>
-            </div>
-          </div>
-        </div>
-
-        <script>
-          window.onload = () => {
-            window.print();
-            window.onafterprint = () => window.close();
-          };
-        </script>
-      </body>
-      </html>
-    `);
-    printWindow.document.close();
+    printCheque({
+      title: "Отчёт по должникам",
+      number: `${filteredDebtors.length}`,
+      date: new Date(),
+      supplier: "HC COMPANY",
+      buyer: `Тип: ${debtTypeFilter === "given" ? "Berilgan Nasiya" : debtTypeFilter === "taken" ? "Nasiyam" : "Barcha Qarzlar"} | Должников: ${filteredDebtors.length}`,
+      products: filteredDebtors.map((debtor) => {
+        const relevantDebts = debtTypeFilter === "all"
+          ? debtor.debts
+          : debtTypeFilter === "given"
+          ? debtor.debts.filter(d => d.branch_id !== 1)
+          : debtor.debts.filter(d => d.branch_id === 1);
+        const debtorTotal = relevantDebts.reduce((s, d) => s + d.amount, 0);
+        return {
+          name: `${debtor.name} (${relevantDebts.length} долг(ов))`,
+          quantity: relevantDebts.length,
+          unit: "pcs",
+          price: debtorTotal / relevantDebts.length,
+          total: debtorTotal,
+        };
+      }),
+      totalAmount: grandTotal,
+      signatureLeft: "Руководитель",
+      signatureRight: "Бухгалтер",
+    });
   };
 
   /* ================= FILTER + SORT ================= */
