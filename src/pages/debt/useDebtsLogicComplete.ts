@@ -656,8 +656,8 @@ export const useDebtsLogic = (
         price: debt.amount,
         total: debt.amount,
       }],
-      signatureLeft: "Поставщик (подпись)",
-      signatureRight: "Покупатель (подпись)",
+      signatureLeft: "Руководитель",
+      signatureRight: "Бухгалтер",
     });
   };
 

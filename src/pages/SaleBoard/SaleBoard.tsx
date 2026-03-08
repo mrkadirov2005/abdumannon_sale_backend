@@ -683,8 +683,8 @@ export default function SaleBoard() {
         total: p.sell_price * p.amount,
       })),
       extraNote: "Возврат товара в течение 14 дней",
-      signatureLeft: "Продавец (подпись)",
-      signatureRight: "Покупатель (подпись)",
+      signatureLeft: "Руководитель",
+      signatureRight: "Бухгалтер",
     });
   };
 

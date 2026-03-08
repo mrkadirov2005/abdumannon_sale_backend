@@ -165,6 +165,7 @@ export function generateChequeHTML(data: ChequeData): string {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: "Times New Roman", Times, serif; padding: 30px 40px; max-width: 900px; margin: 0 auto; font-size: 13px; color: #000; }
+    .page { border: 1px solid #000; padding: 20px 24px; }
     .doc-type { font-size: 11px; margin-bottom: 4px; }
     .doc-type span { font-size: 13px; }
     h1 { font-size: 18px; font-weight: bold; margin-bottom: 16px; }
@@ -197,6 +198,7 @@ export function generateChequeHTML(data: ChequeData): string {
   </style>
 </head>
 <body>
+  <div class="page">
   ${data.documentType ? `<div class="doc-type">📋 <span>${data.documentType}</span></div>` : ""}
   <h1>${data.title || "Накладная"} № ${data.number} от ${formatDate(data.date)}</h1>
   
@@ -250,6 +252,7 @@ export function generateChequeHTML(data: ChequeData): string {
   </div>
   
   <button class="print-btn" onclick="window.print()">Печать</button>
+  </div>
 </body>
 </html>`;
 }

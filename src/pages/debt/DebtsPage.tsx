@@ -787,8 +787,8 @@ export default function DebtManagement() {
       products,
       extraNote: "Возврат товара в течение 14 дней",
       status: debt.isreturned ? "Оплачено" : "Ожидается",
-      signatureLeft: "Поставщик (подпись)",
-      signatureRight: "Покупатель (подпись)",
+      signatureLeft: "Руководитель",
+      signatureRight: "Бухгалтер",
     });
   };
 

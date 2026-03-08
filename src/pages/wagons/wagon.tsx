@@ -425,8 +425,8 @@ const WagonsPage: React.FC = () => {
       })),
       totalAmount: parseFloat(wagon.total.toString()),
       extraNote: "Возврат товара в течение 14 дней",
-      signatureLeft: "Поставщик (подпись)",
-      signatureRight: "Покупатель (подпись)",
+      signatureLeft: "Руководитель",
+      signatureRight: "Бухгалтер",
     });
   };
 
