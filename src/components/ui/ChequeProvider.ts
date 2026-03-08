@@ -133,11 +133,10 @@ function numberToWordsRu(n: number): string {
 }
 
 function formatNumber(n: number | string): string {
-  // 131370.00 → "131'370.00"
-  const fixed = Number(n).toFixed(2);
-  const [integer, decimal] = fixed.split(".");
-  const withApostrophe = integer.replace(/\B(?=(\d{3})+(?!\d))/g, "'");
-  return `${withApostrophe}.${decimal}`;
+  return new Intl.NumberFormat("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(n) || 0);
 }
 
 // ─── main HTML generator ─────────────────────────────────────────────────────
