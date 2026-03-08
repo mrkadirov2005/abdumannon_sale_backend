@@ -35,6 +35,11 @@ export default function Login() {
     }
   }
 
+  function handleClearStorageAndReload() {
+    localStorage.clear();
+    window.location.reload();
+  }
+
   return (
     <div className="min-h-screen flex gap-10 flex-col items-center justify-center bg-gray-50">
       
@@ -46,6 +51,7 @@ export default function Login() {
         <option value="superuser">Superuser</option>
         <option value="admin">Admin</option>
       </select>
+      
 
       <img className="w-20 h-20 rounded-full" src="/logo.png" alt="logo" />
 
@@ -86,6 +92,14 @@ export default function Login() {
           className="w-full py-2 bg-blue-600 text-white rounded"
         >
           {isLoading ? "Signing in…" : "Sign in"}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleClearStorageAndReload}
+          className="w-full mt-3 py-2 bg-gray-600 text-white rounded"
+        >
+          Clear Local Storage & Reload
         </button>
       </form>
 
