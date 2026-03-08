@@ -56,7 +56,7 @@ export const ListView: React.FC<ListViewProps> = ({
         total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
       })),
       totalAmount: Number(wagon.total),
-      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}`,
+      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString("en-IN")}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -96,7 +96,7 @@ export const ListView: React.FC<ListViewProps> = ({
                     {`${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`}
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                    {debt.amount.toLocaleString()}
+                    {debt.amount.toLocaleString("en-IN")}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span
@@ -157,16 +157,16 @@ export const ListView: React.FC<ListViewProps> = ({
                   {wagon.wagon_number}
                 </td>
                 <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                  {parseFloat(wagon.total.toString()).toLocaleString()}
+                  {parseFloat(wagon.total.toString()).toLocaleString("en-IN")}
                 </td>
                 <td className="px-4 py-3 text-right text-green-600 font-semibold">
-                  {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString()}
+                  {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString("en-IN")}
                 </td>
                 <td className="px-4 py-3 text-right text-orange-600 font-semibold">
                   {(
                     parseFloat(wagon.total.toString()) -
                     parseFloat((wagon.paid_amount || 0).toString())
-                  ).toLocaleString()}
+                  ).toLocaleString("en-IN")}
                 </td>
                 <td className="px-4 py-3 text-center">
                   <button

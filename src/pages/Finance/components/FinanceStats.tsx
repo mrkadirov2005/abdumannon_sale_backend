@@ -38,7 +38,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {totalAmount.toLocaleString()}
+          {totalAmount.toLocaleString("en-IN")}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">
           {uniquePersons.length} ta shaxs
@@ -56,7 +56,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {totalPaid.toLocaleString()}
+          {totalPaid.toLocaleString("en-IN")}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">Berilgan pul</p>
       </div>
@@ -72,7 +72,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {totalRemaining.toLocaleString()}
+          {totalRemaining.toLocaleString("en-IN")}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">To'lanmagan</p>
       </div>

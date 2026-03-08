@@ -109,7 +109,7 @@ export default function Sales() {
 
   const formatter = useMemo(
     () =>
-      new Intl.NumberFormat("ru-RU", {
+      new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: "RUB",
       }),

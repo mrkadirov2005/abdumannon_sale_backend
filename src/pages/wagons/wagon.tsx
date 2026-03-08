@@ -518,7 +518,7 @@ const WagonsPage: React.FC = () => {
                       {/* <div className="text-right">
                         <p className="text-xs sm:text-sm md:text-base font-medium text-gray-600">Jami Summa</p>
                         <p className="text-sm sm:text-lg md:text-xl font-bold text-blue-900">
-                          {person.totalAmount.toLocaleString()} ?
+                          {person.totalAmount.toLocaleString("en-IN")} ?
                         </p>
                       </div> */}
                       <ChevronRight className="text-gray-400 group-hover:text-blue-600 transition flex-shrink-0" size={24} />
@@ -587,7 +587,7 @@ const WagonsPage: React.FC = () => {
                 <div className="flex justify-between border-t border-gray-200 pt-2">
                   <span className="text-gray-600 font-bold">Jami Summa:</span>
                   <span className="font-bold text-blue-600 text-base md:text-lg">
-                    {parseFloat(wagon.total.toString()).toLocaleString()} ?
+                    {parseFloat(wagon.total.toString()).toLocaleString("en-IN")} ?
                   </span>
                 </div>
               </div>
@@ -687,7 +687,7 @@ const WagonsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                      {parseFloat(wagon.total.toString()).toLocaleString()} ?
+                      {parseFloat(wagon.total.toString()).toLocaleString("en-IN")} ?
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-2">
@@ -1053,7 +1053,7 @@ const WagonsPage: React.FC = () => {
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
                         <p className="text-lg font-bold text-green-900">
-                          {totalAmount.toLocaleString()} ?
+                          {totalAmount.toLocaleString("en-IN")} ?
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1102,10 +1102,10 @@ const WagonsPage: React.FC = () => {
                               {product.amount} {formatUnitLabel(product.unit)}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {product.price.toLocaleString()} ?
+                              {product.price.toLocaleString("en-IN")} ?
                             </td>
                             <td className="px-4 py-3 text-sm font-semibold text-blue-600 text-right">
-                              {product.subtotal.toLocaleString()} ?
+                              {product.subtotal.toLocaleString("en-IN")} ?
                             </td>
                           </tr>
                         );
@@ -1115,7 +1115,7 @@ const WagonsPage: React.FC = () => {
                           JAMI:
                         </td>
                         <td className="px-4 py-3 text-right text-blue-900 text-lg">
-                          {parseFloat(selectedWagon.total.toString()).toLocaleString()} ?
+                          {parseFloat(selectedWagon.total.toString()).toLocaleString("en-IN")} ?
                         </td>
                       </tr>
                     </tbody>

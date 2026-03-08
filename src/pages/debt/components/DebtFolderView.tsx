@@ -38,7 +38,7 @@ export const DebtFolderView: React.FC<Props> = ({ debtors, onSelectDebtor }) => 
               <div className="text-right">
                 <p className="text-sm font-medium text-gray-600">Jami</p>
                 <p className="text-lg font-bold text-gray-900">
-                  {debtor.totalAmount.toLocaleString()}
+                  {debtor.totalAmount.toLocaleString("en-IN")}
                 </p>
               </div>
               <ChevronRight className="text-gray-400 group-hover:text-blue-600" size={24} />

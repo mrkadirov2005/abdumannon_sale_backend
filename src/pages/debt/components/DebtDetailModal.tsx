@@ -43,7 +43,7 @@ export const DebtDetailModal: React.FC<Props> = ({
             <div className="bg-blue-50 p-4 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">Jami summa</p>
               <p className="text-2xl font-bold text-blue-600">
-                {debt.amount.toLocaleString()}
+                {debt.amount.toLocaleString("en-IN")}
               </p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">

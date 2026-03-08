@@ -43,6 +43,15 @@ interface SoldProduct {
 }
 
 export default function SaleBoard() {
+  const formatAmount = useMemo(
+    () => (value: number) =>
+      new Intl.NumberFormat("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(Number(value) || 0),
+    []
+  );
+
   const isSuperAdmin = useSelector(getIsSuperUserFromStore);
   const API_URL = !isSuperAdmin
     ? `${DEFAULT_ENDPOINT}${ENDPOINTS.sales.getAdminSales}`
@@ -918,7 +927,7 @@ export default function SaleBoard() {
         {selectedAdmin && (
           <div className="mt-4 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm md:text-base text-gray-700">
-              <span className="font-bold text-blue-900">{filteredData.length}</span> ta sotuv topildi • Jami: <span className="font-bold text-blue-900">{totals.totalPrice.toFixed(2)}</span>
+              <span className="font-bold text-blue-900">{filteredData.length}</span> ta sotuv topildi • Jami: <span className="font-bold text-blue-900">{formatAmount(totals.totalPrice)}</span>
             </p>
           </div>
         )}
@@ -957,8 +966,8 @@ export default function SaleBoard() {
                       <td className="px-4 md:px-5 py-3 md:py-4 text-sm font-medium text-blue-600 hover:text-blue-700">{admin.adminName}</td>
                       <td className="px-4 md:px-5 py-3 md:py-4 text-sm text-gray-700">{new Date(admin.latestDate).toLocaleString('uz-UZ')}</td>
                       <td className="px-4 md:px-5 py-3 md:py-4 text-sm text-gray-700">{admin.salesCount}</td>
-                      <td className="px-4 md:px-5 py-3 md:py-4 text-sm text-gray-900 font-medium">{admin.totalPrice.toFixed(2)}</td>
-                      <td className="px-4 md:px-5 py-3 md:py-4 text-sm font-semibold text-green-600">{admin.totalProfit.toFixed(2)}</td>
+                      <td className="px-4 md:px-5 py-3 md:py-4 text-sm text-gray-900 font-medium">{formatAmount(admin.totalPrice)}</td>
+                      <td className="px-4 md:px-5 py-3 md:py-4 text-sm font-semibold text-green-600">{formatAmount(admin.totalProfit)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1020,12 +1029,12 @@ export default function SaleBoard() {
             </div>
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
               <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Jami Summa</p>
-              <p className="text-3xl md:text-4xl font-bold">{tabTotals.totalPrice.toFixed(2)}</p>
+              <p className="text-3xl md:text-4xl font-bold">{formatAmount(tabTotals.totalPrice)}</p>
               <p className="text-xs md:text-sm opacity-75 mt-1">?</p>
             </div>
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
               <p className="text-sm md:text-base font-semibold opacity-90 mb-2">{paymentTab === "debt" ? "Jami To'langan" : "Jami Foyda"}</p>
-              <p className="text-3xl md:text-4xl font-bold">{tabTotals.totalProfit.toFixed(2)}</p>
+              <p className="text-3xl md:text-4xl font-bold">{formatAmount(tabTotals.totalProfit)}</p>
               <p className="text-xs md:text-sm opacity-75 mt-1">?</p>
             </div>
           </div>
@@ -1135,7 +1144,7 @@ export default function SaleBoard() {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900">{row.total_price}</span>
+                          <span className="font-medium text-gray-900">{formatAmount(row.total_price)}</span>
                           <button
                             onClick={() => handleEditTotal(row)}
                             className="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1173,7 +1182,7 @@ export default function SaleBoard() {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className="font-bold">{row.profit}</span>
+                          <span className="font-bold">{formatAmount(row.profit)}</span>
                           <button
                             onClick={() => handleEditProfit(row)}
                             className="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -1283,8 +1292,8 @@ export default function SaleBoard() {
                   <td className="px-4 md:px-5 py-3 md:py-4 text-right" colSpan={2}>
                     Jami:
                   </td>
-                  <td className="px-4 md:px-5 py-3 md:py-4 text-gray-900">{tabTotals.totalPrice.toFixed(2)}</td>
-                  <td className="px-4 md:px-5 py-3 md:py-4 text-green-600">{tabTotals.totalProfit.toFixed(2)}</td>
+                  <td className="px-4 md:px-5 py-3 md:py-4 text-gray-900">{formatAmount(tabTotals.totalPrice)}</td>
+                  <td className="px-4 md:px-5 py-3 md:py-4 text-green-600">{formatAmount(tabTotals.totalProfit)}</td>
                   <td className="px-4 md:px-5 py-3 md:py-4" colSpan={3}>
                     {tabFilteredData.length} sotuv
                   </td>
@@ -1348,10 +1357,10 @@ export default function SaleBoard() {
                           <td className="px-4 py-3 text-gray-700">
                             {product.amount}{product.unit ? ` ${product.unit}` : ""}
                           </td>
-                          <td className="px-4 py-3 text-gray-700">{product.net_price}</td>
-                          <td className="px-4 py-3 text-gray-700">{product.sell_price}</td>
-                          <td className="px-4 py-3 font-semibold text-gray-900">{total.toFixed(2)}</td>
-                          <td className="px-4 py-3 text-green-600 font-semibold">{profit.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-gray-700">{formatAmount(product.net_price)}</td>
+                          <td className="px-4 py-3 text-gray-700">{formatAmount(product.sell_price)}</td>
+                          <td className="px-4 py-3 font-semibold text-gray-900">{formatAmount(total)}</td>
+                          <td className="px-4 py-3 text-green-600 font-semibold">{formatAmount(profit)}</td>
                         </tr>
                       );
                     })}
@@ -1360,10 +1369,10 @@ export default function SaleBoard() {
                     <tr>
                       <td colSpan={5} className="px-4 py-3 text-right text-gray-900">Jami:</td>
                       <td className="px-4 py-3 text-gray-900">
-                        {saleProducts.reduce((sum, p) => sum + (p.sell_price * p.amount), 0).toFixed(2)}
+                        {formatAmount(saleProducts.reduce((sum, p) => sum + (p.sell_price * p.amount), 0))}
                       </td>
                       <td className="px-4 py-3 text-green-600">
-                        {saleProducts.reduce((sum, p) => sum + ((p.sell_price - p.net_price) * p.amount), 0).toFixed(2)}
+                        {formatAmount(saleProducts.reduce((sum, p) => sum + ((p.sell_price - p.net_price) * p.amount), 0))}
                       </td>
                     </tr>
                   </tfoot>

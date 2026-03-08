@@ -257,7 +257,7 @@ export default function Profile() {
                         <div>
                           <p className="text-xs text-gray-500">Salary</p>
                           <p className="text-sm font-semibold text-gray-900">
-                            {new Intl.NumberFormat("ru-RU", {
+                            {new Intl.NumberFormat("en-IN", {
                               style: "currency",
                               currency: "RUB",
                             }).format(admin.salary || 0)}
@@ -284,7 +284,7 @@ export default function Profile() {
                         <div>
                           <p className="text-xs text-gray-500">Bonuses</p>
                           <p className="text-sm font-semibold text-gray-900">
-                            {new Intl.NumberFormat("ru-RU", {
+                            {new Intl.NumberFormat("en-IN", {
                               style: "currency",
                               currency: "RUB",
                             }).format(admin.bonuses || 0)}

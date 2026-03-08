@@ -43,7 +43,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
       })),
       totalAmount: Number(wagon.total),
-      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString()}`,
+      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString("en-IN")}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -171,7 +171,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       buyer: person.name,
       products,
       totalAmount: person.totalAmount,
-      status: `To'langan: ${person.paidAmount.toLocaleString()} | Qoldiq: ${person.remainingAmount.toLocaleString()}`,
+      status: `To'langan: ${person.paidAmount.toLocaleString("en-IN")} | Qoldiq: ${person.remainingAmount.toLocaleString("en-IN")}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -195,19 +195,19 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
           <p className="text-gray-600 text-sm mb-1">Jami Summa</p>
           <p className="text-3xl font-bold text-blue-600">
-            {person.totalAmount.toLocaleString()}
+            {person.totalAmount.toLocaleString("en-IN")}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
           <p className="text-gray-600 text-sm mb-1">To'langan</p>
           <p className="text-3xl font-bold text-green-600">
-            {person.paidAmount.toLocaleString()}
+            {person.paidAmount.toLocaleString("en-IN")}
           </p>
         </div>
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
           <p className="text-gray-600 text-sm mb-1">Qoldiq Summa</p>
           <p className="text-3xl font-bold text-orange-600">
-            {person.remainingAmount.toLocaleString()}
+            {person.remainingAmount.toLocaleString("en-IN")}
           </p>
         </div>
       </div>
@@ -264,16 +264,16 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                         {wagon.products.length}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                        {parseFloat(wagon.total.toString()).toLocaleString()}
+                        {parseFloat(wagon.total.toString()).toLocaleString("en-IN")}
                       </td>
                       <td className="px-4 py-3 text-right text-green-600 font-semibold">
-                        {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString()}
+                        {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString("en-IN")}
                       </td>
                       <td className="px-4 py-3 text-right text-orange-600 font-semibold">
                         {(
                           parseFloat(wagon.total.toString()) -
                           parseFloat((wagon.paid_amount || 0).toString())
-                        ).toLocaleString()}
+                        ).toLocaleString("en-IN")}
                       </td>
                       <td className="px-4 py-3 text-center space-x-2 flex justify-center">
                         <button
@@ -344,7 +344,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                       {`${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                      {debt.amount.toLocaleString()}
+                      {debt.amount.toLocaleString("en-IN")}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span
@@ -411,7 +411,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                   }`}
                 >
                   {record.type === "income" ? "+" : "-"}
-                  {parseFloat(record.amount).toLocaleString()}
+                  {parseFloat(record.amount).toLocaleString("en-IN")}
                 </p>
               </div>
               <button
