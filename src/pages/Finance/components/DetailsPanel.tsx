@@ -9,7 +9,7 @@ interface DetailsPanelProps {
   onAddPayment: () => void;
   onDeleteWagon: (wagonId: string) => void;
   onDeleteFinanceRecord: (recordId: number) => void;
-  source: "wagons" | "debts";
+  source: "wagons" | "debts" | "myDebts";
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
@@ -327,9 +327,6 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">
                     Summa
                   </th>
-                  <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                    Holat
-                  </th>
                   <th className="px-4 py-3 text-center font-semibold text-gray-700">
                     Amallar
                   </th>
@@ -343,17 +340,6 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">
                       {debt.amount.toLocaleString("en-US")}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          debt.isreturned
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {debt.isreturned ? "Qaytarilgan" : "Qaytarilmagan"}
-                      </span>
                     </td>
                     <td className="px-4 py-3 text-center space-x-2">
                       <button

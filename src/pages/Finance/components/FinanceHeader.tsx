@@ -3,13 +3,15 @@ import React from "react";
 interface FinanceHeaderProps {
   onSearchChange: (query: string) => void;
   searchQuery: string;
-  source: "wagons" | "debts";
-  onSourceChange: (source: "wagons" | "debts") => void;
+  source: "wagons" | "debts" | "myDebts";
+  onSourceChange: (source: "wagons" | "debts" | "myDebts") => void;
+  onAddMyDebt: () => void;
 }
 
 export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
   source,
   onSourceChange,
+  onAddMyDebt,
 }) => {
   return (
     <header className="mb-4 sm:mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -21,7 +23,17 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
           Pul moviy ma'lumotlarini boshqarish va sleduvchi
         </p>
       </div>
-      <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+      <div className="flex items-center gap-2">
+        {source === "myDebts" && (
+          <button
+            onClick={onAddMyDebt}
+            className="px-3 py-2 rounded-md text-sm font-medium transition bg-green-600 text-white hover:bg-green-700"
+            title="Qarz qo'shish"
+          >
+            + Qarz
+          </button>
+        )}
+        <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
         <button
           onClick={() => onSourceChange("wagons")}
           className={`px-3 py-2 rounded-md text-sm font-medium transition ${
@@ -42,6 +54,17 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
         >
           Qarzdorlar
         </button>
+        <button
+          onClick={() => onSourceChange("myDebts")}
+          className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+            source === "myDebts"
+              ? "bg-blue-600 text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          Qarzlarim
+        </button>
+        </div>
       </div>
     </header>
   );

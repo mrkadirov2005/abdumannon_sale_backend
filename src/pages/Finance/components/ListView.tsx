@@ -6,7 +6,7 @@ import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../
 interface ListViewProps {
   wagons: Wagon[];
   debts: Debt[];
-  source: "wagons" | "debts";
+  source: "wagons" | "debts" | "myDebts";
   onDeleteWagon: (wagonId: string) => void;
 }
 
@@ -60,7 +60,7 @@ export const ListView: React.FC<ListViewProps> = ({
     });
   };
 
-  if (source === "debts") {
+  if (source !== "wagons") {
     return (
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="overflow-x-auto">

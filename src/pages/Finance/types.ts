@@ -32,6 +32,7 @@ export interface Debt {
   month: number;
   year: number;
   isreturned: boolean;
+  admin_id?: string | null;
 }
 
 export interface Person {
@@ -63,3 +64,4 @@ export interface FormData {
 }
 
 export type ViewMode = "folders" | "list";
+export type FinanceSource = "wagons" | "debts" | "myDebts";

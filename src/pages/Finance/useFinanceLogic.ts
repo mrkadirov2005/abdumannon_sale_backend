@@ -6,8 +6,9 @@ import type {
   FinanceRecord,
   FormData,
   Debt,
+  FinanceSource,
 } from "./types";
-import { DEFAULT_ENDPOINT } from "../../config/endpoints";
+import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { useSelector } from "react-redux";
 import { getshopidfromstrore } from "../../redux/selectors";
 
@@ -21,7 +22,9 @@ const getHeaders = () => {
   };
 };
 
-export const useFinanceLogic = (source: "wagons" | "debts") => {
+const MY_DEBTS_ADMIN_ID = "qarzlarim";
+
+export const useFinanceLogic = (source: FinanceSource) => {
   const [wagons, setWagons] = useState<Wagon[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [financeRecords, setFinanceRecords] = useState<FinanceRecord[]>([]);
@@ -66,6 +69,16 @@ export const useFinanceLogic = (source: "wagons" | "debts") => {
     }
   }, [shop_id]);
 
+  const visibleDebts = useMemo(() => {
+    if (source === "myDebts") {
+      return debts.filter((d) => d.admin_id === MY_DEBTS_ADMIN_ID);
+    }
+    if (source === "debts") {
+      return debts.filter((d) => d.admin_id !== MY_DEBTS_ADMIN_ID);
+    }
+    return debts;
+  }, [debts, source]);
+
   const uniquePersons = useMemo(() => {
     const personsMap = new Map<string, Person>();
 
@@ -96,7 +109,7 @@ export const useFinanceLogic = (source: "wagons" | "debts") => {
         person.remainingAmount += wagonTotal - paidAmount;
       });
     } else {
-      debts.forEach((debt) => {
+      visibleDebts.forEach((debt) => {
         const rawPersonName = debt.name.trim();
         const personNameKey = rawPersonName.toLowerCase();
 
@@ -141,7 +154,7 @@ export const useFinanceLogic = (source: "wagons" | "debts") => {
     return Array.from(personsMap.values()).sort(
       (a, b) => b.totalAmount - a.totalAmount
     );
-  }, [source, wagons, debts, financeRecords]);
+  }, [source, wagons, visibleDebts, financeRecords]);
 
   // Filter persons by search
   const filteredPersons = useMemo(() => {
@@ -258,10 +271,75 @@ export const useFinanceLogic = (source: "wagons" | "debts") => {
     [formData, fetchData]
   );
 
+  const markDebtsReturned = useCallback(async (debtsToMark: Debt[]) => {
+    const pending = debtsToMark.filter((d) => !d.isreturned);
+    if (pending.length === 0) return;
+
+    try {
+      await Promise.all(
+        pending.map((debt) =>
+          fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.mark_returned}`, {
+            method: "POST",
+            headers: getHeaders(),
+            body: JSON.stringify({ id: debt.id }),
+          })
+        )
+      );
+      fetchData();
+    } catch (error) {
+      console.error("Error marking debts as returned:", error);
+      toast.error("Qarz holatini yangilashda xatolik");
+    }
+  }, [fetchData]);
+
+  const handleAddMyDebt = useCallback(
+    async (
+      lender: string,
+      amount: number,
+      comment: string,
+      isReturned: boolean
+    ) => {
+      if (!lender?.trim() || !amount) {
+        toast.error("Iltimos, qarz beruvchi va summani kiriting");
+        return;
+      }
+
+      try {
+        const nameValue = lender.trim();
+        const response = await fetch(`${DEFAULT_ENDPOINT}/debts/create`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            name: nameValue,
+            amount,
+            product_names: comment ? [comment] : [],
+            branch_id: 1,
+            shop_id,
+            admin_id: MY_DEBTS_ADMIN_ID,
+            isreturned: isReturned,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data?.data) {
+          toast.success("Qarz qo'shildi");
+          fetchData();
+        } else {
+          toast.error(data?.message || data?.error || "Qarz qo'shishda xatolik");
+        }
+      } catch (error) {
+        console.error("Error adding my debt:", error);
+        toast.error("Qarz qo'shishda xatolik");
+      }
+    },
+    [fetchData, shop_id]
+  );
+
   return {
     // State
     wagons,
-    debts,
+    debts: visibleDebts,
     financeRecords,
     loading,
     searchQuery,
@@ -283,5 +361,7 @@ export const useFinanceLogic = (source: "wagons" | "debts") => {
     handleDeleteFinanceRecord,
     handleDeleteWagon,
     handleAddPayment,
+    handleAddMyDebt,
+    markDebtsReturned,
   };
 };

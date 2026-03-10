@@ -8,11 +8,19 @@ import { FolderView } from "./components/FolderView";
 import { ListView } from "./components/ListView";
 import { DetailsPanel } from "./components/DetailsPanel";
 import { PaymentModal } from "./components/PaymentModal";
-import type { ViewMode } from "./types";
+import { MyDebtModal } from "./components/MyDebtModal";
+import type { ViewMode, FinanceSource } from "./types";
 
 const Finance: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("folders");
-  const [source, setSource] = useState<"wagons" | "debts">("wagons");
+  const [source, setSource] = useState<FinanceSource>("wagons");
+  const [showMyDebtModal, setShowMyDebtModal] = useState(false);
+  const [myDebtForm, setMyDebtForm] = useState({
+    lender: "",
+    amount: "",
+    comment: "",
+    isReturned: false,
+  });
   const {
     loading,
     searchQuery,
@@ -33,6 +41,8 @@ const Finance: React.FC = () => {
     handleDeleteFinanceRecord,
     handleDeleteWagon,
     handleAddPayment,
+    handleAddMyDebt,
+    markDebtsReturned,
   } = useFinanceLogic(source);
 
   useEffect(() => {
@@ -61,6 +71,7 @@ const Finance: React.FC = () => {
           setSelectedPerson(null);
           setViewMode("folders");
         }}
+        onAddMyDebt={() => setShowMyDebtModal(true)}
       />
 
       <FinanceStats
@@ -80,12 +91,23 @@ const Finance: React.FC = () => {
 
       {/* Content */}
       {viewMode === "folders" ? (
-        <FolderView
-          persons={filteredPersons}
-          selectedPerson={selectedPerson}
-          onPersonSelect={setSelectedPerson}
-          source={source}
-        />
+        selectedPerson ? (
+          <div className="mb-4">
+            <button
+              onClick={() => setSelectedPerson(null)}
+              className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 transition text-sm font-medium"
+            >
+              ← Orqaga
+            </button>
+          </div>
+        ) : (
+          <FolderView
+            persons={filteredPersons}
+            selectedPerson={selectedPerson}
+            onPersonSelect={setSelectedPerson}
+            source={source}
+          />
+        )
       ) : (
         <ListView
           wagons={wagons}
@@ -113,7 +135,23 @@ const Finance: React.FC = () => {
         selectedPerson={selectedPerson}
         formData={formData}
         onFormChange={(data) => setFormData({ ...formData, ...data })}
-        onAddPayment={() => handleAddPayment(selectedPerson || "")}
+        onAddPayment={async () => {
+          if (source === "myDebts" && selectedPersonData) {
+            const amount = parseFloat(formData.amount || "0");
+            const delta = formData.type === "income" ? amount : -amount;
+            const nextPaid = selectedPersonData.paidAmount + delta;
+            const total = selectedPersonData.totalAmount;
+
+            await handleAddPayment(selectedPerson || "");
+
+            if (nextPaid >= total) {
+              await markDebtsReturned(selectedPersonData.debts || []);
+            }
+            return;
+          }
+
+          await handleAddPayment(selectedPerson || "");
+        }}
         onClose={() => {
           setShowPaymentModal(false);
           setFormData({
@@ -123,6 +161,26 @@ const Finance: React.FC = () => {
             category: "sales",
             date: new Date().toISOString().split("T")[0],
           });
+        }}
+      />
+
+      <MyDebtModal
+        isOpen={showMyDebtModal}
+        formData={myDebtForm}
+        onFormChange={(data) => setMyDebtForm({ ...myDebtForm, ...data })}
+        onSubmit={async () => {
+          await handleAddMyDebt(
+            myDebtForm.lender,
+            Number(myDebtForm.amount),
+            myDebtForm.comment,
+            myDebtForm.isReturned
+          );
+          setShowMyDebtModal(false);
+          setMyDebtForm({ lender: "", amount: "", comment: "", isReturned: false });
+        }}
+        onClose={() => {
+          setShowMyDebtModal(false);
+          setMyDebtForm({ lender: "", amount: "", comment: "", isReturned: false });
         }}
       />
     </div>

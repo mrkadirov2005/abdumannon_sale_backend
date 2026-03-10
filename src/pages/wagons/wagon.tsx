@@ -42,6 +42,32 @@ interface Wagon {
 }
 
 const WagonsPage: React.FC = () => {
+  const formatNumber = (value: number, minFraction = 0, maxFraction = 0) =>
+    Number(value || 0).toLocaleString("en-US", {
+      minimumFractionDigits: minFraction,
+      maximumFractionDigits: maxFraction,
+    });
+
+  const formatMoney = (value: number) => formatNumber(value, 2, 2);
+  const formatQuantity = (value: number) => {
+    const numeric = Number(value || 0);
+    if (Number.isInteger(numeric)) return formatNumber(numeric, 0, 0);
+    return formatNumber(numeric, 4, 4);
+  };
+
+  const parseDecimalInput = (raw: string) => {
+    const normalized = raw.replace(",", ".").trim();
+    const numeric = Number(normalized);
+    return Number.isFinite(numeric) ? numeric : null;
+  };
+
+  const formatDecimalInput = (raw: string, fractionDigits: number) => {
+    if (!raw) return raw;
+    const numeric = parseDecimalInput(raw);
+    if (numeric === null) return raw;
+    return numeric.toFixed(fractionDigits);
+  };
+
   const UNIT_OPTIONS = [
     { value: "pcs", label: "Dona" },
     { value: "kg", label: "Kg" },
@@ -514,7 +540,7 @@ const WagonsPage: React.FC = () => {
                       {/* <div className="text-right">
                         <p className="text-xs sm:text-sm md:text-base font-medium text-gray-600">Jami Summa</p>
                         <p className="text-sm sm:text-lg md:text-xl font-bold text-blue-900">
-                          {person.totalAmount.toLocaleString("en-US")} ?
+                          {formatMoney(person.totalAmount)} $
                         </p>
                       </div> */}
                       <ChevronRight className="text-gray-400 group-hover:text-blue-600 transition flex-shrink-0" size={24} />
@@ -583,7 +609,7 @@ const WagonsPage: React.FC = () => {
                 <div className="flex justify-between border-t border-gray-200 pt-2">
                   <span className="text-gray-600 font-bold">Jami Summa:</span>
                   <span className="font-bold text-blue-600 text-base md:text-lg">
-                    {parseFloat(wagon.total.toString()).toLocaleString("en-US")} ?
+                    {formatMoney(parseFloat(wagon.total.toString()))} $
                   </span>
                 </div>
               </div>
@@ -683,7 +709,7 @@ const WagonsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                      {parseFloat(wagon.total.toString()).toLocaleString("en-US")} ?
+                      {formatMoney(parseFloat(wagon.total.toString()))} $
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-2">
@@ -806,11 +832,19 @@ const WagonsPage: React.FC = () => {
                           className="sm:col-span-3 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
+                          inputMode="decimal"
+                          pattern="^[0-9]*[.,]?[0-9]*$"
                           placeholder="Miqdor"
                           value={row.amount}
                           onChange={(e) => updateProductRow(index, "amount", e.target.value)}
+                          onBlur={(e) =>
+                            updateProductRow(
+                              index,
+                              "amount",
+                              formatDecimalInput(e.target.value, 4)
+                            )
+                          }
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <select
@@ -825,11 +859,19 @@ const WagonsPage: React.FC = () => {
                           ))}
                         </select>
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
+                          inputMode="decimal"
+                          pattern="^[0-9]*[.,]?[0-9]*$"
                           placeholder="Narx"
                           value={row.price}
                           onChange={(e) => updateProductRow(index, "price", e.target.value)}
+                          onBlur={(e) =>
+                            updateProductRow(
+                              index,
+                              "price",
+                              formatDecimalInput(e.target.value, 2)
+                            )
+                          }
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button
@@ -948,11 +990,19 @@ const WagonsPage: React.FC = () => {
                           className="sm:col-span-3 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
+                          inputMode="decimal"
+                          pattern="^[0-9]*[.,]?[0-9]*$"
                           placeholder="Miqdor"
                           value={row.amount}
                           onChange={(e) => updateProductRow(index, "amount", e.target.value)}
+                          onBlur={(e) =>
+                            updateProductRow(
+                              index,
+                              "amount",
+                              formatDecimalInput(e.target.value, 4)
+                            )
+                          }
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <select
@@ -967,11 +1017,19 @@ const WagonsPage: React.FC = () => {
                           ))}
                         </select>
                         <input
-                          type="number"
-                          step="0.01"
+                          type="text"
+                          inputMode="decimal"
+                          pattern="^[0-9]*[.,]?[0-9]*$"
                           placeholder="Narx"
                           value={row.price}
                           onChange={(e) => updateProductRow(index, "price", e.target.value)}
+                          onBlur={(e) =>
+                            updateProductRow(
+                              index,
+                              "price",
+                              formatDecimalInput(e.target.value, 2)
+                            )
+                          }
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <button
@@ -1049,7 +1107,7 @@ const WagonsPage: React.FC = () => {
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
                         <p className="text-lg font-bold text-green-900">
-                          {totalAmount.toLocaleString("en-US")} ?
+                          {formatMoney(totalAmount)} $
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1095,13 +1153,13 @@ const WagonsPage: React.FC = () => {
                               {product.product_name}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {product.amount} {formatUnitLabel(product.unit)}
+                              {formatQuantity(product.amount)} {formatUnitLabel(product.unit)}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {product.price.toLocaleString("en-US")} ?
+                              {formatMoney(product.price)} $
                             </td>
                             <td className="px-4 py-3 text-sm font-semibold text-blue-600 text-right">
-                              {product.subtotal.toLocaleString("en-US")} ?
+                              {formatMoney(product.subtotal)} $
                             </td>
                           </tr>
                         );
@@ -1111,7 +1169,7 @@ const WagonsPage: React.FC = () => {
                           JAMI:
                         </td>
                         <td className="px-4 py-3 text-right text-blue-900 text-lg">
-                          {parseFloat(selectedWagon.total.toString()).toLocaleString("en-US")} ?
+                          {formatMoney(parseFloat(selectedWagon.total.toString()))} $
                         </td>
                       </tr>
                     </tbody>

@@ -317,7 +317,7 @@ export const useDebtsLogic = (
             product_names: productNamesString,
             branch_id: formData.branch_id,
             shop_id,
-            admin_id: "admin-uuid",
+            admin_id: "qarzlarim",
           }),
         });
 
