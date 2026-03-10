@@ -357,7 +357,7 @@ export default function Admins() {
                 <div className="border-b border-gray-200 pb-3">
                   <p className="text-xs font-medium text-gray-600 mb-1">Maosh</p>
                   <p className="text-sm font-semibold text-gray-900">
-                    {u.salary > 0 ? `\u20BD${u.salary.toLocaleString("en-IN")}` : "—"}
+                    {u.salary > 0 ? `\u20BD${u.salary.toLocaleString("en-US")}` : "—"}
                   </p>
                 </div>
 
@@ -731,7 +731,7 @@ export default function Admins() {
                   <div className="flex justify-between">
                     <span className="text-xs font-medium text-green-700">Salary:</span>
                     <span className="text-sm font-semibold text-green-900">
-                      {"\u20BD"}{selectedAdmin.salary.toLocaleString("en-IN")}
+                      {"\u20BD"}{selectedAdmin.salary.toLocaleString("en-US")}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -886,19 +886,19 @@ export default function Admins() {
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Salary</p>
-                    <p className="text-2xl font-bold text-green-900">{"\u20BD"}{selectedAdmin.salary.toLocaleString("en-IN")}</p>
+                    <p className="text-2xl font-bold text-green-900">{"\u20BD"}{selectedAdmin.salary.toLocaleString("en-US")}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Total Sales</p>
-                    <p className="text-2xl font-bold text-green-900">{"\u20BD"}{selectedAdmin.sales.toLocaleString("en-IN")}</p>
+                    <p className="text-2xl font-bold text-green-900">{"\u20BD"}{selectedAdmin.sales.toLocaleString("en-US")}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Expenses</p>
-                    <p className="text-lg font-semibold text-green-900">{"\u20BD"}{selectedAdmin.expenses.toLocaleString("en-IN")}</p>
+                    <p className="text-lg font-semibold text-green-900">{"\u20BD"}{selectedAdmin.expenses.toLocaleString("en-US")}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Bonuses</p>
-                    <p className="text-lg font-semibold text-green-900">{"\u20BD"}{selectedAdmin.bonuses.toLocaleString("en-IN")}</p>
+                    <p className="text-lg font-semibold text-green-900">{"\u20BD"}{selectedAdmin.bonuses.toLocaleString("en-US")}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs font-medium text-green-700 mb-1">Paid This Month</p>

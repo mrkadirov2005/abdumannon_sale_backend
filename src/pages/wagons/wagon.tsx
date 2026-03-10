@@ -15,7 +15,7 @@ import {
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { useSelector } from "react-redux";
 import { accessTokenFromStore } from "../../redux/selectors";
-import { printCheque } from "../../components/ui/ChequeProvider";
+import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../components/ui/ChequeProvider";
 
 // Types
 interface Product {
@@ -73,7 +73,7 @@ const WagonsPage: React.FC = () => {
   // Form State
   const [formData, setFormData] = useState({
     client_name: "",
-    wagon_number: "",
+    wagon_number: generateChequeNumber(new Date()),
     indicator: "none" as "debt_taken" | "debt_given" | "none",
     branch: null as number | null,
   });
@@ -145,7 +145,6 @@ const WagonsPage: React.FC = () => {
     const totalPaidAmount = validProducts.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
 
     // Join client_name and wagon_number with comma
-    const combinedWagonNumber = `${formData.client_name},${formData.wagon_number}`;
 
     try {
       const uuid = localStorage.getItem("uuid");
@@ -158,7 +157,7 @@ const WagonsPage: React.FC = () => {
           uuid: uuid || "",
         },
         body: JSON.stringify({
-          wagon_number: combinedWagonNumber,
+          wagon_number: generateChequeNumber(new Date()),
           indicator: "none",
           branch: formData.branch,
           paid_amount: totalPaidAmount,
@@ -205,7 +204,6 @@ const WagonsPage: React.FC = () => {
     const totalPaidAmount = validProducts.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
 
     // Join client_name and wagon_number with comma
-    const combinedWagonNumber = `${formData.client_name},${formData.wagon_number}`;
 
     try {
       
@@ -220,7 +218,7 @@ const WagonsPage: React.FC = () => {
         },
         body: JSON.stringify({
           id: selectedWagon.id,
-          wagon_number: combinedWagonNumber,
+          wagon_number: generateChequeNumber(new Date()),
           indicator: formData.indicator,
           branch: formData.branch,
           paid_amount: totalPaidAmount,
@@ -282,11 +280,10 @@ const WagonsPage: React.FC = () => {
     // Split wagon_number by comma
     const parts = wagon.wagon_number.split(',');
     const client_name = parts[0] || '';
-    const wagon_num = parts[1] || '';
     
     setFormData({
       client_name: client_name,
-      wagon_number: wagon_num,
+      wagon_number: generateChequeNumber(new Date()),
       indicator: wagon.indicator,
       branch: wagon.branch,
     });
@@ -310,7 +307,7 @@ const WagonsPage: React.FC = () => {
   const resetForm = () => {
     setFormData({
       client_name: "",
-      wagon_number: "",
+      wagon_number: generateChequeNumber(new Date()),
       indicator: "none",
       branch: null,
     });
@@ -408,13 +405,12 @@ const WagonsPage: React.FC = () => {
   const printWagon = (wagon: Wagon) => {
     const parts = wagon.wagon_number.split(",");
     const clientName = (parts[0] || "").trim();
-    const wagonNum = (parts[1] || wagon.wagon_number).trim();
 
     printCheque({
       title: "Накладная",
-      number: wagonNum || wagon.id,
+      number: generateChequeNumber(new Date()),
       date: wagon.created_at,
-      supplier: "HC COMPANY, г. Москва, рынок «Фуд Сити», Тел: 8-915-016-16-15, 8-916-576-07-07",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: clientName || "_______________",
       products: wagon.products.map((p) => ({
         name: p.product_name,
@@ -518,7 +514,7 @@ const WagonsPage: React.FC = () => {
                       {/* <div className="text-right">
                         <p className="text-xs sm:text-sm md:text-base font-medium text-gray-600">Jami Summa</p>
                         <p className="text-sm sm:text-lg md:text-xl font-bold text-blue-900">
-                          {person.totalAmount.toLocaleString("en-IN")} ?
+                          {person.totalAmount.toLocaleString("en-US")} ?
                         </p>
                       </div> */}
                       <ChevronRight className="text-gray-400 group-hover:text-blue-600 transition flex-shrink-0" size={24} />
@@ -587,7 +583,7 @@ const WagonsPage: React.FC = () => {
                 <div className="flex justify-between border-t border-gray-200 pt-2">
                   <span className="text-gray-600 font-bold">Jami Summa:</span>
                   <span className="font-bold text-blue-600 text-base md:text-lg">
-                    {parseFloat(wagon.total.toString()).toLocaleString("en-IN")} ?
+                    {parseFloat(wagon.total.toString()).toLocaleString("en-US")} ?
                   </span>
                 </div>
               </div>
@@ -687,7 +683,7 @@ const WagonsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                      {parseFloat(wagon.total.toString()).toLocaleString("en-IN")} ?
+                      {parseFloat(wagon.total.toString()).toLocaleString("en-US")} ?
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-2">
@@ -1053,7 +1049,7 @@ const WagonsPage: React.FC = () => {
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
                         <p className="text-lg font-bold text-green-900">
-                          {totalAmount.toLocaleString("en-IN")} ?
+                          {totalAmount.toLocaleString("en-US")} ?
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1102,10 +1098,10 @@ const WagonsPage: React.FC = () => {
                               {product.amount} {formatUnitLabel(product.unit)}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {product.price.toLocaleString("en-IN")} ?
+                              {product.price.toLocaleString("en-US")} ?
                             </td>
                             <td className="px-4 py-3 text-sm font-semibold text-blue-600 text-right">
-                              {product.subtotal.toLocaleString("en-IN")} ?
+                              {product.subtotal.toLocaleString("en-US")} ?
                             </td>
                           </tr>
                         );
@@ -1115,7 +1111,7 @@ const WagonsPage: React.FC = () => {
                           JAMI:
                         </td>
                         <td className="px-4 py-3 text-right text-blue-900 text-lg">
-                          {parseFloat(selectedWagon.total.toString()).toLocaleString("en-IN")} ?
+                          {parseFloat(selectedWagon.total.toString()).toLocaleString("en-US")} ?
                         </td>
                       </tr>
                     </tbody>

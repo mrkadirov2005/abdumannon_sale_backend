@@ -109,9 +109,11 @@ export default function Sales() {
 
   const formatter = useMemo(
     () =>
-      new Intl.NumberFormat("en-IN", {
+      new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "RUB",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
       }),
     []
   );
@@ -697,7 +699,7 @@ export default function Sales() {
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 md:p-4 rounded-lg border border-blue-200">
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-xs md:text-sm text-gray-900">Umumiy</span>
-                <span className="text-xl md:text-2xl font-bold text-blue-600">{formatter.format(totals.finalTotal)}</span>
+                <span className="text-md  font-bold text-blue-600">{formatter.format(totals.finalTotal)}</span>
               </div>
             </div>
 

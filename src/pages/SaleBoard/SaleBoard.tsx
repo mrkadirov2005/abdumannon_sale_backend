@@ -15,7 +15,7 @@ import { setSales } from "../../redux/slices/sales/salesReducer";
 import { toast } from "react-toastify";
 import SalesStatistics from "./SalesStatistics";
 import { Search, X } from "lucide-react";
-import { printCheque } from "../../components/ui/ChequeProvider";
+import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque, verifyChequeNumber } from "../../components/ui/ChequeProvider";
 
 type PaymentMethod = "cash" | "card" | "mobile" | "" | null;
 
@@ -42,10 +42,21 @@ interface SoldProduct {
   unit?: string | null;
 }
 
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+
 export default function SaleBoard() {
   const formatAmount = useMemo(
     () => (value: number) =>
-      new Intl.NumberFormat("en-IN", {
+      new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(Number(value) || 0),
@@ -117,6 +128,16 @@ export default function SaleBoard() {
 
   // View toggle state (table or statistics)
   const [viewMode, setViewMode] = useState<"table" | "statistics">("table");
+
+  // Cheque customer modal
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState<boolean>(false);
+  const [customerName, setCustomerName] = useState<string>("");
+  const [pendingPrintSale, setPendingPrintSale] = useState<Sale | null>(null);
+
+  // Cheque verification
+  const [isChequeVerifyOpen, setIsChequeVerifyOpen] = useState<boolean>(false);
+  const [chequeInput, setChequeInput] = useState<string>("");
+  const [chequeResult, setChequeResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -664,17 +685,21 @@ export default function SaleBoard() {
   };
 
   // Print individual sale as invoice
-  const printSaleAsInvoice = (sale: Sale) => {
+  const printSaleAsInvoice = (sale: Sale, customer: string) => {
     const paymentLabel =
       sale.payment_method === "cash" ? "Наличные" :
       sale.payment_method === "card" ? "Карта" : "Мобильная";
 
+    const chequeNumber = generateChequeNumber(new Date());
+    const safeCustomer = escapeHtml(customer);
+
+
     printCheque({
       title: "Накладная",
-      number: sale.sale_id,
+      number: chequeNumber,
       date: sale.sale_time,
-      supplier: "HC COMPANY, г. Москва, рынок «Фуд Сити», Тел: 8-915-016-16-15, 8-916-576-07-07",
-      buyer: `Продавец: ${sale.admin_name || "N/A"} | Способ оплаты: ${paymentLabel}`,
+      supplier: DEFAULT_SUPPLIER_HTML,
+      buyer: `${safeCustomer}<br/>Продавец: ${sale.admin_name || "N/A"}<br/>Способ оплаты: ${paymentLabel}`,
       products: saleProducts.map((p) => ({
         name: p.product_name,
         quantity: p.amount,
@@ -787,6 +812,16 @@ export default function SaleBoard() {
               }`}
             >
               <BarChart fontSize="small" /> Statistika
+            </button>
+            <button
+              onClick={() => {
+                setChequeInput("");
+                setChequeResult(null);
+                setIsChequeVerifyOpen(true);
+              }}
+              className="flex-1 sm:flex-none px-3 sm:px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition text-sm md:text-base bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
+            >
+              Chek tekshirish
             </button>
           </div>
         </div>
@@ -1389,7 +1424,9 @@ export default function SaleBoard() {
                     toast.error("Sotuv topilmadi");
                     return;
                   }
-                  printSaleAsInvoice(sale);
+                  setPendingPrintSale(sale);
+                  setCustomerName("");
+                  setIsCustomerModalOpen(true);
                 }}
                 disabled={loadingProducts || saleProducts.length === 0}
                 className="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition"
@@ -1402,6 +1439,104 @@ export default function SaleBoard() {
                 className="px-4 md:px-6 py-2 md:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition"
               >
                 Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Customer Name Modal */}
+      {isCustomerModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => { setIsCustomerModalOpen(false); setPendingPrintSale(null); }}>
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
+              <h3 className="text-lg font-bold text-gray-900">Mijoz nomi</h3>
+              <button
+                onClick={() => { setIsCustomerModalOpen(false); setPendingPrintSale(null); }}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                Ã—
+              </button>
+            </div>
+            <div className="p-5">
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="Mijoz ismi..."
+                className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+            </div>
+            <div className="p-5 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => { setIsCustomerModalOpen(false); setPendingPrintSale(null); }}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={() => {
+                  const name = customerName.trim();
+                  if (!name) {
+                    toast.error("Mijoz ismini kiriting");
+                    return;
+                  }
+                  if (!pendingPrintSale) {
+                    toast.error("Sotuv topilmadi");
+                    return;
+                  }
+                  printSaleAsInvoice(pendingPrintSale, name);
+                  setIsCustomerModalOpen(false);
+                  setPendingPrintSale(null);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
+              >
+                Chop etish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cheque Verification Modal */}
+      {isChequeVerifyOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setIsChequeVerifyOpen(false)}>
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
+              <h3 className="text-lg font-bold text-gray-900">Chek tekshirish</h3>
+              <button
+                onClick={() => setIsChequeVerifyOpen(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                Ã—
+              </button>
+            </div>
+            <div className="p-5 space-y-3">
+              <input
+                type="text"
+                value={chequeInput}
+                onChange={(e) => setChequeInput(e.target.value)}
+                placeholder="123456/1/2/2026"
+                className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+              {chequeResult && (
+                <div className={`text-sm font-medium ${chequeResult.ok ? "text-green-600" : "text-red-600"}`}>
+                  {chequeResult.message}
+                </div>
+              )}
+            </div>
+            <div className="p-5 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => setIsChequeVerifyOpen(false)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition"
+              >
+                Yopish
+              </button>
+              <button
+                onClick={() => setChequeResult(verifyChequeNumber(chequeInput))}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
+              >
+                Tekshirish
               </button>
             </div>
           </div>

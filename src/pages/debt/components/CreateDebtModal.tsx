@@ -224,7 +224,7 @@ export const CreateDebtModal: React.FC<Props> = ({
           {total > 0 && (
             <div className="p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-gray-600">Mahsulotlardan jami</p>
-              <p className="text-2xl font-bold text-blue-600">{total.toLocaleString("en-IN")}</p>
+              <p className="text-2xl font-bold text-blue-600">{total.toLocaleString("en-US")}</p>
             </div>
           )}
         </div>

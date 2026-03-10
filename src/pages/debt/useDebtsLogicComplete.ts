@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { toast } from "react-toastify";
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
-import { printCheque } from "../../components/ui/ChequeProvider";
+import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../components/ui/ChequeProvider";
 import type {
   Debt,
   DebtStatistics,
@@ -645,9 +645,9 @@ export const useDebtsLogic = (
   const printDebt = (debt: Debt) => {
     printCheque({
       title: "Накладная",
-      number: debt.id,
+      number: generateChequeNumber(new Date()),
       date: formatDate(debt),
-      supplier: "HC COMPANY, г. Москва, рынок «Фуд Сити», Тел: 8-915-016-16-15, 8-916-576-07-07",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: debt.name,
       products: [{
         name: formatProductsForDisplay(debt.product_names),
@@ -666,9 +666,9 @@ export const useDebtsLogic = (
 
     printCheque({
       title: "Отчёт по долгам",
-      number: `${filteredAndSorted.length}`,
+      number: generateChequeNumber(new Date()),
       date: new Date(),
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: `Итого записей: ${filteredAndSorted.length}`,
       products: filteredAndSorted.map((debt) => ({
         name: `${debt.name} (${formatDate(debt)}) ${debt.isreturned ? "✓" : "⏳"}`,
@@ -695,9 +695,9 @@ export const useDebtsLogic = (
 
     printCheque({
       title: "Отчёт по должникам",
-      number: `${filteredDebtors.length}`,
+      number: generateChequeNumber(new Date()),
       date: new Date(),
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: `Тип: ${debtTypeFilter === "given" ? "Berilgan Nasiya" : debtTypeFilter === "taken" ? "Nasiyam" : "Barcha Qarzlar"} | Должников: ${filteredDebtors.length}`,
       products: filteredDebtors.map((debtor) => {
         const relevantDebts = debtTypeFilter === "all"

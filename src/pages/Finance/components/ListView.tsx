@@ -1,7 +1,7 @@
 import React from "react";
 import { Trash2, Printer } from "lucide-react";
 import type { Wagon, Debt } from "../types";
-import { printCheque } from "../../../components/ui/ChequeProvider";
+import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
 
 interface ListViewProps {
   wagons: Wagon[];
@@ -21,9 +21,9 @@ export const ListView: React.FC<ListViewProps> = ({
     const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
     printCheque({
       title: "Қарз накладная",
-      number: String(debt.id),
+      number: generateChequeNumber(new Date()),
       date,
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: debt.name,
       products: [{
         name: debt.name,
@@ -40,13 +40,11 @@ export const ListView: React.FC<ListViewProps> = ({
   };
 
   const printWagon = (wagon: Wagon) => {
-    const parts = wagon.wagon_number.split(",");
-    const wagonNumber = parts[1] || wagon.wagon_number;
     printCheque({
       title: "Вагон накладная",
-      number: wagonNumber,
+      number: generateChequeNumber(new Date()),
       date: new Date().toLocaleDateString("ru-RU"),
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: wagon.wagon_number.split(",")[0] || "",
       products: (wagon.products || []).map((p) => ({
         name: p.product_name || p.name || "",
@@ -56,7 +54,7 @@ export const ListView: React.FC<ListViewProps> = ({
         total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
       })),
       totalAmount: Number(wagon.total),
-      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString("en-IN")}`,
+      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString("en-US")}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -96,7 +94,7 @@ export const ListView: React.FC<ListViewProps> = ({
                     {`${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`}
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                    {debt.amount.toLocaleString("en-IN")}
+                    {debt.amount.toLocaleString("en-US")}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span
@@ -157,16 +155,16 @@ export const ListView: React.FC<ListViewProps> = ({
                   {wagon.wagon_number}
                 </td>
                 <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                  {parseFloat(wagon.total.toString()).toLocaleString("en-IN")}
+                  {parseFloat(wagon.total.toString()).toLocaleString("en-US")}
                 </td>
                 <td className="px-4 py-3 text-right text-green-600 font-semibold">
-                  {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString("en-IN")}
+                  {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString("en-US")}
                 </td>
                 <td className="px-4 py-3 text-right text-orange-600 font-semibold">
                   {(
                     parseFloat(wagon.total.toString()) -
                     parseFloat((wagon.paid_amount || 0).toString())
-                  ).toLocaleString("en-IN")}
+                  ).toLocaleString("en-US")}
                 </td>
                 <td className="px-4 py-3 text-center">
                   <button

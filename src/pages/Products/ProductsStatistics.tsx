@@ -71,7 +71,7 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
     };
   }, [products]);
 
-  const formatter = new Intl.NumberFormat("en-IN", {
+  const formatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "UZS",
   });

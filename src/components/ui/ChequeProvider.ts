@@ -44,6 +44,62 @@ export interface ChequeData {
   /** Статус (например "Оплачено" / "Ожидается") — необязательно */
   status?: string;
 }
+export const DEFAULT_SUPPLIER_HTML =
+  "\u041c\u0443\u0445\u0430\u043c\u043c\u0430\u0434\u0436\u043e\u043d, \u0433. \u041c\u043e\u0441\u043a\u0432\u0430, \u0440\u044b\u043d\u043e\u043a \u00ab\u0424\u0443\u0434 \u0421\u0438\u0442\u0438\u00bb \u0422\u043e\u0440\u0433\u043e\u0432\u0430\u044f \u0442\u043e\u0447\u043a\u0430: 2-9-040 \u0422\u0435\u043b: 8-915-016-16-15, 8-916-576-07-07";
+
+const CHEQUE_SECRET = "SHOPPOS";
+
+function formatChequeDate(date: Date): string {
+  const d = date.getDate();
+  const m = date.getMonth() + 1;
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+}
+
+function checksumForCheque(coreFive: string, date: Date): number {
+  let sum = 0;
+  for (const ch of coreFive) sum += Number(ch);
+  sum += date.getDate() + (date.getMonth() + 1) + date.getFullYear();
+  for (const ch of CHEQUE_SECRET) sum += ch.charCodeAt(0);
+  return sum % 10;
+}
+
+export function generateChequeNumber(date: Date = new Date()): string {
+  const coreFive = Math.floor(Math.random() * 100000).toString().padStart(5, "0");
+  const checksum = checksumForCheque(coreFive, date);
+  return `${coreFive}${checksum}/${formatChequeDate(date)}`;
+}
+
+export function verifyChequeNumber(input: string): { ok: boolean; message: string } {
+  const match = input.trim().match(/^(\d{6})\/(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!match) {
+    return { ok: false, message: "Format noto'g'ri. Namuna: 123456/1/2/2026" };
+  }
+
+  const [, six, dStr, mStr, yStr] = match;
+  const day = Number(dStr);
+  const month = Number(mStr);
+  const year = Number(yStr);
+  const date = new Date(year, month - 1, day);
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getDate() !== day ||
+    date.getMonth() + 1 !== month ||
+    date.getFullYear() !== year
+  ) {
+    return { ok: false, message: "Sana noto'g'ri" };
+  }
+
+  const coreFive = six.slice(0, 5);
+  const expectedChecksum = checksumForCheque(coreFive, date);
+  const actualChecksum = Number(six[5]);
+  if (expectedChecksum !== actualChecksum) {
+    return { ok: false, message: "Chek bizniki emas" };
+  }
+
+  return { ok: true, message: "Chek tasdiqlandi" };
+}
+
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 export function formatUnitLabel(unit: string | undefined | null): string {
@@ -133,7 +189,7 @@ function numberToWordsRu(n: number): string {
 }
 
 function formatNumber(n: number | string): string {
-  return new Intl.NumberFormat("en-IN", {
+  return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(Number(n) || 0);
@@ -202,9 +258,9 @@ export function generateChequeHTML(data: ChequeData): string {
   ${data.documentType ? `<div class="doc-type">📋 <span>${data.documentType}</span></div>` : ""}
   <h1>${data.title || "Накладная"} № ${data.number} от ${formatDate(data.date)}</h1>
   
-  <div class="info-block">
+  <div class="info-block" style={"display:flex; width:100%; justify-content:space-between;"}>
     <span class="label">Поставщик:</span>
-    <span class="value">${data.supplier}</span>
+    <span class="value">${data.supplier || DEFAULT_SUPPLIER_HTML}</span>
   </div>
   
   <div class="info-block">
@@ -235,7 +291,7 @@ export function generateChequeHTML(data: ChequeData): string {
   
   <div class="amount-words">
     Всего наименований ${data.products.length}, на сумму ${formatNumber(total)} руб.<br/>
-    <i>${numberToWordsRu(total)}</i>
+    ${numberToWordsRu(total)}
   </div>
 
   ${data.status ? `<div class="status-line"><b>Статус:</b> ${data.status}</div>` : ""}

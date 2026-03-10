@@ -12,7 +12,7 @@ import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { toast } from "react-toastify";
 import { Search, Plus, Edit2, Trash2, Check, X, DollarSign, Eye, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight } from "lucide-react";
 import type { Admin } from "../../../types/types";
-import { printCheque } from "../../components/ui/ChequeProvider";
+import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../components/ui/ChequeProvider";
 
 /* ================= TYPES ================= */
 
@@ -780,9 +780,9 @@ export default function DebtManagement() {
 
     printCheque({
       title: "Накладная",
-      number: debt.id,
+      number: generateChequeNumber(new Date()),
       date: formatDate(debt),
-      supplier: "HC COMPANY, г. Москва, рынок «Фуд Сити», Тел: 8-915-016-16-15, 8-916-576-07-07",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: debt.name,
       products,
       extraNote: "Возврат товара в течение 14 дней",
@@ -800,10 +800,10 @@ export default function DebtManagement() {
 
     printCheque({
       title: "Отчёт по долгам",
-      number: `${filteredAndSorted.length}`,
+      number: generateChequeNumber(new Date()),
       date: new Date(),
-      supplier: "HC COMPANY",
-      buyer: `Итого записей: ${filteredAndSorted.length} | Возвращено: ${returnedAmount.toLocaleString("en-IN")} | Не возвращено: ${unreturnedAmount.toLocaleString("en-IN")}`,
+      supplier: DEFAULT_SUPPLIER_HTML,
+      buyer: `Итого записей: ${filteredAndSorted.length} | Возвращено: ${returnedAmount.toLocaleString("en-US")} | Не возвращено: ${unreturnedAmount.toLocaleString("en-US")}`,
       products: filteredAndSorted.map((debt) => ({
         name: `${debt.name} (${formatDate(debt)}) ${debt.isreturned ? "✓" : "⏳"}`,
         quantity: 1,
@@ -830,9 +830,9 @@ export default function DebtManagement() {
 
     printCheque({
       title: "Отчёт по должникам",
-      number: `${filteredDebtors.length}`,
+      number: generateChequeNumber(new Date()),
       date: new Date(),
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: `Тип: ${debtTypeFilter === "given" ? "Berilgan Nasiya" : debtTypeFilter === "taken" ? "Nasiyam" : "Barcha Qarzlar"} | Должников: ${filteredDebtors.length}`,
       products: filteredDebtors.map((debtor) => {
         const relevantDebts = debtTypeFilter === "all"
@@ -1160,15 +1160,15 @@ export default function DebtManagement() {
           </div>
           <div className="p-3 md:p-4 bg-purple-50 rounded-lg border border-purple-200">
             <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Jami Summa</p>
-            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-900">{totals.total.toLocaleString("en-IN")}</p>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-900">{totals.total.toLocaleString("en-US")}</p>
           </div>
           <div className="p-3 md:p-4 bg-red-50 rounded-lg border border-red-200">
             <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Qaytarilmagan</p>
-            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-900">{totals.unreturned.toLocaleString("en-IN")}</p>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-900">{totals.unreturned.toLocaleString("en-US")}</p>
           </div>
           <div className="p-3 md:p-4 bg-green-50 rounded-lg border border-green-200">
             <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Qaytarilgan</p>
-            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-900">{totals.returned.toLocaleString("en-IN")}</p>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-900">{totals.returned.toLocaleString("en-US")}</p>
           </div>
         </div>
       </div>
@@ -1193,13 +1193,13 @@ export default function DebtManagement() {
                   <div className="flex justify-between py-2 border-b border-blue-200">
                     <span className="text-gray-700">Jami Summa:</span>
                     <span className="font-bold text-blue-900">
-                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")}?
+                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")}?
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-blue-200">
                     <span className="text-gray-700">To'langan Summa:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 0 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")} ?
+                      {debts.filter(d => d.branch_id === 0 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
@@ -1230,13 +1230,13 @@ export default function DebtManagement() {
                   <div className="flex justify-between py-2 border-b border-red-200">
                     <span className="text-gray-700">Jami Summa:</span>
                     <span className="font-bold text-red-900">
-                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")}?
+                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")}?
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-red-200">
                     <span className="text-gray-700">To'langan Summa:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 1 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")} ?
+                      {debts.filter(d => d.branch_id === 1 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
@@ -1266,7 +1266,7 @@ export default function DebtManagement() {
                 <div className="bg-white rounded-lg p-4 border border-purple-200">
                   <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
                   <p className="text-2xl font-bold text-purple-900">
-                    {debts.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")}
+                    {debts.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")}
                   </p>
                 </div>
               </div>
@@ -1279,13 +1279,13 @@ export default function DebtManagement() {
                 <div className="flex justify-between py-2">
                   <span className="text-gray-700">Men Olishim Kerak:</span>
                   <span className="font-bold text-green-700 text-lg">
-                    +{debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")} ?
+                    +{debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
                   </span>
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="text-gray-700">Men To'lashim Kerak:</span>
                   <span className="font-bold text-red-700 text-lg">
-                    -{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")} ?
+                    -{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
                   </span>
                 </div>
                 <div className="flex justify-between py-3 border-t-2 border-gray-300 mt-3">
@@ -1297,7 +1297,7 @@ export default function DebtManagement() {
                       : "text-red-700"
                   }`}>
                     {(debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0) -
-                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)).toLocaleString("en-IN")} ?
+                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)).toLocaleString("en-US")} ?
                   </span>
                 </div>
               </div>
@@ -1430,7 +1430,7 @@ export default function DebtManagement() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Jami Summa:</span>
                       <span className="font-semibold text-gray-900">
-                        {debt.amount.toLocaleString("en-IN")}?
+                        {debt.amount.toLocaleString("en-US")}?
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -1589,7 +1589,7 @@ export default function DebtManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-semibold text-gray-900">
-                            {debt.amount.toLocaleString("en-IN")}?
+                            {debt.amount.toLocaleString("en-US")}?
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1669,13 +1669,13 @@ export default function DebtManagement() {
                       TOTAL:
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-gray-900">
-                      {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")}?
+                      {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")}?
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-green-700">
-                      {filteredAndSorted.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")} ?
+                      {filteredAndSorted.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-red-700">
-                      {filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-IN")} ?
+                      {filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
                     </td>
                     <td colSpan={3}></td>
                   </tr>
@@ -1717,7 +1717,7 @@ export default function DebtManagement() {
               {/* Amount */}
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <p className="text-xs font-medium text-purple-700 mb-1">Jami Summa</p>
-                <p className="text-3xl font-bold text-purple-900">{selectedDebt.amount.toLocaleString("en-IN")}?</p>
+                <p className="text-3xl font-bold text-purple-900">{selectedDebt.amount.toLocaleString("en-US")}?</p>
               </div>
 
               {/* Status */}
@@ -1754,7 +1754,7 @@ export default function DebtManagement() {
                           <div className="flex-1">
                             <p className="font-medium text-gray-900">{product.name}</p>
                             <p className="text-xs text-gray-600 mt-1">
-                              {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-IN")}? = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-IN")}?
+                              {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-US")}? = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-US")}?
                             </p>
                           </div>
                         </div>
@@ -1971,7 +1971,7 @@ export default function DebtManagement() {
                             </div>
                             {debtor.unreturnedAmount > 0 && (
                               <span className="text-xs font-semibold text-red-600">
-                                {debtor.unreturnedAmount.toLocaleString("en-IN")} kutilmoqda
+                                {debtor.unreturnedAmount.toLocaleString("en-US")} kutilmoqda
                               </span>
                             )}
                           </div>
@@ -2058,7 +2058,7 @@ export default function DebtManagement() {
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-IN")}? • {formatUnitLabel(currentProduct.unit)}
+                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")}? • {formatUnitLabel(currentProduct.unit)}
                           </span>
                         </p>
                       </div>
@@ -2100,7 +2100,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-IN")}? = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-IN")}?
+                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-US")}? = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-US")}?
                                 </p>
                               </div>
                               <button
@@ -2119,7 +2119,7 @@ export default function DebtManagement() {
                       <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between font-bold text-gray-900">
                         <span>Jami Summa:</span>
                         <span className="text-lg text-blue-900">
-                          {calculateTotalFromProducts(productEntries).toLocaleString("en-IN")}?
+                          {calculateTotalFromProducts(productEntries).toLocaleString("en-US")}?
                         </span>
                       </div>
                     </div>
@@ -2286,7 +2286,7 @@ export default function DebtManagement() {
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-IN")}? • {formatUnitLabel(currentProduct.unit)}
+                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")}? • {formatUnitLabel(currentProduct.unit)}
                           </span>
                         </p>
                       </div>
@@ -2328,7 +2328,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-IN")}? = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-IN")}?
+                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-US")}? = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-US")}?
                                 </p>
                               </div>
                               <button
@@ -2347,7 +2347,7 @@ export default function DebtManagement() {
                       <div className="mt-3 pt-3 border-t border-orange-200 flex justify-between font-bold text-gray-900">
                         <span>Jami Summa:</span>
                         <span className="text-lg text-orange-900">
-                          {calculateTotalFromProducts(productEntries).toLocaleString("en-IN")}?
+                          {calculateTotalFromProducts(productEntries).toLocaleString("en-US")}?
                         </span>
                       </div>
                     </div>
@@ -2438,7 +2438,7 @@ export default function DebtManagement() {
               <div className="space-y-3 mb-6">
                 <div className="flex justify-between py-2 border-b border-gray-200">
                   <span className="text-gray-600">Qarz Miqdori:</span>
-                  <span className="font-bold text-gray-900">{paymentDebt.amount.toLocaleString("en-IN")} ?</span>
+                  <span className="font-bold text-gray-900">{paymentDebt.amount.toLocaleString("en-US")} ?</span>
                 </div>
                 <div className="flex justify-between py-2 bg-yellow-50 px-3 rounded-lg">
                   <span className="font-bold text-gray-900">Holat:</span>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Plus, Trash2, Printer } from "lucide-react";
 import type { Person, FinanceRecord, Debt, Wagon } from "../types";
-import { printCheque } from "../../../components/ui/ChequeProvider";
+import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
 
 interface DetailsPanelProps {
   person: Person;
@@ -27,13 +27,11 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   const debts: Debt[] = person.debts || [];
 
   const printWagon = (wagon: Wagon) => {
-    const parts = wagon.wagon_number.split(",");
-    const wagonNumber = parts[1] || wagon.wagon_number;
     printCheque({
       title: "Вагон накладная",
-      number: wagonNumber,
+      number: generateChequeNumber(new Date()),
       date: new Date().toLocaleDateString("ru-RU"),
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,
       products: (wagon.products || []).map((p) => ({
         name: p.product_name || p.name || "",
@@ -43,7 +41,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
       })),
       totalAmount: Number(wagon.total),
-      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString("en-IN")}`,
+      status: `To'langan: ${Number(wagon.paid_amount || 0).toLocaleString("en-US")}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -65,9 +63,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     const grandTotal = person.wagons.reduce((s, w) => s + Number(w.total), 0);
     printCheque({
       title: "Вагонлар рўйхати",
-      number: person.name,
+      number: generateChequeNumber(new Date()),
       date: new Date().toLocaleDateString("ru-RU"),
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,
       products: allProducts,
       totalAmount: grandTotal,
@@ -80,9 +78,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
     printCheque({
       title: "Қарз накладная",
-      number: String(debt.id),
+      number: generateChequeNumber(new Date()),
       date,
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: debt.name,
       products: [{
         name: debt.name,
@@ -102,9 +100,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     if (debts.length === 0) return;
     printCheque({
       title: "Қарзлар рўйхати",
-      number: person.name,
+      number: generateChequeNumber(new Date()),
       date: new Date().toLocaleDateString("ru-RU"),
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,
       products: debts.map((d) => {
         const date = `${d.year}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
@@ -165,13 +163,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
     printCheque({
       title: "Молия ҳисоботи",
-      number: person.name,
+      number: generateChequeNumber(new Date()),
       date: new Date().toLocaleDateString("ru-RU"),
-      supplier: "HC COMPANY",
+      supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,
       products,
       totalAmount: person.totalAmount,
-      status: `To'langan: ${person.paidAmount.toLocaleString("en-IN")} | Qoldiq: ${person.remainingAmount.toLocaleString("en-IN")}`,
+      status: `To'langan: ${person.paidAmount.toLocaleString("en-US")} | Qoldiq: ${person.remainingAmount.toLocaleString("en-US")}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -195,19 +193,19 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
           <p className="text-gray-600 text-sm mb-1">Jami Summa</p>
           <p className="text-3xl font-bold text-blue-600">
-            {person.totalAmount.toLocaleString("en-IN")}
+            {person.totalAmount.toLocaleString("en-US")}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
           <p className="text-gray-600 text-sm mb-1">To'langan</p>
           <p className="text-3xl font-bold text-green-600">
-            {person.paidAmount.toLocaleString("en-IN")}
+            {person.paidAmount.toLocaleString("en-US")}
           </p>
         </div>
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
           <p className="text-gray-600 text-sm mb-1">Qoldiq Summa</p>
           <p className="text-3xl font-bold text-orange-600">
-            {person.remainingAmount.toLocaleString("en-IN")}
+            {person.remainingAmount.toLocaleString("en-US")}
           </p>
         </div>
       </div>
@@ -264,16 +262,16 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                         {wagon.products.length}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                        {parseFloat(wagon.total.toString()).toLocaleString("en-IN")}
+                        {parseFloat(wagon.total.toString()).toLocaleString("en-US")}
                       </td>
                       <td className="px-4 py-3 text-right text-green-600 font-semibold">
-                        {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString("en-IN")}
+                        {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString("en-US")}
                       </td>
                       <td className="px-4 py-3 text-right text-orange-600 font-semibold">
                         {(
                           parseFloat(wagon.total.toString()) -
                           parseFloat((wagon.paid_amount || 0).toString())
-                        ).toLocaleString("en-IN")}
+                        ).toLocaleString("en-US")}
                       </td>
                       <td className="px-4 py-3 text-center space-x-2 flex justify-center">
                         <button
@@ -344,7 +342,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                       {`${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                      {debt.amount.toLocaleString("en-IN")}
+                      {debt.amount.toLocaleString("en-US")}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span
@@ -411,7 +409,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                   }`}
                 >
                   {record.type === "income" ? "+" : "-"}
-                  {parseFloat(record.amount).toLocaleString("en-IN")}
+                  {parseFloat(record.amount).toLocaleString("en-US")}
                 </p>
               </div>
               <button

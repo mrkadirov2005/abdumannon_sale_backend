@@ -194,7 +194,7 @@ export default function SingleBranch() {
           {/* Total Sales Amount */}
           <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 shadow-lg text-white">
             <p className="text-sm font-semibold opacity-90">Jami savdo</p>
-            <p className="text-3xl font-bold mt-2">{savdo.toLocaleString("en-IN")}</p>
+            <p className="text-3xl font-bold mt-2">{savdo.toLocaleString("en-US")}</p>
             <p className="text-xs opacity-75 mt-1">?</p>
           </div>
 
@@ -205,14 +205,14 @@ export default function SingleBranch() {
               {peakDay ? `${peakDay.day}-kun` : "N/A"}
             </p>
             <p className="text-xs opacity-75 mt-1">
-              {peakDay ? `${peakDay.total.toLocaleString("en-IN")} ?` : ""}
+              {peakDay ? `${peakDay.total.toLocaleString("en-US")} ?` : ""}
             </p>
           </div>
 
           {/* Average Daily Sales */}
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 shadow-lg text-white">
             <p className="text-sm font-semibold opacity-90">O'rtacha kunlik</p>
-            <p className="text-3xl font-bold mt-2">{Math.round(avgDailySales).toLocaleString("en-IN")}</p>
+            <p className="text-3xl font-bold mt-2">{Math.round(avgDailySales).toLocaleString("en-US")}</p>
             <p className="text-xs opacity-75 mt-1">?/kun</p>
           </div>
         </div>
@@ -243,17 +243,17 @@ export default function SingleBranch() {
             </tr>
             <tr style={trStyle}>
               <td style={tdStyle}>Jami savdo</td>
-              <td style={tdStyle}>{savdo.toLocaleString("en-IN")} ?</td>
+              <td style={tdStyle}>{savdo.toLocaleString("en-US")} ?</td>
             </tr>
             <tr style={trStyle}>
               <td style={tdStyle}>Eng yaxshi kun</td>
               <td style={tdStyle}>
-                {peakDay ? `${peakDay.day}-kun (${peakDay.total.toLocaleString("en-IN")} ?)` : "N/A"}
+                {peakDay ? `${peakDay.day}-kun (${peakDay.total.toLocaleString("en-US")} ?)` : "N/A"}
               </td>
             </tr>
             <tr style={trStyle}>
               <td style={tdStyle}>O'rtacha kunlik savdo</td>
-              <td style={tdStyle}>{Math.round(avgDailySales).toLocaleString("en-IN")} ?</td>
+              <td style={tdStyle}>{Math.round(avgDailySales).toLocaleString("en-US")} ?</td>
             </tr>
             <tr style={trStyle}>
               <td style={tdStyle}>Faol kunlar</td>
@@ -308,9 +308,9 @@ export default function SingleBranch() {
         {/* Totals */}
         <div className="flex gap-6 mb-4 text-sm font-medium">
           <div>Total Sales: {filteredData.length}</div>
-          <div>Total Amount: {totals.totalPrice.toLocaleString("en-IN")}</div>
+          <div>Total Amount: {totals.totalPrice.toLocaleString("en-US")}</div>
           <div className="text-green-600">
-            Total Profit: {totals.totalProfit.toLocaleString("en-IN")}
+            Total Profit: {totals.totalProfit.toLocaleString("en-US")}
           </div>
         </div>
 
@@ -347,8 +347,8 @@ export default function SingleBranch() {
               {filteredData.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50">
                   <td className="px-3 py-2 border font-mono">{row.sale_id}</td>
-                  <td className="px-3 py-2 border">{Number(row.total_price).toLocaleString("en-IN")}</td>
-                  <td className="px-3 py-2 border text-green-600">{Number(row.profit).toLocaleString("en-IN")}</td>
+                  <td className="px-3 py-2 border">{Number(row.total_price).toLocaleString("en-US")}</td>
+                  <td className="px-3 py-2 border text-green-600">{Number(row.profit).toLocaleString("en-US")}</td>
                   <td className="px-3 py-2 border">{row.payment_method || "—"}</td>
                   <td className="px-3 py-2 border">{new Date(row.sale_time).toLocaleString()}</td>
                   <td className="px-3 py-2 border">{row.admin_name}</td>
