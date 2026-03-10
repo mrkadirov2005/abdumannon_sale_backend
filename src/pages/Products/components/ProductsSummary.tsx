@@ -8,7 +8,6 @@ interface ProductsSummaryProps {
 export default function ProductsSummary({ products }: ProductsSummaryProps) {
   const totalQuantity = products.reduce((sum, p) => sum + (p.availability || 0), 0);
   const totalValue = products.reduce((sum, p) => sum + ((p.sell_price || 0) * (p.availability || 0)), 0);
-  const averagePrice = totalQuantity > 0 ? totalValue / totalQuantity : 0;
 
   return (
     <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
