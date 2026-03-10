@@ -31,6 +31,10 @@ export interface ChequeData {
   supplier: string;
   /** Информация о покупателе (может быть многострочной) */
   buyer: string;
+  /** ??????????: ??????? ????? (?? ????????? "??????????") */
+  buyerLabel?: string;
+  /** ??????????: ?????? ????? ?????? (???????? "?????? ??????") */
+  buyerRight?: string;
   /** Продукты / позиции */
   products: ChequeProduct[];
   /** Итого (если не передано — считается автоматически) */
@@ -228,6 +232,9 @@ export function generateChequeHTML(data: ChequeData): string {
     .info-block { margin-bottom: 10px; line-height: 1.7; }
     .info-block .label { font-weight: bold; }
     .info-block .value { margin-left: 8px; }
+    .info-block.info-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+    .info-block.info-row .left { display: flex; align-items: baseline; gap: 8px; }
+    .info-block.info-row .right { white-space: nowrap; }
     
     table.products { width: 100%; border-collapse: collapse; margin: 16px 0 8px 0; }
     table.products th,
@@ -263,9 +270,10 @@ export function generateChequeHTML(data: ChequeData): string {
     <span class="value">${data.supplier || DEFAULT_SUPPLIER_HTML}</span>
   </div>
   
-  <div class="info-block">
-    <span class="label">Покупатель:</span>
-    <span class="value">${data.buyer}</span>
+  <div class="info-block${data.buyerRight ? " info-row" : ""}">
+    ${data.buyerRight
+      ? `<span class="left"><span class="label">${data.buyerLabel || "Покупатель"}:</span><span class="value">${data.buyer}</span></span><span class="right">${data.buyerRight}</span>`
+      : `<span class="label">Покупатель:</span><span class="value">${data.buyer}</span>`}
   </div>
   
   <table class="products">

@@ -699,7 +699,9 @@ export default function SaleBoard() {
       number: chequeNumber,
       date: sale.sale_time,
       supplier: DEFAULT_SUPPLIER_HTML,
-      buyer: `${safeCustomer}<br/>Продавец: ${sale.admin_name || "N/A"}<br/>Способ оплаты: ${paymentLabel}`,
+      buyer: safeCustomer,
+      buyerLabel: "Покупатель",
+      buyerRight: `Способ оплаты: ${paymentLabel}`,
       products: saleProducts.map((p) => ({
         name: p.product_name,
         quantity: p.amount,

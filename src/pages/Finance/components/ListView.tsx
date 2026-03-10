@@ -20,7 +20,7 @@ export const ListView: React.FC<ListViewProps> = ({
   const printDebt = (debt: Debt) => {
     const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
     printCheque({
-      title: "Қарз накладная",
+      title: "Накладная",
       number: generateChequeNumber(new Date()),
       date,
       supplier: DEFAULT_SUPPLIER_HTML,
@@ -41,7 +41,7 @@ export const ListView: React.FC<ListViewProps> = ({
 
   const printWagon = (wagon: Wagon) => {
     printCheque({
-      title: "Вагон накладная",
+      title: "Накладная",
       number: generateChequeNumber(new Date()),
       date: new Date().toLocaleDateString("ru-RU"),
       supplier: DEFAULT_SUPPLIER_HTML,
