@@ -74,7 +74,7 @@ export default function Sidebar({
       {/* Navigation */}
       <nav className="flex-1 space-y-1">
         {authData.isSuperAdmin && (
-          <MenuItem to="/" icon={<AutoGraph />} label="Statistika" />
+          <MenuItem to="/cheque" icon={<AutoGraph />} label="Chek" />
         )}
 
         <MenuItem to="/sales" icon={<MonetizationOn />} label="Savdo" />

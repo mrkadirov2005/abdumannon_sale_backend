@@ -1,55 +1,51 @@
-/**
- * ChequeProvider — единый генератор накладных (чеков) для печати.
- *
- * Формат соответствует образцу клиента:
- *   Накладная на возврат / купля-продажа
- *   Поставщик / Покупатель
- *   Таблица: №, Товар, Кол-во, Ед., Цена, Сумма
- *   Итого + сумма прописью
- *   Подписи: Руководитель / Бухгалтер
+﻿/**
+ * ChequeProvider - printable cheque generator.
  */
 
-// ─── types ────────────────────────────────────────────────────────────────────
 export interface ChequeProduct {
   name: string;
   quantity: number;
   unit: string;       // "kg" | "t" | "l" | "pcs" etc.
-  price: number;       // цена за единицу
-  total: number;       // сумма (quantity × price)
+  price: number;      // price per unit
+  total: number;      // quantity * price
 }
 
 export interface ChequeData {
-  /** Тип документа, например "Возврат поставщику (купля-продажа)" */
   documentType?: string;
-  /** Заголовок, например "Накладная на возврат" или "Накладная" */
   title?: string;
-  /** Номер документа */
   number: string;
-  /** Дата документа (строка или Date) */
   date: string | Date;
-  /** Информация о поставщике */
   supplier: string;
-  /** Информация о покупателе (может быть многострочной) */
   buyer: string;
-  /** ??????????: ??????? ????? (?? ????????? "??????????") */
   buyerLabel?: string;
-  /** ??????????: ?????? ????? ?????? (???????? "?????? ??????") */
   buyerRight?: string;
-  /** Продукты / позиции */
   products: ChequeProduct[];
-  /** Итого (если не передано — считается автоматически) */
   totalAmount?: number;
-  /** Доп. текст под итого (напр. "В том числе НДС:") */
   extraNote?: string;
-  /** Левая подпись (по умолчанию "Руководитель") */
   signatureLeft?: string;
-  /** Правая подпись (по умолчанию "Бухгалтер") */
   signatureRight?: string;
-  /** Статус (например "Оплачено" / "Ожидается") — необязательно */
   status?: string;
 }
+
 export const DEFAULT_SUPPLIER_HTML =
   "\u041c\u0443\u0445\u0430\u043c\u043c\u0430\u0434\u0436\u043e\u043d, \u0433. \u041c\u043e\u0441\u043a\u0432\u0430, \u0440\u044b\u043d\u043e\u043a \u00ab\u0424\u0443\u0434 \u0421\u0438\u0442\u0438\u00bb \u0422\u043e\u0440\u0433\u043e\u0432\u0430\u044f \u0442\u043e\u0447\u043a\u0430: 2-9-040 \u0422\u0435\u043b: 8-915-016-16-15, 8-916-576-07-07";
+
+const RU = {
+  title: "\u041d\u0430\u043a\u043b\u0430\u0434\u043d\u0430\u044f",
+  buyer: "\u041f\u043e\u043a\u0443\u043f\u0430\u0442\u0435\u043b\u044c",
+  supplier: "\u041f\u043e\u0441\u0442\u0430\u0432\u0449\u0438\u043a",
+  qty: "\u041a\u043e\u043b-\u0432\u043e",
+  unit: "\u0415\u0434.",
+  price: "\u0426\u0435\u043d\u0430",
+  sum: "\u0421\u0443\u043c\u043c\u0430",
+  total: "\u0418\u0442\u043e\u0433\u043e",
+  status: "\u0421\u0442\u0430\u0442\u0443\u0441",
+  director: "\u0420\u0443\u043a\u043e\u0432\u043e\u0434\u0438\u0442\u0435\u043b\u044c",
+  accountant: "\u0411\u0443\u0445\u0433\u0430\u043b\u0442\u0435\u0440",
+  noteVat: "\u0412 \u0442\u043e\u043c \u0447\u0438\u0441\u043b\u0435 \u041d\u0414\u0421:",
+  totalItems: "\u0412\u0441\u0435\u0433\u043e \u043d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0439",
+  amountFor: "\u043d\u0430 \u0441\u0443\u043c\u043c\u0443",
+};
 
 const CHEQUE_SECRET = "SHOPPOS";
 
@@ -58,7 +54,7 @@ function checksumLetterForCheque(coreDigits: string): string {
   for (const ch of coreDigits) sum += Number(ch);
   for (const ch of CHEQUE_SECRET) sum += ch.charCodeAt(0);
   const letterIndex = sum % 26;
-  return String.fromCharCode(65 + letterIndex); // A-Z
+  return String.fromCharCode(65 + letterIndex);
 }
 
 export function generateChequeNumber(): string {
@@ -83,15 +79,13 @@ export function verifyChequeNumber(input: string): { ok: boolean; message: strin
   return { ok: true, message: "Chek tasdiqlandi" };
 }
 
-
-// ─── helpers ──────────────────────────────────────────────────────────────────
 export function formatUnitLabel(unit: string | undefined | null): string {
   switch ((unit || "pcs").toLowerCase()) {
-    case "kg":   return "кг";
-    case "t":    return "т";
-    case "l":    return "л";
-    case "pcs":  return "шт";
-    default:     return unit || "шт";
+    case "kg":   return "\u043a\u0433";
+    case "t":    return "\u0442";
+    case "l":    return "\u043b";
+    case "pcs":  return "\u0448\u0442";
+    default:      return unit || "\u0448\u0442";
   }
 }
 
@@ -101,51 +95,46 @@ function formatDate(d: string | Date): string {
   const dd = String(date.getDate());
   const mm = String(date.getMonth() + 1);
   const yyyy = String(date.getFullYear());
-  return `${dd}.${mm}.${yyyy} г`;
+  return `${dd}.${mm}.${yyyy} \u0433`;
 }
 
 function numberToWordsRu(n: number): string {
-  // Simplified Russian number-to-words for typical invoice amounts
-  const units = ["", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"];
-  const teens = ["десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать"];
-  const tens  = ["", "", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят", "девяносто"];
-  const hundreds = ["", "сто", "двести", "триста", "четыреста", "пятьсот", "шестьсот", "семьсот", "восемьсот", "девятьсот"];
+  const units = ["", "\u043e\u0434\u0438\u043d", "\u0434\u0432\u0430", "\u0442\u0440\u0438", "\u0447\u0435\u0442\u044b\u0440\u0435", "\u043f\u044f\u0442\u044c", "\u0448\u0435\u0441\u0442\u044c", "\u0441\u0435\u043c\u044c", "\u0432\u043e\u0441\u0435\u043c\u044c", "\u0434\u0435\u0432\u044f\u0442\u044c"];
+  const teens = ["\u0434\u0435\u0441\u044f\u0442\u044c", "\u043e\u0434\u0438\u043d\u043d\u0430\u0434\u0446\u0430\u0442\u044c", "\u0434\u0432\u0435\u043d\u0430\u0434\u0446\u0430\u0442\u044c", "\u0442\u0440\u0438\u043d\u0430\u0434\u0446\u0430\u0442\u044c", "\u0447\u0435\u0442\u044b\u0440\u043d\u0430\u0434\u0446\u0430\u0442\u044c", "\u043f\u044f\u0442\u043d\u0430\u0434\u0446\u0430\u0442\u044c", "\u0448\u0435\u0441\u0442\u043d\u0430\u0434\u0446\u0430\u0442\u044c", "\u0441\u0435\u043c\u043d\u0430\u0434\u0446\u0430\u0442\u044c", "\u0432\u043e\u0441\u0435\u043c\u043d\u0430\u0434\u0446\u0430\u0442\u044c", "\u0434\u0435\u0432\u044f\u0442\u043d\u0430\u0434\u0446\u0430\u0442\u044c"];
+  const tens  = ["", "", "\u0434\u0432\u0430\u0434\u0446\u0430\u0442\u044c", "\u0442\u0440\u0438\u0434\u0446\u0430\u0442\u044c", "\u0441\u043e\u0440\u043e\u043a", "\u043f\u044f\u0442\u044c\u0434\u0435\u0441\u044f\u0442", "\u0448\u0435\u0441\u0442\u044c\u0434\u0435\u0441\u044f\u0442", "\u0441\u0435\u043c\u044c\u0434\u0435\u0441\u044f\u0442", "\u0432\u043e\u0441\u0435\u043c\u044c\u0434\u0435\u0441\u044f\u0442", "\u0434\u0435\u0432\u044f\u043d\u043e\u0441\u0442\u043e"];
+  const hundreds = ["", "\u0441\u0442\u043e", "\u0434\u0432\u0435\u0441\u0442\u0438", "\u0442\u0440\u0438\u0441\u0442\u0430", "\u0447\u0435\u0442\u044b\u0440\u0435\u0441\u0442\u0430", "\u043f\u044f\u0442\u044c\u0441\u043e\u0442", "\u0448\u0435\u0441\u0442\u044c\u0441\u043e\u0442", "\u0441\u0435\u043c\u044c\u0441\u043e\u0442", "\u0432\u043e\u0441\u0435\u043c\u044c\u0441\u043e\u0442", "\u0434\u0435\u0432\u044f\u0442\u044c\u0441\u043e\u0442"];
 
-  if (n === 0) return "ноль";
+  if (n === 0) return "\u043d\u043e\u043b\u044c";
 
   const integer = Math.floor(Math.abs(n));
   const parts: string[] = [];
 
-  // миллионы
   const millions = Math.floor(integer / 1_000_000);
   if (millions > 0) {
     parts.push(threeDigits(millions, false));
-    if (millions % 10 === 1 && millions % 100 !== 11) parts.push("миллион");
-    else if ([2, 3, 4].includes(millions % 10) && ![12, 13, 14].includes(millions % 100)) parts.push("миллиона");
-    else parts.push("миллионов");
+    if (millions % 10 === 1 && millions % 100 !== 11) parts.push("\u043c\u0438\u043b\u043b\u0438\u043e\u043d");
+    else if ([2, 3, 4].includes(millions % 10) && ![12, 13, 14].includes(millions % 100)) parts.push("\u043c\u0438\u043b\u043b\u0438\u043e\u043d\u0430");
+    else parts.push("\u043c\u0438\u043b\u043b\u0438\u043e\u043d\u043e\u0432");
   }
 
-  // тысячи
   const thousands = Math.floor((integer % 1_000_000) / 1000);
   if (thousands > 0) {
     parts.push(threeDigits(thousands, true));
-    if (thousands % 10 === 1 && thousands % 100 !== 11) parts.push("тысяча");
-    else if ([2, 3, 4].includes(thousands % 10) && ![12, 13, 14].includes(thousands % 100)) parts.push("тысячи");
-    else parts.push("тысяч");
+    if (thousands % 10 === 1 && thousands % 100 !== 11) parts.push("\u0442\u044b\u0441\u044f\u0447\u0430");
+    else if ([2, 3, 4].includes(thousands % 10) && ![12, 13, 14].includes(thousands % 100)) parts.push("\u0442\u044b\u0441\u044f\u0447\u0438");
+    else parts.push("\u0442\u044b\u0441\u044f\u0447");
   }
 
-  // единицы
   const remainder = integer % 1000;
   if (remainder > 0 || parts.length === 0) {
     parts.push(threeDigits(remainder, false));
   }
 
-  // копейки
   const kopecks = Math.round((Math.abs(n) - integer) * 100);
   const kopStr = String(kopecks).padStart(2, "0");
 
   const result = parts.join(" ").replace(/\s+/g, " ").trim();
-  return capitalize(result) + ` руб. ${kopStr} коп.`;
+  return capitalize(result) + ` \u0440\u0443\u0431. ${kopStr} \u043a\u043e\u043f.`;
 
   function threeDigits(num: number, feminine: boolean): string {
     const h = Math.floor(num / 100);
@@ -158,8 +147,8 @@ function numberToWordsRu(n: number): string {
     } else {
       if (t > 1) r.push(tens[t]);
       if (u > 0) {
-        if (feminine && u === 1) r.push("одна");
-        else if (feminine && u === 2) r.push("две");
+        if (feminine && u === 1) r.push("\u043e\u0434\u043d\u0430");
+        else if (feminine && u === 2) r.push("\u0434\u0432\u0435");
         else r.push(units[u]);
       }
     }
@@ -178,7 +167,6 @@ function formatNumber(n: number | string): string {
   }).format(Number(n) || 0);
 }
 
-// ─── main HTML generator ─────────────────────────────────────────────────────
 export function generateChequeHTML(data: ChequeData): string {
   const total = data.totalAmount ?? data.products.reduce((s, p) => s + p.total, 0);
 
@@ -200,7 +188,7 @@ export function generateChequeHTML(data: ChequeData): string {
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>${data.title || "Накладная"} № ${data.number}</title>
+  <title>${data.title || RU.title} № ${data.number}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: "Times New Roman", Times, serif; padding: 30px 40px; max-width: 900px; margin: 0 auto; font-size: 13px; color: #000; }
@@ -214,93 +202,92 @@ export function generateChequeHTML(data: ChequeData): string {
     .info-block.info-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
     .info-block.info-row .left { display: flex; align-items: baseline; gap: 8px; }
     .info-block.info-row .right { white-space: nowrap; }
-    
+
     table.products { width: 100%; border-collapse: collapse; margin: 16px 0 8px 0; }
     table.products th,
     table.products td { border: 1px solid #000; padding: 5px 8px; font-size: 12px; }
     table.products th { text-align: center; font-weight: bold; background: #fff; }
     table.products td.c { text-align: center; }
     table.products td.r { text-align: right; }
-    
+
     .totals { text-align: right; margin: 8px 0 6px 0; font-size: 13px; }
     .totals .grand { font-weight: bold; font-size: 15px; }
     .totals .note { font-size: 12px; margin-top: 2px; }
-    
+
     .amount-words { margin: 12px 0; font-size: 12px; line-height: 1.5; }
 
     .status-line { margin: 8px 0; font-size: 12px; }
-    
+
     .signatures { margin-top: 36px; display: flex; justify-content: space-between; font-size: 12px; }
     .sig-block { width: 45%; }
     .sig-block .sig-label { font-weight: bold; margin-bottom: 4px; }
     .sig-block .sig-line { border-bottom: 1px solid #000; height: 24px; margin-bottom: 2px; display: flex; align-items: flex-end; justify-content: flex-end; padding-right: 8px; font-size: 11px; }
-    
+
     .print-btn { margin-top: 30px; padding: 10px 24px; background: #4F46E5; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; }
     @media print { .print-btn { display: none !important; } }
   </style>
 </head>
 <body>
   <div class="page">
-  ${data.documentType ? `<div class="doc-type">📋 <span>${data.documentType}</span></div>` : ""}
-  <h1>${data.title || "Накладная"} № ${data.number} от ${formatDate(data.date)}</h1>
-  
+  ${data.documentType ? `<div class="doc-type">\ud83d\udccb <span>${data.documentType}</span></div>` : ""}
+  <h1>${data.title || RU.title} № ${data.number} от ${formatDate(data.date)}</h1>
+
   <div class="info-block" style={"display:flex; width:100%; justify-content:space-between;"}>
-    <span class="label">Поставщик:</span>
+    <span class="label">${RU.supplier}:</span>
     <span class="value">${data.supplier || DEFAULT_SUPPLIER_HTML}</span>
   </div>
-  
+
   <div class="info-block${data.buyerRight ? " info-row" : ""}">
     ${data.buyerRight
-      ? `<span class="left"><span class="label">${data.buyerLabel || "Покупатель"}:</span><span class="value">${data.buyer}</span></span><span class="right">${data.buyerRight}</span>`
-      : `<span class="label">Покупатель:</span><span class="value">${data.buyer}</span>`}
+      ? `<span class="left"><span class="label">${data.buyerLabel || RU.buyer}:</span><span class="value">${data.buyer}</span></span><span class="right">${data.buyerRight}</span>`
+      : `<span class="label">${RU.buyer}:</span><span class="value">${data.buyer}</span>`}
   </div>
-  
+
   <table class="products">
     <thead>
       <tr>
         <th style="width:5%">№</th>
-        <th style="width:38%">Товар</th>
-        <th style="width:12%">Кол-во</th>
-        <th style="width:8%">Ед.</th>
-        <th style="width:17%">Цена</th>
-        <th style="width:20%">Сумма</th>
+        <th style="width:38%">\u0422\u043e\u0432\u0430\u0440</th>
+        <th style="width:12%">${RU.qty}</th>
+        <th style="width:8%">${RU.unit}</th>
+        <th style="width:17%">${RU.price}</th>
+        <th style="width:20%">${RU.sum}</th>
       </tr>
     </thead>
     <tbody>
       ${productRows}
     </tbody>
   </table>
-  
+
   <div class="totals">
-    <div class="grand">Итого: &nbsp; ${formatNumber(total)}</div>
-    ${data.extraNote ? `<div class="note">${data.extraNote}</div>` : `<div class="note">В том числе НДС:</div>`}
+    <div class="grand">${RU.total}: &nbsp; ${formatNumber(total)}</div>
+    ${data.extraNote ? `<div class="note">${data.extraNote}</div>` : `<div class="note">${RU.noteVat}</div>`}
   </div>
-  
+
   <div class="amount-words">
-    Всего наименований ${data.products.length}, на сумму ${formatNumber(total)} руб.<br/>
+    ${RU.totalItems} ${data.products.length}, ${RU.amountFor} ${formatNumber(total)} \u0440\u0443\u0431.<br/>
     ${numberToWordsRu(total)}
   </div>
 
-  ${data.status ? `<div class="status-line"><b>Статус:</b> ${data.status}</div>` : ""}
-  
+  ${data.status ? `<div class="status-line"><b>${RU.status}:</b> ${data.status}</div>` : ""}
+
   <div class="signatures">
     <div class="sig-block">
-      <div class="sig-label">${data.signatureLeft || "Руководитель"}</div>
-      <div class="sig-line">О</div>
+      <div class="sig-label">${data.signatureLeft || RU.director}</div>
+      <div class="sig-line">\u041e</div>
     </div>
     <div class="sig-block">
-      <div class="sig-label">${data.signatureRight || "Бухгалтер"}</div>
-      <div class="sig-line">О</div>
+      <div class="sig-label">${data.signatureRight || RU.accountant}</div>
+      <div class="sig-line">\u041e</div>
     </div>
   </div>
-  
-  <button class="print-btn" onclick="window.print()">Печать</button>
+
+  <button class="print-btn" onclick="window.print()">\u041f\u0435\u0447\u0430\u0442\u044c</button>
   </div>
 </body>
 </html>`;
 }
 
-// ─── convenience: open & print in new window ─────────────────────────────────
 export function printCheque(data: ChequeData): void {
   const html = generateChequeHTML(data);
   const printWindow = window.open("", "_blank");
