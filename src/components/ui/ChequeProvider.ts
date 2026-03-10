@@ -53,51 +53,30 @@ export const DEFAULT_SUPPLIER_HTML =
 
 const CHEQUE_SECRET = "SHOPPOS";
 
-function formatChequeDate(date: Date): string {
-  const d = date.getDate();
-  const m = date.getMonth() + 1;
-  const y = date.getFullYear();
-  return `${d}/${m}/${y}`;
-}
-
-function checksumForCheque(coreFive: string, date: Date): number {
+function checksumLetterForCheque(coreDigits: string): string {
   let sum = 0;
-  for (const ch of coreFive) sum += Number(ch);
-  sum += date.getDate() + (date.getMonth() + 1) + date.getFullYear();
+  for (const ch of coreDigits) sum += Number(ch);
   for (const ch of CHEQUE_SECRET) sum += ch.charCodeAt(0);
-  return sum % 10;
+  const letterIndex = sum % 26;
+  return String.fromCharCode(65 + letterIndex); // A-Z
 }
 
-export function generateChequeNumber(date: Date = new Date()): string {
-  const coreFive = Math.floor(Math.random() * 100000).toString().padStart(5, "0");
-  const checksum = checksumForCheque(coreFive, date);
-  return `${coreFive}${checksum}/${formatChequeDate(date)}`;
+export function generateChequeNumber(): string {
+  const coreDigits = Math.floor(Math.random() * 1_000_000).toString().padStart(6, "0");
+  const checksum = checksumLetterForCheque(coreDigits);
+  return `${coreDigits}${checksum}`;
 }
 
 export function verifyChequeNumber(input: string): { ok: boolean; message: string } {
-  const match = input.trim().match(/^(\d{6})\/(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  const normalized = input.trim().toUpperCase();
+  const match = normalized.match(/^(\d{6})([A-Z])$/);
   if (!match) {
-    return { ok: false, message: "Format noto'g'ri. Namuna: 123456/1/2/2026" };
+    return { ok: false, message: "Format noto'g'ri. Namuna: 123456A" };
   }
 
-  const [, six, dStr, mStr, yStr] = match;
-  const day = Number(dStr);
-  const month = Number(mStr);
-  const year = Number(yStr);
-  const date = new Date(year, month - 1, day);
-  if (
-    Number.isNaN(date.getTime()) ||
-    date.getDate() !== day ||
-    date.getMonth() + 1 !== month ||
-    date.getFullYear() !== year
-  ) {
-    return { ok: false, message: "Sana noto'g'ri" };
-  }
-
-  const coreFive = six.slice(0, 5);
-  const expectedChecksum = checksumForCheque(coreFive, date);
-  const actualChecksum = Number(six[5]);
-  if (expectedChecksum !== actualChecksum) {
+  const [, coreDigits, checksum] = match;
+  const expectedChecksum = checksumLetterForCheque(coreDigits);
+  if (expectedChecksum !== checksum) {
     return { ok: false, message: "Chek bizniki emas" };
   }
 

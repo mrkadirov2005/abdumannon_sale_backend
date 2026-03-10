@@ -29,7 +29,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   const printWagon = (wagon: Wagon) => {
     printCheque({
       title: "Накладная",
-      number: generateChequeNumber(new Date()),
+      number: generateChequeNumber(),
       date: new Date().toLocaleDateString("ru-RU"),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,
@@ -63,7 +63,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     const grandTotal = person.wagons.reduce((s, w) => s + Number(w.total), 0);
     printCheque({
       title: "Вагонлар рўйхати",
-      number: generateChequeNumber(new Date()),
+      number: generateChequeNumber(),
       date: new Date().toLocaleDateString("ru-RU"),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,
@@ -78,7 +78,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
     printCheque({
       title: "Накладная",
-      number: generateChequeNumber(new Date()),
+      number: generateChequeNumber(),
       date,
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: debt.name,
@@ -100,7 +100,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     if (debts.length === 0) return;
     printCheque({
       title: "Қарзлар рўйхати",
-      number: generateChequeNumber(new Date()),
+      number: generateChequeNumber(),
       date: new Date().toLocaleDateString("ru-RU"),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,
@@ -163,7 +163,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
     printCheque({
       title: "Молия ҳисоботи",
-      number: generateChequeNumber(new Date()),
+      number: generateChequeNumber(),
       date: new Date().toLocaleDateString("ru-RU"),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,

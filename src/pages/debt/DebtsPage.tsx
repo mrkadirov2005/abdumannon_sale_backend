@@ -780,7 +780,7 @@ export default function DebtManagement() {
 
     printCheque({
       title: "Накладная",
-      number: generateChequeNumber(new Date()),
+      number: generateChequeNumber(),
       date: formatDate(debt),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: debt.name,
@@ -800,7 +800,7 @@ export default function DebtManagement() {
 
     printCheque({
       title: "Отчёт по долгам",
-      number: generateChequeNumber(new Date()),
+      number: generateChequeNumber(),
       date: new Date(),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: `Итого записей: ${filteredAndSorted.length} | Возвращено: ${returnedAmount.toLocaleString("en-US")} | Не возвращено: ${unreturnedAmount.toLocaleString("en-US")}`,
@@ -830,7 +830,7 @@ export default function DebtManagement() {
 
     printCheque({
       title: "Отчёт по должникам",
-      number: generateChequeNumber(new Date()),
+      number: generateChequeNumber(),
       date: new Date(),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: `Тип: ${debtTypeFilter === "given" ? "Berilgan Nasiya" : debtTypeFilter === "taken" ? "Nasiyam" : "Barcha Qarzlar"} | Должников: ${filteredDebtors.length}`,

@@ -73,7 +73,7 @@ const WagonsPage: React.FC = () => {
   // Form State
   const [formData, setFormData] = useState({
     client_name: "",
-    wagon_number: generateChequeNumber(new Date()),
+    wagon_number: generateChequeNumber(),
     indicator: "none" as "debt_taken" | "debt_given" | "none",
     branch: null as number | null,
   });
@@ -157,7 +157,7 @@ const WagonsPage: React.FC = () => {
           uuid: uuid || "",
         },
         body: JSON.stringify({
-          wagon_number: generateChequeNumber(new Date()),
+          wagon_number: generateChequeNumber(),
           indicator: "none",
           branch: formData.branch,
           paid_amount: totalPaidAmount,
@@ -218,7 +218,7 @@ const WagonsPage: React.FC = () => {
         },
         body: JSON.stringify({
           id: selectedWagon.id,
-          wagon_number: generateChequeNumber(new Date()),
+          wagon_number: generateChequeNumber(),
           indicator: formData.indicator,
           branch: formData.branch,
           paid_amount: totalPaidAmount,
@@ -283,7 +283,7 @@ const WagonsPage: React.FC = () => {
     
     setFormData({
       client_name: client_name,
-      wagon_number: generateChequeNumber(new Date()),
+      wagon_number: generateChequeNumber(),
       indicator: wagon.indicator,
       branch: wagon.branch,
     });
@@ -307,7 +307,7 @@ const WagonsPage: React.FC = () => {
   const resetForm = () => {
     setFormData({
       client_name: "",
-      wagon_number: generateChequeNumber(new Date()),
+      wagon_number: generateChequeNumber(),
       indicator: "none",
       branch: null,
     });
@@ -408,7 +408,7 @@ const WagonsPage: React.FC = () => {
 
     printCheque({
       title: "Накладная",
-      number: generateChequeNumber(new Date()),
+      number: generateChequeNumber(),
       date: wagon.created_at,
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: clientName || "_______________",

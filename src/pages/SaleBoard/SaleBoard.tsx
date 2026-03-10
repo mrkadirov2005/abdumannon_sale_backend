@@ -690,7 +690,7 @@ export default function SaleBoard() {
       sale.payment_method === "cash" ? "Наличные" :
       sale.payment_method === "card" ? "Карта" : "Мобильная";
 
-    const chequeNumber = generateChequeNumber(new Date());
+    const chequeNumber = generateChequeNumber();
     const safeCustomer = escapeHtml(customer);
 
 
@@ -1518,7 +1518,7 @@ export default function SaleBoard() {
                 type="text"
                 value={chequeInput}
                 onChange={(e) => setChequeInput(e.target.value)}
-                placeholder="123456/1/2/2026"
+                placeholder="123456A"
                 className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
               {chequeResult && (
