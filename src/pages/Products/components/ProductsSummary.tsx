@@ -20,12 +20,6 @@ export default function ProductsSummary({ products }: ProductsSummaryProps) {
         <p className="text-sm text-gray-600 mb-1">Jami Miqdor</p>
         <p className="text-2xl font-bold text-green-900">{totalQuantity.toLocaleString("en-US")}</p>
       </div>
-      <div className="p-5 bg-purple-50 rounded-lg border border-purple-200">
-        <p className="text-sm text-gray-600 mb-1">O'rtacha Narx</p>
-        <p className="text-2xl font-bold text-purple-900">
-          {averagePrice.toLocaleString("en-US", { maximumFractionDigits: 0 })} ₽
-        </p>
-      </div>
       <div className="p-5 bg-orange-50 rounded-lg border border-orange-200">
         <p className="text-sm text-gray-600 mb-1">Jami Qiymati</p>
         <p className="text-2xl font-bold text-orange-900">{totalValue.toLocaleString("en-US")} ₽</p>
