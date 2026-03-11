@@ -6,6 +6,12 @@ import type { Product, Category } from "../../../../types/types";
 import { convertIdToCategoryName } from "../../../middleware/mid_funcs";
 import { calculateProfit } from "./helpers";
 
+const formatUnit = (unit?: string) => {
+  const normalized = (unit || "pcs").toLowerCase();
+  if (normalized === "л" || normalized === "l") return "L";
+  return normalized;
+};
+
 interface ProductsTableProps {
   products: Product[];
   categories: Category[];
@@ -87,7 +93,7 @@ export default function ProductsTable({
                   p.availability > 0 ? "text-green-600" : "text-red-500"
                 }`}
               >
-                {p.availability} {p.unit || "pcs"}
+                {p.availability} {formatUnit(p.unit)}
               </td>
 
               <td className="px-4 py-3 border border-gray-200">
@@ -102,7 +108,7 @@ export default function ProductsTable({
                         onRestockChange(Number(e.target.value));
                       }}
                     />
-                    <span className="text-xs text-gray-500">{p.unit || "pcs"}</span>
+                    <span className="text-xs text-gray-500">{formatUnit(p.unit)}</span>
                     <Button
                       onClick={() => onRestockSave(p.id, restockValue, p.availability)}
                       disabled={restockValue <= 0}

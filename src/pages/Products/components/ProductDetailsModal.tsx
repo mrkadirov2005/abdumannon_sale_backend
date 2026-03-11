@@ -2,6 +2,12 @@ import { Edit, Delete } from "@mui/icons-material";
 import type { Product, Category } from "../../../../types/types";
 import { convertIdToCategoryName } from "../../../middleware/mid_funcs";
 
+const formatUnit = (unit?: string) => {
+  const normalized = (unit || "pcs").toLowerCase();
+  if (normalized === "л" || normalized === "l") return "L";
+  return normalized;
+};
+
 interface ProductDetailsModalProps {
   isOpen: boolean;
   product: Product | null;
@@ -64,7 +70,7 @@ export default function ProductDetailsModal({
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-600">O'lchov birligi</label>
-                <p className="text-sm text-gray-900">{product.unit || "pcs"}</p>
+                <p className="text-sm text-gray-900">{formatUnit(product.unit)}</p>
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-600">Yetkazib beruvchi</label>
@@ -112,7 +118,7 @@ export default function ProductDetailsModal({
                         : "text-green-600"
                   }`}
                 >
-                  {product.availability} {product.unit || "pcs"}
+                  {product.availability} {formatUnit(product.unit)}
                 </p>
               </div>
             </div>

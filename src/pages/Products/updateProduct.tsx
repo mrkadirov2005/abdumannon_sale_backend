@@ -50,6 +50,11 @@ const UNIT_OPTIONS = [
   { id: "l", name: "Litr (l)" },
 ];
 
+const normalizeUnit = (unit?: string) => {
+  const normalized = (unit || "pcs").toLowerCase();
+  return normalized === "л" ? "l" : normalized;
+};
+
 export default function UpdateProductForm({ type }: Props) {
   const dispatch = useDispatch<AppDispatch>();
 
@@ -72,7 +77,7 @@ export default function UpdateProductForm({ type }: Props) {
       const editForm = {
         ...product,
         scale: 1,
-        unit: product.unit || "pcs",
+        unit: normalizeUnit(product.unit),
         img_url: "",
         expire_date: "",
         brand_id: "",
@@ -218,7 +223,7 @@ export default function UpdateProductForm({ type }: Props) {
     const payload: Product = {
       ...form,
       scale: 1,
-      unit: form.unit || "pcs",
+      unit: normalizeUnit(form.unit),
       img_url: "",
       expire_date: "",
       brand_id: "",
