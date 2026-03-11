@@ -1,4 +1,4 @@
-// pages/DebtManagement.tsx
+﻿// pages/DebtManagement.tsx
 import { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -10,7 +10,7 @@ import {
 } from "../../redux/selectors";
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { toast } from "react-toastify";
-import { Search, Plus, Edit2, Trash2, Check, X, DollarSign, Eye, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, X, DollarSign, Eye, Printer, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight } from "lucide-react";
 import type { Admin } from "../../../types/types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../components/ui/ChequeProvider";
 
@@ -91,8 +91,6 @@ export default function DebtManagement() {
   const [viewMode, setViewMode] = useState<"list" | "folders" | "statistics">("folders");
   const [selectedDebtor, setSelectedDebtor] = useState<string | null>(null);
   const [debtTypeFilter, setDebtTypeFilter] = useState<"all" | "given" | "taken">("all");
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentDebt, setPaymentDebt] = useState<Debt | null>(null);
 
   // Filters
   const [searchName, setSearchName] = useState("");
@@ -201,7 +199,7 @@ export default function DebtManagement() {
 
   const fetchUnreturnedDebts = async () => {
     try {
-      const toastId = toast.loading("📋 Qaytarilmagan qarzlar yuklanmoqda...");
+      const toastId = toast.loading("Qaytarilmagan qarzlar yuklanmoqda...");
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.unreturned}`, {
         method: "POST",
         headers: {
@@ -218,7 +216,7 @@ export default function DebtManagement() {
       const json = await res.json();
       setDebts(json.data || []);
       toast.update(toastId, {
-        render: `✅ ${json.data?.length || 0} ta qaytarilmagan qarz yuklandi`,
+        render: `âœ… ${json.data?.length || 0} ta qaytarilmagan qarz yuklandi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -231,7 +229,7 @@ export default function DebtManagement() {
 
   const fetchDebtsByBranch = async (branchId: string) => {
     try {
-      const toastId = toast.loading("🏢 Filial qarzlari yuklanmoqda...");
+      const toastId = toast.loading("Filial qarzlari yuklanmoqda...");
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.byBranch}`, {
         method: "POST",
         headers: {
@@ -249,7 +247,7 @@ export default function DebtManagement() {
       const json = await res.json();
       setDebts(json.data || []);
       toast.update(toastId, {
-        render: `✅ Ushbu filial uchun ${json.data?.length || 0} ta qarz yuklandi`,
+        render: `âœ… Ushbu filial uchun ${json.data?.length || 0} ta qarz yuklandi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -267,7 +265,7 @@ export default function DebtManagement() {
     }
 
     try {
-      const toastId = toast.loading("🔍 Qarzlar qidirilmoqda...");
+      const toastId = toast.loading("Qarzlar qidirilmoqda...");
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.byCustomer}`, {
         method: "POST",
         headers: {
@@ -284,7 +282,7 @@ export default function DebtManagement() {
       const json = await res.json();
       setDebts(json.data || []);
       toast.update(toastId, {
-        render: `✅ "${customerName}" uchun ${json.data?.length || 0} ta qarz topildi`,
+        render: `âœ… "${customerName}" uchun ${json.data?.length || 0} ta qarz topildi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -297,7 +295,7 @@ export default function DebtManagement() {
 
   const fetchDebtById = async (debtId: string) => {
     try {
-      const toastId = toast.loading("📄 Qarz ma'lumotlari yuklanmoqda...");
+      const toastId = toast.loading("Qarz ma'lumotlari yuklanmoqda...");
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.byId}`, {
         method: "POST",
         headers: {
@@ -315,7 +313,7 @@ export default function DebtManagement() {
       setSelectedDebt(json.data);
       setShowDebtDetail(true);
       toast.update(toastId, {
-        render: "✅ Qarz ma'lumotlari yuklandi",
+        render: "âœ… Qarz ma'lumotlari yuklandi",
         type: "success",
         isLoading: false,
         autoClose: 2000,
@@ -470,7 +468,7 @@ export default function DebtManagement() {
     }
 
     try {
-      const toastId = toast.loading("💾 Qarz yaratilmoqda...");
+      const toastId = toast.loading("Qarz yaratilmoqda...");
       const productNamesArray = formatProductsToArray(productEntries);
       const totalAmount = calculateTotalFromProducts(productEntries);
 
@@ -515,7 +513,7 @@ export default function DebtManagement() {
       setDebtorNameInput("");
       setShowSuggestions(false);
       toast.update(toastId, {
-        render: `✅ ${json.data.name} uchun qarz yaratildi`,
+        render: `âœ… ${json.data.name} uchun qarz yaratildi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -523,7 +521,7 @@ export default function DebtManagement() {
       fetchStatistics();
     } catch (err: any) {
       console.error(err);
-      toast.error(`❌ Qarz yaratishda xatolik: ${err.message}`);
+      toast.error(`âŒ Qarz yaratishda xatolik: ${err.message}`);
     }
   };
 
@@ -533,7 +531,7 @@ export default function DebtManagement() {
     if (!editingDebt) return;
 
     try {
-      const toastId = toast.loading("✏️ Qarz yangilanmoqda...");
+      const toastId = toast.loading("âœï¸ Qarz yangilanmoqda...");
       
       // If editing with new products, format them; otherwise keep original format
       const productString = productEntries.length > 0 
@@ -573,7 +571,7 @@ export default function DebtManagement() {
         branch_id: isSuperAdmin ? 1 : (authData.user as unknown as Admin).branch, 
       });
       toast.update(toastId, {
-        render: "✅ Qarz muvaffaqiyatli yangilandi",
+        render: "âœ… Qarz muvaffaqiyatli yangilandi",
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -581,7 +579,7 @@ export default function DebtManagement() {
       fetchStatistics();
     } catch (err: any) {
       console.error(err);
-      toast.error(`❌ Qarzni yangilashda xatolik: ${err.message}`);
+      toast.error(`âŒ Qarzni yangilashda xatolik: ${err.message}`);
     }
   };
 
@@ -591,7 +589,7 @@ export default function DebtManagement() {
     }
 
     try {
-      const toastId = toast.loading("🗑️ Qarz o'chirilmoqda...");
+      const toastId = toast.loading("Qarz o'chirilmoqda...");
       
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.delete}`, {
         method: "DELETE",
@@ -609,7 +607,7 @@ export default function DebtManagement() {
 
       setDebts(debts.filter((d) => d.id !== debtId));
       toast.update(toastId, {
-        render: "✅ Qarz muvaffaqiyatli o'chirildi",
+        render: "âœ… Qarz muvaffaqiyatli o'chirildi",
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -617,7 +615,7 @@ export default function DebtManagement() {
       fetchStatistics();
     } catch (err: any) {
       console.error(err);
-      toast.error(`❌ Qarzni o'chirishda xatolik: ${err.message}`);
+      toast.error(`âŒ Qarzni o'chirishda xatolik: ${err.message}`);
     }
   };
 
@@ -752,7 +750,7 @@ export default function DebtManagement() {
       link.download = `qarzlar_${new Date().toISOString().split("T")[0]}.csv`;
       link.click();
       window.URL.revokeObjectURL(url);
-      toast.success("✅ Qarzlar CSV formatida yuklandi");
+      toast.success("âœ… Qarzlar CSV formatida yuklandi");
     } catch (err) {
       console.error(err);
       toast.error("Qarzlarni eksport qilishda xatolik");
@@ -771,7 +769,7 @@ export default function DebtManagement() {
           total: Number(p.price) * Number(p.quantity),
         }))
       : [{
-          name: formatProductsForDisplay(debt.product_names) || "—",
+          name: formatProductsForDisplay(debt.product_names) || "â€”",
           quantity: 1,
           unit: "pcs",
           price: debt.amount,
@@ -779,16 +777,16 @@ export default function DebtManagement() {
         }];
 
     printCheque({
-      title: "Накладная",
+      title: "ÐÐ°ÐºÐ»Ð°Ð´Ð½Ð°Ñ",
       number: generateChequeNumber(),
       date: formatDate(debt),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: debt.name,
       products,
-      extraNote: "Возврат товара в течение 14 дней",
-      status: debt.isreturned ? "Оплачено" : "Ожидается",
-      signatureLeft: "Руководитель",
-      signatureRight: "Бухгалтер",
+      extraNote: "Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‚ Ñ‚Ð¾Ð²Ð°Ñ€Ð° Ð² Ñ‚ÐµÑ‡ÐµÐ½Ð¸Ðµ 14 Ð´Ð½ÐµÐ¹",
+      status: debt.isreturned ? "ÐžÐ¿Ð»Ð°Ñ‡ÐµÐ½Ð¾" : "ÐžÐ¶Ð¸Ð´Ð°ÐµÑ‚ÑÑ",
+      signatureLeft: "Ð ÑƒÐºÐ¾Ð²Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒ",
+      signatureRight: "Ð‘ÑƒÑ…Ð³Ð°Ð»Ñ‚ÐµÑ€",
     });
   };
 
@@ -799,21 +797,21 @@ export default function DebtManagement() {
     const unreturnedAmount = filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0);
 
     printCheque({
-      title: "Отчёт по долгам",
+      title: "ÐžÑ‚Ñ‡Ñ‘Ñ‚ Ð¿Ð¾ Ð´Ð¾Ð»Ð³Ð°Ð¼",
       number: generateChequeNumber(),
       date: new Date(),
       supplier: DEFAULT_SUPPLIER_HTML,
-      buyer: `Итого записей: ${filteredAndSorted.length} | Возвращено: ${returnedAmount.toLocaleString("en-US")} | Не возвращено: ${unreturnedAmount.toLocaleString("en-US")}`,
+      buyer: `Ð˜Ñ‚Ð¾Ð³Ð¾ Ð·Ð°Ð¿Ð¸ÑÐµÐ¹: ${filteredAndSorted.length} | Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰ÐµÐ½Ð¾: ${returnedAmount.toLocaleString("en-US")} | ÐÐµ Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰ÐµÐ½Ð¾: ${unreturnedAmount.toLocaleString("en-US")}`,
       products: filteredAndSorted.map((debt) => ({
-        name: `${debt.name} (${formatDate(debt)}) ${debt.isreturned ? "✓" : "⏳"}`,
+        name: `${debt.name} (${formatDate(debt)}) ${debt.isreturned ? "âœ“" : "â³"}`,
         quantity: 1,
         unit: "pcs",
         price: debt.amount,
         total: debt.amount,
       })),
       totalAmount,
-      signatureLeft: "Руководитель",
-      signatureRight: "Бухгалтер",
+      signatureLeft: "Ð ÑƒÐºÐ¾Ð²Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒ",
+      signatureRight: "Ð‘ÑƒÑ…Ð³Ð°Ð»Ñ‚ÐµÑ€",
     });
   };
 
@@ -829,11 +827,11 @@ export default function DebtManagement() {
     const grandTotal = filteredDebtors.reduce((sum, d) => sum + d.totalAmount, 0);
 
     printCheque({
-      title: "Отчёт по должникам",
+      title: "ÐžÑ‚Ñ‡Ñ‘Ñ‚ Ð¿Ð¾ Ð´Ð¾Ð»Ð¶Ð½Ð¸ÐºÐ°Ð¼",
       number: generateChequeNumber(),
       date: new Date(),
       supplier: DEFAULT_SUPPLIER_HTML,
-      buyer: `Тип: ${debtTypeFilter === "given" ? "Berilgan Nasiya" : debtTypeFilter === "taken" ? "Nasiyam" : "Barcha Qarzlar"} | Должников: ${filteredDebtors.length}`,
+      buyer: `Ð¢Ð¸Ð¿: ${debtTypeFilter === "given" ? "Berilgan Nasiya" : debtTypeFilter === "taken" ? "Nasiyam" : "Barcha Qarzlar"} | Ð”Ð¾Ð»Ð¶Ð½Ð¸ÐºÐ¾Ð²: ${filteredDebtors.length}`,
       products: filteredDebtors.map((debtor) => {
         const relevantDebts = debtTypeFilter === "all"
           ? debtor.debts
@@ -842,7 +840,7 @@ export default function DebtManagement() {
           : debtor.debts.filter(d => d.branch_id === 1);
         const debtorTotal = relevantDebts.reduce((s, d) => s + d.amount, 0);
         return {
-          name: `${debtor.name} (${relevantDebts.length} долг(ов))`,
+          name: `${debtor.name} (${relevantDebts.length} Ð´Ð¾Ð»Ð³(Ð¾Ð²))`,
           quantity: relevantDebts.length,
           unit: "pcs",
           price: debtorTotal / relevantDebts.length,
@@ -850,8 +848,8 @@ export default function DebtManagement() {
         };
       }),
       totalAmount: grandTotal,
-      signatureLeft: "Руководитель",
-      signatureRight: "Бухгалтер",
+      signatureLeft: "Ð ÑƒÐºÐ¾Ð²Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒ",
+      signatureRight: "Ð‘ÑƒÑ…Ð³Ð°Ð»Ñ‚ÐµÑ€",
     });
   };
 
@@ -997,7 +995,7 @@ export default function DebtManagement() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              📊 Statistika
+              Statistika
             </button>
           </div>
         </div>
@@ -1081,7 +1079,7 @@ export default function DebtManagement() {
             onClick={printAllDebts}
             className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 border border-purple-300 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            🖨️ Barchasini Chop Etish
+            Barchasini Chop Etish
           </button>
 
           {/* Print by Debtors Button */}
@@ -1089,7 +1087,7 @@ export default function DebtManagement() {
             onClick={printByDebtors}
             className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 border border-indigo-300 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            👥 Qarzdorlar Bo'yicha Chop Etish
+            Qarzdorlar Bo'yicha Chop Etish
           </button>
 
           {/* Quick Filter Buttons */}
@@ -1177,13 +1175,13 @@ export default function DebtManagement() {
       {viewMode === "statistics" && (
         <div className="space-y-4">
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-6">📊 Qarz Statistikasi Ko'rinishi</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-6">Qarz Statistikasi Ko'rinishi</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* Given Debts (Berilgan Nasiya) */}
               <div className="border-2 border-blue-200 rounded-lg p-4 sm:p-5 md:p-6 bg-blue-50">
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
-                  💰 Berilgan Nasiya
+                  Berilgan Nasiya
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between py-2 border-b border-blue-200">
@@ -1193,13 +1191,13 @@ export default function DebtManagement() {
                   <div className="flex justify-between py-2 border-b border-blue-200">
                     <span className="text-gray-700">Jami Summa:</span>
                     <span className="font-bold text-blue-900">
-                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")}?
+                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-blue-200">
                     <span className="text-gray-700">To'langan Summa:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 0 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
+                      {debts.filter(d => d.branch_id === 0 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
@@ -1220,7 +1218,7 @@ export default function DebtManagement() {
               {/* My Debts (Nasiyam) */}
               <div className="border-2 border-red-200 rounded-lg p-4 sm:p-5 md:p-6 bg-red-50">
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-red-900 mb-4 flex items-center gap-2">
-                  💳 Nasiyam
+                  Nasiyam
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between py-2 border-b border-red-200">
@@ -1230,13 +1228,13 @@ export default function DebtManagement() {
                   <div className="flex justify-between py-2 border-b border-red-200">
                     <span className="text-gray-700">Jami Summa:</span>
                     <span className="font-bold text-red-900">
-                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")}?
+                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-red-200">
                     <span className="text-gray-700">To'langan Summa:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 1 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
+                      {debts.filter(d => d.branch_id === 1 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
@@ -1257,7 +1255,7 @@ export default function DebtManagement() {
 
             {/* Overall Summary */}
             <div className="mt-4 md:mt-6 border-2 border-purple-200 rounded-lg p-4 sm:p-5 md:p-6 bg-purple-50">
-              <h3 className="text-base sm:text-lg md:text-xl font-bold text-purple-900 mb-4">📈 Umumiy Xulosala</h3>
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-purple-900 mb-4">Umumiy Xulosala</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
                 <div className="bg-white rounded-lg p-4 border border-purple-200">
                   <p className="text-sm text-gray-600 mb-1">Jami Qarzlar</p>
@@ -1274,18 +1272,18 @@ export default function DebtManagement() {
 
             {/* Net Position */}
             <div className="mt-4 md:mt-6 border-2 border-gray-300 rounded-lg p-4 sm:p-5 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-4">⚖️ Sof Pozitsiya</h3>
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-4">âš–ï¸ Sof Pozitsiya</h3>
               <div className="space-y-3">
                 <div className="flex justify-between py-2">
                   <span className="text-gray-700">Men Olishim Kerak:</span>
                   <span className="font-bold text-green-700 text-lg">
-                    +{debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
+                    +{debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
                   </span>
                 </div>
                 <div className="flex justify-between py-2">
                   <span className="text-gray-700">Men To'lashim Kerak:</span>
                   <span className="font-bold text-red-700 text-lg">
-                    -{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
+                    -{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
                   </span>
                 </div>
                 <div className="flex justify-between py-3 border-t-2 border-gray-300 mt-3">
@@ -1297,7 +1295,7 @@ export default function DebtManagement() {
                       : "text-red-700"
                   }`}>
                     {(debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0) -
-                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)).toLocaleString("en-US")} ?
+                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)).toLocaleString("en-US")} ₽
                   </span>
                 </div>
               </div>
@@ -1407,36 +1405,13 @@ export default function DebtManagement() {
                       <h3 className="font-semibold text-gray-900 text-base md:text-lg">{debt.name}</h3>
                       <p className="text-xs md:text-sm text-gray-500">{formatDate(debt)}</p>
                     </div>
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                        debt.isreturned
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {debt.isreturned ? (
-                        <>
-                          <Check size={12} /> Returned
-                        </>
-                      ) : (
-                        <>
-                          <X size={12} /> Pending
-                        </>
-                      )}
-                    </span>
                   </div>
 
                   <div className="space-y-2 text-sm mb-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Jami Summa:</span>
                       <span className="font-semibold text-gray-900">
-                        {debt.amount.toLocaleString("en-US")}?
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Holat:</span>
-                      <span className={`font-semibold ${debt.isreturned ? 'text-green-600' : 'text-red-600'}`}>
-                        {debt.isreturned ? '✓ Qaytarilgan' : '⏳ Qaytarilmagan'}
+                        {debt.amount.toLocaleString("en-US")} ₽
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -1460,7 +1435,7 @@ export default function DebtManagement() {
                       onClick={() => printDebt(debt)}
                       className="flex-1 p-2 text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
                     >
-                      🖨️ Chop Etish
+                      <Printer size={16} /> Chop Etish
                     </button>
 
                     <button
@@ -1470,17 +1445,6 @@ export default function DebtManagement() {
                       <Eye size={16} /> Ko'rish
                     </button>
 
-                    {!debt.isreturned && (
-                      <button
-                        onClick={() => {
-                          setPaymentDebt(debt);
-                          setShowPaymentModal(true);
-                        }}
-                        className="flex-1 p-2 text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
-                      >
-                        💰 To'lov
-                      </button>
-                    )}
 
                     <button
                       onClick={() => openEditModal(debt)}
@@ -1537,15 +1501,6 @@ export default function DebtManagement() {
                     {getSortIcon("amount")}
                   </div>
                 </th>
-                <th
-                  onClick={() => handleSort("isreturned")}
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    Holat
-                    {getSortIcon("isreturned")}
-                  </div>
-                </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Amallar
                 </th>
@@ -1589,26 +1544,7 @@ export default function DebtManagement() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="text-sm font-semibold text-gray-900">
-                            {debt.amount.toLocaleString("en-US")}?
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
-                              debt.isreturned
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {debt.isreturned ? (
-                              <>
-                                <Check size={14} /> Returned
-                              </>
-                            ) : (
-                              <>
-                                <X size={14} /> Pending
-                              </>
-                            )}
+                            {debt.amount.toLocaleString("en-US")} ₽
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -1618,7 +1554,7 @@ export default function DebtManagement() {
                               className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200"
                               title="Chop Etish"
                             >
-                              🖨️
+                              <Printer size={18} />
                             </button>
 
                             <button
@@ -1629,18 +1565,6 @@ export default function DebtManagement() {
                               <Eye size={18} />
                             </button>
 
-                            {!debt.isreturned && (
-                              <button
-                                onClick={() => {
-                                  setPaymentDebt(debt);
-                                  setShowPaymentModal(true);
-                                }}
-                                className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200"
-                                title="To'lov Qo'shish"
-                              >
-                                💰
-                              </button>
-                            )}
 
                             <button
                               onClick={() => openEditModal(debt)}
@@ -1665,19 +1589,13 @@ export default function DebtManagement() {
                   
                   {/* TOTAL ROW */}
                   <tr className="bg-gradient-to-r from-blue-100 to-purple-100 font-bold border-t-2 border-gray-300">
-                    <td colSpan={selectedDebtor ? 3 : 4} className="px-6 py-4 text-right text-base text-gray-900">
+                    <td colSpan={3} className="px-6 py-4 text-right text-base text-gray-900">
                       TOTAL:
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-gray-900">
-                      {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")}?
+                      {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-base text-green-700">
-                      {filteredAndSorted.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-base text-red-700">
-                      {filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ?
-                    </td>
-                    <td colSpan={3}></td>
+                    <td className="px-6 py-4"></td>
                   </tr>
                 </>
               )}
@@ -1717,17 +1635,7 @@ export default function DebtManagement() {
               {/* Amount */}
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                 <p className="text-xs font-medium text-purple-700 mb-1">Jami Summa</p>
-                <p className="text-3xl font-bold text-purple-900">{selectedDebt.amount.toLocaleString("en-US")}?</p>
-              </div>
-
-              {/* Status */}
-              <div className={`${selectedDebt.isreturned ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'} border rounded-lg p-4`}>
-                <p className="text-xs font-medium text-gray-700 mb-2">Holat</p>
-                <div className="flex items-center gap-2">
-                  <span className={`text-lg font-bold ${selectedDebt.isreturned ? 'text-green-900' : 'text-yellow-900'}`}>
-                    {selectedDebt.isreturned ? '✓ Qaytarilgan' : '⏳ Qaytarilmagan'}
-                  </span>
-                </div>
+                <p className="text-3xl font-bold text-purple-900">{selectedDebt.amount.toLocaleString("en-US")} ₽</p>
               </div>
 
               {/* Debt Type */}
@@ -1736,7 +1644,7 @@ export default function DebtManagement() {
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
                   selectedDebt.branch_id === 1 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
                 }`}>
-                  {selectedDebt.branch_id === 1 ? "💳 Nasiyam" : "💰 Berilgan Nasiya"}
+                  {selectedDebt.branch_id === 1 ? "Nasiyam" : "Berilgan Nasiya"}
                 </span>
               </div>
 
@@ -1754,7 +1662,7 @@ export default function DebtManagement() {
                           <div className="flex-1">
                             <p className="font-medium text-gray-900">{product.name}</p>
                             <p className="text-xs text-gray-600 mt-1">
-                              {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-US")}? = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-US")}?
+                              {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-US")} ₽ = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-US")} ₽
                             </p>
                           </div>
                         </div>
@@ -1764,22 +1672,6 @@ export default function DebtManagement() {
                 ) : (
                   <p className="text-sm text-gray-600 italic">Mahsulotlar topilmadi</p>
                 )}
-              </div>
-
-              {/* Status */}
-              <div className={`${selectedDebt.isreturned ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"} border rounded-lg p-4`}>
-                <p className="text-xs font-medium text-gray-700 mb-1">Holat</p>
-                <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${selectedDebt.isreturned ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                  {selectedDebt.isreturned ? (
-                    <>
-                      <Check size={16} /> Returned
-                    </>
-                  ) : (
-                    <>
-                      <X size={16} /> Pending
-                    </>
-                  )}
-                </span>
               </div>
 
               {/* Info */}
@@ -1807,7 +1699,7 @@ export default function DebtManagement() {
                 <button
                   onClick={async () => {
                     try {
-                      const toastId = toast.loading("💾 Saving changes...");
+                      const toastId = toast.loading("Saving changes...");
                       const isFullyPaid = selectedDebt.isreturned;
                       
                       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
@@ -1833,7 +1725,7 @@ export default function DebtManagement() {
                       const json = await res.json();
                       setDebts(debts.map((d) => (d.id === json.data.id ? json.data : d)));
                       toast.update(toastId, {
-                        render: "✅ Changes saved successfully",
+                        render: "âœ… Changes saved successfully",
                         type: "success",
                         isLoading: false,
                         autoClose: 3000,
@@ -1842,31 +1734,19 @@ export default function DebtManagement() {
                       setShowDebtDetail(false);
                     } catch (err: any) {
                       console.error(err);
-                      toast.error(`❌ Failed to save: ${err.message}`);
+                      toast.error(`âŒ Failed to save: ${err.message}`);
                     }
                   }}
                   className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2"
                 >
-                  💾 O'zgarishlarni Saqlash
+                  O'zgarishlarni Saqlash
                 </button>
                 <button
                   onClick={() => printDebt(selectedDebt)}
                   className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium flex items-center justify-center gap-2"
                 >
-                  🖨️ Chop Etish
+                  Chop Etish
                 </button>
-                {!selectedDebt.isreturned && (
-                  <button
-                    onClick={() => {
-                      setPaymentDebt(selectedDebt);
-                      setShowPaymentModal(true);
-                      setShowDebtDetail(false);
-                    }}
-                    className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center justify-center gap-2"
-                  >
-                    💰 To'lov Qo'shish
-                  </button>
-                )}
                 <button
                   onClick={() => {
                     setShowDebtDetail(false);
@@ -1983,7 +1863,7 @@ export default function DebtManagement() {
 
                 {/* Products Manual Entry Section - UPDATED */}
                 <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
-                  <h3 className="text-base font-bold text-gray-900 mb-4">📦 Mahsulotlar</h3>
+                  <h3 className="text-base font-bold text-gray-900 mb-4">Mahsulotlar</h3>
 
                   {/* Product Input Fields */}
                   <div className="space-y-3 mb-4 bg-white p-4 rounded-lg">
@@ -2019,7 +1899,7 @@ export default function DebtManagement() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">O‘lchov</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Oâ€˜lchov</label>
                         <select
                           value={currentProduct.unit}
                           onChange={(e) =>
@@ -2058,7 +1938,7 @@ export default function DebtManagement() {
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")}? • {formatUnitLabel(currentProduct.unit)}
+                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")} ₽ â€¢ {formatUnitLabel(currentProduct.unit)}
                           </span>
                         </p>
                       </div>
@@ -2100,7 +1980,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-US")}? = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-US")}?
+                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-US")} ₽ = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-US")} ₽
                                 </p>
                               </div>
                               <button
@@ -2119,7 +1999,7 @@ export default function DebtManagement() {
                       <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between font-bold text-gray-900">
                         <span>Jami Summa:</span>
                         <span className="text-lg text-blue-900">
-                          {calculateTotalFromProducts(productEntries).toLocaleString("en-US")}?
+                          {calculateTotalFromProducts(productEntries).toLocaleString("en-US")} ₽
                         </span>
                       </div>
                     </div>
@@ -2211,7 +2091,7 @@ export default function DebtManagement() {
 
                 {/* Products Section in Edit Modal */}
                 <div className="border-2 border-orange-200 rounded-lg p-4 bg-orange-50">
-                  <h3 className="text-base font-bold text-gray-900 mb-4">📦 Mahsulotlar</h3>
+                  <h3 className="text-base font-bold text-gray-900 mb-4">Mahsulotlar</h3>
 
                   {/* Product Input Fields */}
                   <div className="space-y-3 mb-4 bg-white p-4 rounded-lg">
@@ -2247,7 +2127,7 @@ export default function DebtManagement() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">O‘lchov</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Oâ€˜lchov</label>
                         <select
                           value={currentProduct.unit}
                           onChange={(e) =>
@@ -2286,7 +2166,7 @@ export default function DebtManagement() {
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
                           Jami: <span className="font-bold text-blue-900">
-                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")}? • {formatUnitLabel(currentProduct.unit)}
+                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")} ₽ â€¢ {formatUnitLabel(currentProduct.unit)}
                           </span>
                         </p>
                       </div>
@@ -2328,7 +2208,7 @@ export default function DebtManagement() {
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{product.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-US")}? = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-US")}?
+                                  {product.quantity} {formatUnitLabel(product.unit)} × {Number(product.price).toLocaleString("en-US")} ₽ = {(Number(product.quantity) * Number(product.price)).toLocaleString("en-US")} ₽
                                 </p>
                               </div>
                               <button
@@ -2347,7 +2227,7 @@ export default function DebtManagement() {
                       <div className="mt-3 pt-3 border-t border-orange-200 flex justify-between font-bold text-gray-900">
                         <span>Jami Summa:</span>
                         <span className="text-lg text-orange-900">
-                          {calculateTotalFromProducts(productEntries).toLocaleString("en-US")}?
+                          {calculateTotalFromProducts(productEntries).toLocaleString("en-US")} ₽
                         </span>
                       </div>
                     </div>
@@ -2356,26 +2236,6 @@ export default function DebtManagement() {
 
                 {/* Branch is set automatically */}
 
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700">Joriy Holat:</span>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${
-                        editingDebt.isreturned ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {editingDebt.isreturned ? (
-                        <>
-                          <Check size={14} /> Returned
-                        </>
-                      ) : (
-                        <>
-                          <X size={14} /> Pending
-                        </>
-                      )}
-                    </span>
-                  </div>
-                </div>
               </form>
             </div>
 
@@ -2408,127 +2268,9 @@ export default function DebtManagement() {
         </div>
       )}
 
-      {/* PAYMENT MODAL */}
-      {showPaymentModal && paymentDebt && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md md:max-w-lg w-full">
-            {/* MODAL HEADER */}
-            <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-4 sm:p-6 text-white flex items-center justify-between">
-              <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                ✅ Qarzni Qaytarish
-              </h2>
-              <button
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  setPaymentDebt(null);
-                }}
-                className="p-1 hover:bg-white/20 rounded-lg transition"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* MODAL CONTENT */}
-            <div className="p-4 sm:p-6">
-              <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-gray-600 mb-1">Mijoz:</p>
-                <p className="text-lg font-bold text-blue-900">{paymentDebt.name}</p>
-              </div>
-
-              <div className="space-y-3 mb-6">
-                <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600">Qarz Miqdori:</span>
-                  <span className="font-bold text-gray-900">{paymentDebt.amount.toLocaleString("en-US")} ?</span>
-                </div>
-                <div className="flex justify-between py-2 bg-yellow-50 px-3 rounded-lg">
-                  <span className="font-bold text-gray-900">Holat:</span>
-                  <span className="font-bold text-yellow-600">
-                    {paymentDebt.isreturned ? "Qaytarilgan" : "Qaytarilmagan"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-4 bg-green-50 rounded-lg border border-green-200 mb-6">
-                <p className="text-sm text-gray-700">
-                  Bu qarzni to'liq to'langan deb belgilaysizmi?
-                </p>
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowPaymentModal(false);
-                    setPaymentDebt(null);
-                  }}
-                  className="flex-1 px-4 py-2.5 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition font-medium"
-                >
-                  Bekor qilish
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      const toastId = toast.loading("💾 Qarz qaytarilmoqda...");
-
-                      const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                          authorization: token ?? "",
-                        },
-                          body: JSON.stringify({
-                            id: paymentDebt.id,
-                            name: paymentDebt.name,
-                            amount: paymentDebt.amount,
-                            product_names: normalizeProductNames(paymentDebt.product_names),
-                            branch_id: paymentDebt.branch_id,
-                            isreturned: true,
-                          }),
-                      });
-
-                      if (!res.ok) {
-                        throw new Error("Qarzni qaytarishda xatolik");
-                      }
-
-                      const json = await res.json();
-                      
-                      // Update the debts list
-                      setDebts(debts.map((d) => 
-                        d.id === json.data.id 
-                          ? { ...d, isreturned: true } 
-                          : d
-                      ));
-
-                      // Update selected debt if it's open
-                      if (selectedDebt && selectedDebt.id === json.data.id) {
-                        setSelectedDebt({ ...selectedDebt, isreturned: true });
-                      }
-
-                      // Refresh statistics
-                      fetchStatistics();
-
-                      toast.update(toastId, {
-                        render: "✅ Qarz qaytarilgan deb belgilandi",
-                        type: "success",
-                        isLoading: false,
-                        autoClose: 3000,
-                      });
-
-                      // Close modal and reset
-                      setShowPaymentModal(false);
-                      setPaymentDebt(null);
-                    } catch (err: any) {
-                      toast.error(err.message || "Qarzni qaytarishda xatolik");
-                    }
-                  }}
-                  className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
-                >
-                  ✅ Qaytarilgan deb belgilash
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+
+
+

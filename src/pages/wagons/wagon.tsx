@@ -48,7 +48,7 @@ const WagonsPage: React.FC = () => {
       maximumFractionDigits: maxFraction,
     });
 
-  const formatMoney = (value: number) => formatNumber(value, 2, 2);
+  const formatMoney = (value: number) => `${formatNumber(value, 2, 2)} $`;
   const formatQuantity = (value: number) => {
     const numeric = Number(value || 0);
     if (Number.isInteger(numeric)) return formatNumber(numeric, 0, 0);
@@ -609,7 +609,7 @@ const WagonsPage: React.FC = () => {
                 <div className="flex justify-between border-t border-gray-200 pt-2">
                   <span className="text-gray-600 font-bold">Jami Summa:</span>
                   <span className="font-bold text-blue-600 text-base md:text-lg">
-                    {formatMoney(parseFloat(wagon.total.toString()))} $
+                    {formatMoney(parseFloat(wagon.total.toString()))}
                   </span>
                 </div>
               </div>
@@ -709,7 +709,7 @@ const WagonsPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                      {formatMoney(parseFloat(wagon.total.toString()))} $
+                      {formatMoney(parseFloat(wagon.total.toString()))}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <div className="flex items-center gap-2">
@@ -1107,7 +1107,7 @@ const WagonsPage: React.FC = () => {
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
                         <p className="text-lg font-bold text-green-900">
-                          {formatMoney(totalAmount)} $
+                          {formatMoney(totalAmount)}
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
@@ -1156,10 +1156,10 @@ const WagonsPage: React.FC = () => {
                               {formatQuantity(product.amount)} {formatUnitLabel(product.unit)}
                             </td>
                             <td className="px-4 py-3 text-sm text-gray-900 text-right">
-                              {formatMoney(product.price)} $
+                              {formatMoney(product.price)}
                             </td>
                             <td className="px-4 py-3 text-sm font-semibold text-blue-600 text-right">
-                              {formatMoney(product.subtotal)} $
+                              {formatMoney(product.subtotal)}
                             </td>
                           </tr>
                         );
@@ -1169,7 +1169,7 @@ const WagonsPage: React.FC = () => {
                           JAMI:
                         </td>
                         <td className="px-4 py-3 text-right text-blue-900 text-lg">
-                          {formatMoney(parseFloat(selectedWagon.total.toString()))} $
+                          {formatMoney(parseFloat(selectedWagon.total.toString()))}
                         </td>
                       </tr>
                     </tbody>

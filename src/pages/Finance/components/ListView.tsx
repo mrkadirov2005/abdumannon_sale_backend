@@ -16,6 +16,10 @@ export const ListView: React.FC<ListViewProps> = ({
   source,
   onDeleteWagon,
 }) => {
+  const formatCurrency = (value: number, currency: "USD" | "RUB") => {
+    const suffix = currency === "USD" ? "$" : "₽";
+    return `${Number(value).toLocaleString("en-US")} ${suffix}`;
+  };
 
   const printDebt = (debt: Debt) => {
     const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
@@ -94,7 +98,7 @@ export const ListView: React.FC<ListViewProps> = ({
                     {`${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`}
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                    {debt.amount.toLocaleString("en-US")}
+                    {formatCurrency(debt.amount, "RUB")}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span
@@ -155,16 +159,17 @@ export const ListView: React.FC<ListViewProps> = ({
                   {wagon.wagon_number}
                 </td>
                 <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                  {parseFloat(wagon.total.toString()).toLocaleString("en-US")}
+                  {formatCurrency(parseFloat(wagon.total.toString()), "USD")}
                 </td>
                 <td className="px-4 py-3 text-right text-green-600 font-semibold">
-                  {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString("en-US")}
+                  {formatCurrency(parseFloat((wagon.paid_amount || 0).toString()), "USD")}
                 </td>
                 <td className="px-4 py-3 text-right text-orange-600 font-semibold">
-                  {(
+                  {formatCurrency(
                     parseFloat(wagon.total.toString()) -
-                    parseFloat((wagon.paid_amount || 0).toString())
-                  ).toLocaleString("en-US")}
+                      parseFloat((wagon.paid_amount || 0).toString()),
+                    "USD"
+                  )}
                 </td>
                 <td className="px-4 py-3 text-center">
                   <button

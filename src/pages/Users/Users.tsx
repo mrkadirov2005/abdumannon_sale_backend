@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   accessTokenFromStore,
@@ -198,7 +198,7 @@ export default function Admins() {
           <div className="col-span-full">
             <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl shadow-sm border border-gray-100">
               <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-3 text-3xl">
-                👤
+                ðŸ‘¤
               </div>
               <p className="text-lg font-medium text-gray-900">Foydalanuvchilar topilmadi</p>
               <p className="text-sm text-gray-500 mt-1">
@@ -226,7 +226,7 @@ export default function Admins() {
                       {u.first_name} {u.last_name}
                     </p>
                     <p className="text-xs text-blue-100">
-                      {u.isloggedin ? "✓ Tizimga kirgan" : "⊘ Oflayn"}
+                      {u.isloggedin ? "âœ“ Tizimga kirgan" : "âŠ˜ Oflayn"}
                     </p>
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export default function Admins() {
                 <div className="border-b border-gray-200 pb-3">
                   <p className="text-xs font-medium text-gray-600 mb-1">Telefon</p>
                   <p className="text-sm font-semibold text-gray-900">
-                    {u.phone_number || "—"}
+                    {u.phone_number || "â€”"}
                   </p>
                 </div>
 
@@ -246,7 +246,7 @@ export default function Admins() {
                 <div className="border-b border-gray-200 pb-3">
                   <p className="text-xs font-medium text-gray-600 mb-1">Maosh</p>
                   <p className="text-sm font-semibold text-gray-900">
-                    {u.salary > 0 ? `${u.salary.toLocaleString("en-US")} ?` : "—"}
+                    {u.salary > 0 ? `${u.salary.toLocaleString("en-US")} ?` : "â€”"}
                   </p>
                 </div>
 
@@ -260,7 +260,7 @@ export default function Admins() {
                           month: "short",
                           day: "numeric",
                         })
-                      : "—"}
+                      : "â€”"}
                   </p>
                 </div>
 
@@ -363,7 +363,7 @@ export default function Admins() {
             {/* MODAL HEADER */}
             <div className="bg-gradient-to-r from-pink-400 to-red-400 p-6 text-white flex items-center justify-between sticky top-0">
               <div className="flex items-center gap-3">
-                <span className="text-2xl">✏️</span>
+                <span className="text-2xl">âœï¸</span>
                 <h2 className="text-xl font-bold">Foydalanuvchini tahrirlash</h2>
               </div>
               <button
@@ -422,7 +422,7 @@ export default function Admins() {
                   <div className="flex justify-between">
                     <span className="text-xs font-medium text-blue-700">Telefon:</span>
                     <span className="text-sm font-semibold text-blue-900">
-                      {selectedAdmin.phone_number || "—"}
+                      {selectedAdmin.phone_number || "â€”"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -432,7 +432,7 @@ export default function Admins() {
                         selectedAdmin.isloggedin ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {selectedAdmin.isloggedin ? "✓ Faol" : "⊘ Oflayn"}
+                      {selectedAdmin.isloggedin ? "âœ“ Faol" : "âŠ˜ Oflayn"}
                     </span>
                   </div>
                 </div>
@@ -451,7 +451,7 @@ export default function Admins() {
                             month: "short",
                             day: "numeric",
                           })
-                        : "—"}
+                        : "â€”"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -463,7 +463,7 @@ export default function Admins() {
                             month: "short",
                             day: "numeric",
                           })
-                        : "—"}
+                        : "â€”"}
                     </span>
                   </div>
                 </div>
@@ -476,7 +476,7 @@ export default function Admins() {
                   <div className="flex justify-between">
                     <span className="text-xs font-medium text-green-700">Maosh:</span>
                     <span className="text-sm font-semibold text-green-900">
-                      {selectedAdmin.salary > 0 ? `${selectedAdmin.salary.toLocaleString("en-US")} ?` : "—"}
+                      {selectedAdmin.salary > 0 ? `${selectedAdmin.salary.toLocaleString("en-US")} ₽` : "â€”"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -486,7 +486,7 @@ export default function Admins() {
                         selectedAdmin.ispaidthismonth ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {selectedAdmin.ispaidthismonth ? "✓ Ha" : "✗ Yo'q"}
+                      {selectedAdmin.ispaidthismonth ? "âœ“ Ha" : "âœ— Yo'q"}
                     </span>
                   </div>
                 </div>
@@ -567,7 +567,7 @@ export default function Admins() {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-blue-700 mb-1">Telefon raqami</p>
-                    <p className="text-lg font-semibold text-blue-900">{selectedAdmin.phone_number || "—"}</p>
+                    <p className="text-lg font-semibold text-blue-900">{selectedAdmin.phone_number || "â€”"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-blue-700 mb-1">Holati</p>
@@ -576,7 +576,7 @@ export default function Admins() {
                         selectedAdmin.isloggedin ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {selectedAdmin.isloggedin ? "✓ Faol" : "⊘ Oflayn"}
+                      {selectedAdmin.isloggedin ? "âœ“ Faol" : "âŠ˜ Oflayn"}
                     </p>
                   </div>
                 </div>
@@ -597,7 +597,7 @@ export default function Admins() {
                             month: "long",
                             day: "numeric",
                           })
-                        : "—"}
+                        : "â€”"}
                     </p>
                   </div>
                   <div>
@@ -609,16 +609,16 @@ export default function Admins() {
                             month: "long",
                             day: "numeric",
                           })
-                        : "—"}
+                        : "â€”"}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-purple-700 mb-1">Filial</p>
-                    <p className="text-lg font-semibold text-purple-900">{selectedAdmin.branch || "—"}</p>
+                    <p className="text-lg font-semibold text-purple-900">{selectedAdmin.branch || "â€”"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-purple-700 mb-1">Dukan ID</p>
-                    <p className="text-lg font-mono text-purple-900">{selectedAdmin.shop_id || "—"}</p>
+                    <p className="text-lg font-mono text-purple-900">{selectedAdmin.shop_id || "â€”"}</p>
                   </div>
                 </div>
               </div>
@@ -631,19 +631,19 @@ export default function Admins() {
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Maosh</p>
-                    <p className="text-2xl font-bold text-green-900">{selectedAdmin.salary > 0 ? `${selectedAdmin.salary.toLocaleString("en-US")} ?` : "—"}</p>
+                      {selectedAdmin.salary > 0 ? `${selectedAdmin.salary.toLocaleString("en-US")} ₽` : "â€”"}
                   </div>
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Jami savdolar</p>
-                    <p className="text-2xl font-bold text-green-900">{selectedAdmin.sales > 0 ? `${selectedAdmin.sales.toLocaleString("en-US")} ?` : "—"}</p>
+                    <p className="text-2xl font-bold text-green-900">{selectedAdmin.sales > 0 ? `${selectedAdmin.sales.toLocaleString("en-US")} ?` : "â€”"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Xarajatlar</p>
-                    <p className="text-lg font-semibold text-green-900">{selectedAdmin.expenses > 0 ? `${selectedAdmin.expenses.toLocaleString("en-US")} ?` : "—"}</p>
+                    <p className="text-lg font-semibold text-green-900">{selectedAdmin.expenses > 0 ? `${selectedAdmin.expenses.toLocaleString("en-US")} ?` : "â€”"}</p>
                   </div>
                   <div>
                     <p className="text-xs font-medium text-green-700 mb-1">Bonuslar</p>
-                    <p className="text-lg font-semibold text-green-900">{selectedAdmin.bonuses > 0 ? `${selectedAdmin.bonuses.toLocaleString("en-US")} ?` : "—"}</p>
+                    <p className="text-lg font-semibold text-green-900">{selectedAdmin.bonuses > 0 ? `${selectedAdmin.bonuses.toLocaleString("en-US")} ?` : "â€”"}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs font-medium text-green-700 mb-1">Bu oy to'landi</p>
@@ -652,7 +652,7 @@ export default function Admins() {
                         selectedAdmin.ispaidthismonth ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      {selectedAdmin.ispaidthismonth ? "✓ To'landi" : "✗ To'lanmadi"}
+                      {selectedAdmin.ispaidthismonth ? "âœ“ To'landi" : "âœ— To'lanmadi"}
                     </p>
                   </div>
                 </div>
@@ -722,7 +722,7 @@ export default function Admins() {
                   <div className="flex justify-between py-3 border-b border-gray-300">
                     <span className="text-gray-600 font-medium">UUID:</span>
                     <span className="font-mono text-gray-900 break-all text-right max-w-xs font-semibold">
-                      {selectedAdmin.uuid || "—"}
+                      {selectedAdmin.uuid || "â€”"}
                     </span>
                   </div>
                   <div className="flex justify-between py-3 border-b border-gray-300">
@@ -740,7 +740,7 @@ export default function Admins() {
                   <div className="flex justify-between py-3">
                     <span className="text-gray-600 font-medium">Parol:</span>
                     <span className="font-mono text-gray-900 font-semibold">
-                      {selectedAdmin.password ? "●●●●●●●●" : "—"}
+                      {selectedAdmin.password ? "â—â—â—â—â—â—â—â—" : "â€”"}
                     </span>
                   </div>
                 </div>
@@ -789,3 +789,4 @@ export default function Admins() {
     </div>
   );
 }
+

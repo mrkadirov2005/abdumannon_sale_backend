@@ -76,6 +76,7 @@ const Finance: React.FC = () => {
 
       <FinanceStats
         uniquePersons={uniquePersons}
+        source={source}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onPersonSelect={setSelectedPerson}

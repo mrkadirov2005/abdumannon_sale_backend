@@ -731,7 +731,7 @@ export default function SaleBoard() {
       supplier: "HC COMPANY",
       buyer: `Продавец: ${selectedAdmin} | Всего продаж: ${filteredData.length}`,
       products: filteredData.map((sale) => ({
-        name: `Чек ${sale.sale_id} (${new Date(sale.sale_time).toLocaleDateString("uz-UZ")})`,
+        name: `Накладная ${sale.sale_id} (${new Date(sale.sale_time).toLocaleDateString("uz-UZ")})`,
         quantity: 1,
         unit: "pcs",
         price: Number(sale.total_price),

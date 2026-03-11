@@ -74,12 +74,10 @@ export default function Sidebar({
       {/* Navigation */}
       <nav className="flex-1 space-y-1">
         {authData.isSuperAdmin && (
-          <MenuItem to="/cheque" icon={<AutoGraph />} label="Chek" />
+          <MenuItem to="/cheque" icon={<AutoGraph />} label="Накладная" />
         )}
 
         <MenuItem to="/sales" icon={<MonetizationOn />} label="Savdo" />
-
-        
           <MenuItem
             to="/saleboard"
             icon={<BookmarkAddRounded />}

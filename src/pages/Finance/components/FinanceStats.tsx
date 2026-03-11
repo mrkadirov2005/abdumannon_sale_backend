@@ -5,6 +5,7 @@ import type { ViewMode } from "../types";
 
 interface FinanceStatsProps {
   uniquePersons: Person[];
+  source: "wagons" | "debts" | "myDebts";
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onPersonSelect: (person: string | null) => void;
@@ -12,9 +13,15 @@ interface FinanceStatsProps {
 
 export const FinanceStats: React.FC<FinanceStatsProps> = ({
   uniquePersons,
+  source,
   onViewModeChange,
   onPersonSelect,
 }) => {
+  const formatCurrency = (value: number, currency: "USD" | "RUB") => {
+    const suffix = currency === "USD" ? "$" : "₽";
+    return `${Number(value).toLocaleString("en-US")} ${suffix}`;
+  };
+
   const totalAmount = uniquePersons.reduce((sum, p) => sum + p.totalAmount, 0);
   const totalPaid = uniquePersons.reduce((sum, p) => sum + p.paidAmount, 0);
   const totalRemaining = uniquePersons.reduce(
@@ -38,7 +45,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {totalAmount.toLocaleString("en-US")}
+          {formatCurrency(totalAmount, source === "wagons" ? "USD" : "RUB")}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">
           {uniquePersons.length} ta shaxs
@@ -56,7 +63,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {totalPaid.toLocaleString("en-US")}
+          {formatCurrency(totalPaid, source === "wagons" ? "USD" : "RUB")}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">Berilgan pul</p>
       </div>
@@ -72,7 +79,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {totalRemaining.toLocaleString("en-US")}
+          {formatCurrency(totalRemaining, source === "wagons" ? "USD" : "RUB")}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">To'lanmagan</p>
       </div>

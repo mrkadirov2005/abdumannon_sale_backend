@@ -259,12 +259,13 @@ export default function Navbar() {
   return (
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
       <h3 className="text-lg font-medium">привет, {getUserDisplayName()}</h3>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4" >
+
         <Button
           onClick={() => setIsChequeModalOpen(true)}
           variant="outlined"
         >
-          Chek
+          Накладная
         </Button>
         <Button   onClick={() => {
     const el = document.documentElement as HTMLElement;
@@ -303,7 +304,7 @@ export default function Navbar() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
-              <h3 className="text-lg font-bold text-gray-900">Chek chop etish</h3>
+              <h3 className="text-lg font-bold text-gray-900">Накладная создание</h3>
               <button
                 onClick={() => setIsChequeModalOpen(false)}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"

@@ -92,10 +92,10 @@ export function formatUnitLabel(unit: string | undefined | null): string {
 function formatDate(d: string | Date): string {
   const date = typeof d === "string" ? new Date(d) : d;
   if (isNaN(date.getTime())) return String(d);
-  const dd = String(date.getDate());
-  const mm = String(date.getMonth() + 1);
+  const dd = String(date.getDate()).padStart(2, "0");
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
   const yyyy = String(date.getFullYear());
-  return `${dd}.${mm}.${yyyy} \u0433`;
+  return `${dd}.${mm}.${yyyy}`;
 }
 
 function numberToWordsRu(n: number): string {
@@ -298,3 +298,6 @@ export function printCheque(data: ChequeData): void {
   printWindow.document.write(html);
   printWindow.document.close();
 }
+
+
+

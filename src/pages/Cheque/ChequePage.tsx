@@ -78,7 +78,7 @@ export default function ChequePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6 md:p-8">
       <div className="bg-white rounded-xl shadow-lg p-6 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Chek yaratish</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Накладная </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <input

@@ -20,6 +20,11 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   onDeleteFinanceRecord,
   source,
 }) => {
+  const formatCurrency = (value: number, currency: "USD" | "RUB") => {
+    const suffix = currency === "USD" ? "$" : "₽";
+    return `${Number(value).toLocaleString("en-US")} ${suffix}`;
+  };
+
   const personFinanceRecords = financeRecords.filter((record) =>
     record.description?.startsWith(person.name)
   );
@@ -193,19 +198,19 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
           <p className="text-gray-600 text-sm mb-1">Jami Summa</p>
           <p className="text-3xl font-bold text-blue-600">
-            {person.totalAmount.toLocaleString("en-US")}
+            {formatCurrency(person.totalAmount, source === "wagons" ? "USD" : "RUB")}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
           <p className="text-gray-600 text-sm mb-1">To'langan</p>
           <p className="text-3xl font-bold text-green-600">
-            {person.paidAmount.toLocaleString("en-US")}
+            {formatCurrency(person.paidAmount, source === "wagons" ? "USD" : "RUB")}
           </p>
         </div>
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
           <p className="text-gray-600 text-sm mb-1">Qoldiq Summa</p>
           <p className="text-3xl font-bold text-orange-600">
-            {person.remainingAmount.toLocaleString("en-US")}
+            {formatCurrency(person.remainingAmount, source === "wagons" ? "USD" : "RUB")}
           </p>
         </div>
       </div>
@@ -262,16 +267,17 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                         {wagon.products.length}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                        {parseFloat(wagon.total.toString()).toLocaleString("en-US")}
+                        {formatCurrency(parseFloat(wagon.total.toString()), "USD")}
                       </td>
                       <td className="px-4 py-3 text-right text-green-600 font-semibold">
-                        {parseFloat((wagon.paid_amount || 0).toString()).toLocaleString("en-US")}
+                        {formatCurrency(parseFloat((wagon.paid_amount || 0).toString()), "USD")}
                       </td>
                       <td className="px-4 py-3 text-right text-orange-600 font-semibold">
-                        {(
+                        {formatCurrency(
                           parseFloat(wagon.total.toString()) -
-                          parseFloat((wagon.paid_amount || 0).toString())
-                        ).toLocaleString("en-US")}
+                            parseFloat((wagon.paid_amount || 0).toString()),
+                          "USD"
+                        )}
                       </td>
                       <td className="px-4 py-3 text-center space-x-2 flex justify-center">
                         <button
@@ -395,7 +401,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                   }`}
                 >
                   {record.type === "income" ? "+" : "-"}
-                  {parseFloat(record.amount).toLocaleString("en-US")}
+                  {formatCurrency(parseFloat(record.amount), source === "wagons" ? "USD" : "RUB")}
                 </p>
               </div>
               <button

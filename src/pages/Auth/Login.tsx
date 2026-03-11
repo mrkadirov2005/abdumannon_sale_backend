@@ -65,7 +65,7 @@ export default function Login() {
           <p className="text-red-600 text-sm mb-3">{error}</p>
         )}
 
-        <label className="block mb-2 text-sm">Name</label>
+        <label className="block mb-2 text-sm">имя</label>
         <input
           required
           disabled={isLoading}
@@ -75,7 +75,7 @@ export default function Login() {
           placeholder="Type your phone number or username"
         />
 
-        <label className="block mb-2 text-sm">Password</label>
+        <label className="block mb-2 text-sm">Пароль</label>
         <input
           type="password"
           required
@@ -91,7 +91,7 @@ export default function Login() {
           disabled={isLoading}
           className="w-full py-2 bg-blue-600 text-white rounded"
         >
-          {isLoading ? "Signing in…" : "Sign in"}
+          {isLoading ? "Вход..." : "Вход"}
         </button>
 
         <button
@@ -99,14 +99,15 @@ export default function Login() {
           onClick={handleClearStorageAndReload}
           className="w-full mt-3 py-2 bg-gray-600 text-white rounded"
         >
-          Clear Local Storage & Reload
+          Очистить локальное хранилище и перезагрузить
         </button>
       </form>
 
       <div className="w-screen h-10 bg-orange-800 absolute bottom-0 flex items-center justify-center text-center text-white text-sm">
         <p>
-          If you have any issues, please contact administrator by calling
-          123467 or via Telegram @sdfsd
+          В случае возникновения каких-либо проблем, пожалуйста, свяжитесь с администратором по телефону:
+
++998974088108 или через Telegram @itechnic_me
         </p>
       </div>
     </div>
