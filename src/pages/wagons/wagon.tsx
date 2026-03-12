@@ -17,6 +17,21 @@ import { useSelector } from "react-redux";
 import { accessTokenFromStore } from "../../redux/selectors";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../components/ui/ChequeProvider";
 
+const splitWagonNumber = (value: string) => {
+  const parts = value.split(",");
+  const clientName = (parts[0] || "").trim();
+  const wagonNumber = (parts[1] || parts[0] || "").trim();
+  return { clientName, wagonNumber };
+};
+
+const composeWagonNumber = (clientName: string, wagonNumber: string) => {
+  const name = clientName.trim();
+  const number = wagonNumber.trim();
+  if (!name) return number;
+  if (!number) return name;
+  return `${name}, ${number}`;
+};
+
 // Types
 interface Product {
   product_id: string;
@@ -171,7 +186,8 @@ const WagonsPage: React.FC = () => {
     // Calculate total paid amount - sum of all paid amounts
     const totalPaidAmount = validProducts.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
 
-    // Join client_name and wagon_number with comma
+    const baseWagonNumber = formData.wagon_number?.trim() || generateChequeNumber();
+    const fullWagonNumber = composeWagonNumber(formData.client_name || "", baseWagonNumber);
 
     try {
       const uuid = localStorage.getItem("uuid");
@@ -184,7 +200,7 @@ const WagonsPage: React.FC = () => {
           uuid: uuid || "",
         },
         body: JSON.stringify({
-          wagon_number: generateChequeNumber(),
+          wagon_number: fullWagonNumber,
           indicator: "none",
           branch: formData.branch,
           created_at: formData.created_at,
@@ -231,7 +247,8 @@ const WagonsPage: React.FC = () => {
     // Calculate total paid amount - sum of all paid amounts
     const totalPaidAmount = validProducts.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
 
-    // Join client_name and wagon_number with comma
+    const baseWagonNumber = formData.wagon_number?.trim() || generateChequeNumber();
+    const fullWagonNumber = composeWagonNumber(formData.client_name || "", baseWagonNumber);
 
     try {
       
@@ -246,7 +263,7 @@ const WagonsPage: React.FC = () => {
         },
         body: JSON.stringify({
           id: selectedWagon.id,
-          wagon_number: generateChequeNumber(),
+          wagon_number: fullWagonNumber,
           indicator: formData.indicator,
           branch: formData.branch,
           created_at: formData.created_at,
@@ -306,13 +323,11 @@ const WagonsPage: React.FC = () => {
   // Open Edit Modal
   const openEditModal = (wagon: Wagon) => {
     setSelectedWagon(wagon);
-    // Split wagon_number by comma
-    const parts = wagon.wagon_number.split(',');
-    const client_name = parts[0] || '';
+    const { clientName, wagonNumber } = splitWagonNumber(wagon.wagon_number);
     
     setFormData({
-      client_name: client_name,
-      wagon_number: generateChequeNumber(),
+      client_name: clientName,
+      wagon_number: wagonNumber,
       indicator: wagon.indicator,
       branch: wagon.branch,
       created_at: wagon.created_at
@@ -377,8 +392,7 @@ const WagonsPage: React.FC = () => {
     // Filter by selected person (client name - part before comma)
     if (selectedPerson) {
       list = list.filter((w) => {
-        const parts = w.wagon_number.split(',');
-        const clientName = (parts[0] || w.wagon_number).trim();
+        const clientName = splitWagonNumber(w.wagon_number).clientName || w.wagon_number;
         return clientName.toLowerCase() === selectedPerson.toLowerCase();
       });
     }
@@ -398,8 +412,7 @@ const WagonsPage: React.FC = () => {
     const personsMap = new Map<string, { name: string; totalWagons: number; totalAmount: number; wagons: Wagon[] }>();
 
     wagons.forEach((wagon) => {
-      const parts = wagon.wagon_number.split(',');
-      const clientNameRaw = parts[0] || wagon.wagon_number;
+      const clientNameRaw = splitWagonNumber(wagon.wagon_number).clientName || wagon.wagon_number;
       const key = clientNameRaw.trim().toLowerCase();
       const displayName = clientNameRaw.trim();
 
@@ -436,8 +449,7 @@ const WagonsPage: React.FC = () => {
 
   // Print Wagon
   const printWagon = (wagon: Wagon) => {
-    const parts = wagon.wagon_number.split(",");
-    const clientName = (parts[0] || "").trim();
+    const clientName = splitWagonNumber(wagon.wagon_number).clientName;
 
     printCheque({
       title: "Накладная",
@@ -602,7 +614,7 @@ const WagonsPage: React.FC = () => {
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="font-semibold text-gray-900 text-base md:text-lg">
-                    🚛 {wagon.wagon_number}
+                    🚛 {splitWagonNumber(wagon.wagon_number).wagonNumber || wagon.wagon_number}
                   </h3>
                   <p className="text-xs md:text-sm text-gray-500">{formatDate(wagon.created_at)}</p>
                 </div>
@@ -705,7 +717,9 @@ const WagonsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <div>
-                          <span className="font-semibold text-gray-900">{wagon.wagon_number}</span>
+                          <span className="font-semibold text-gray-900">
+                            {splitWagonNumber(wagon.wagon_number).wagonNumber || wagon.wagon_number}
+                          </span>
                         </div>
                       </div>
                     </td>
@@ -1137,7 +1151,9 @@ const WagonsPage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                         <p className="text-sm text-gray-600 mb-1">Вагон Рақами</p>
-                        <p className="text-lg font-bold text-blue-900">🚛 {selectedWagon.wagon_number}</p>
+                        <p className="text-lg font-bold text-blue-900">
+                          🚛 {splitWagonNumber(selectedWagon.wagon_number).wagonNumber || selectedWagon.wagon_number}
+                        </p>
                       </div>
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                         <p className="text-sm text-gray-600 mb-1">Жами Сумма</p>
