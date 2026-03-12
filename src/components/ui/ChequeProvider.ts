@@ -191,9 +191,8 @@ export function generateChequeHTML(data: ChequeData): string {
   <title>${data.title || RU.title} № ${data.number}</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; }
-    body { font-family: "Times New Roman", Times, serif; padding: 0; margin: 0; font-size: 13px; color: #000; }
-    .page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 0; }
+    body { font-family: "Times New Roman", Times, serif; padding: 30px 40px; max-width: 900px; margin: 0 auto; font-size: 13px; color: #000; }
+    .page { padding: 20px 24px; }
     .doc-type { font-size: 11px; margin-bottom: 4px; }
     .doc-type span { font-size: 13px; }
     h1 { font-size: 18px; font-weight: bold; margin-bottom: 16px; }
@@ -225,13 +224,7 @@ export function generateChequeHTML(data: ChequeData): string {
     .sig-block .sig-line { border-bottom: 1px solid #000; height: 24px; margin-bottom: 2px; display: flex; align-items: flex-end; justify-content: flex-end; padding-right: 8px; font-size: 11px; }
 
     .print-btn { margin-top: 30px; padding: 10px 24px; background: #4F46E5; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; }
-    @page { size: A4 portrait; margin: 0; }
-    @media print {
-      html, body { width: 210mm; height: 297mm; }
-      body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .page { width: 100%; min-height: auto; }
-      .print-btn { display: none !important; }
-    }
+    @media print { .print-btn { display: none !important; } }
   </style>
 </head>
 <body>
