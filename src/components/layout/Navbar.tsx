@@ -35,12 +35,7 @@ export default function Navbar() {
     price: string;
   }>>([{ name: "", quantity: "", unit: "pcs", price: "" }]);
 
-  const getUserDisplayName = () => {
-    if (!user) return "Admin";
-    const { first_name, last_name, name, lastname, uuid } = user as any;
-    const fullName = `${first_name || name || ""} ${last_name || lastname || ""}`.trim();
-    return fullName || name || uuid || "Admin";
-  };
+ 
 
   const escapeHtml = (value: string): string => {
     return value
