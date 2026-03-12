@@ -192,7 +192,7 @@ export function generateChequeHTML(data: ChequeData): string {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; }
-    body { font-family: "Times New Roman", Times, serif; padding: 12mm 10mm; margin: 0; font-size: 13px; color: #000; }
+    body { font-family: "Times New Roman", Times, serif; padding: 0; margin: 0; font-size: 13px; color: #000; }
     .page { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 0; }
     .doc-type { font-size: 11px; margin-bottom: 4px; }
     .doc-type span { font-size: 13px; }
@@ -228,7 +228,7 @@ export function generateChequeHTML(data: ChequeData): string {
     @page { size: A4 portrait; margin: 0; }
     @media print {
       html, body { width: 210mm; height: 297mm; }
-      body { padding: 12mm 10mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .page { width: 100%; min-height: auto; }
       .print-btn { display: none !important; }
     }
