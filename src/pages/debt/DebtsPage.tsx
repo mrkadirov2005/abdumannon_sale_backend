@@ -1013,10 +1013,7 @@ export default function DebtManagement() {
     return list;
   }, [debts, debtTypeFilter, selectedDebtor, searchName, filterBranch, filterStatus, sortKey, sortDirection, filterByDateRange, filterStartDate, filterEndDate]);
 
-  const filteredUnreturned = useMemo(() => {
-    return applyFilters(unreturnedDebts);
-  }, [unreturnedDebts, debtTypeFilter, selectedDebtor, searchName, filterBranch, filterStatus, filterByDateRange, filterStartDate, filterEndDate]);
-
+ 
   const totals = useMemo(() => {
     const total = filteredAndSorted.reduce((sum, debt) => sum + debt.amount, 0);
     const basePaid = filteredAndSorted
