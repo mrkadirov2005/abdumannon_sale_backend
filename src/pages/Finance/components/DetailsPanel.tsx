@@ -10,7 +10,7 @@ interface DetailsPanelProps {
   onDeleteWagon: (wagonId: string) => void;
   onDeleteFinanceRecord: (recordId: number) => void;
   onDeleteDebt: (debtId: string) => void;
-  source: "wagons" | "debts" | "myDebts";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik";
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
@@ -26,6 +26,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     const suffix = currency === "USD" ? "$" : "₽";
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
+  const currency = source === "wagons" || source === "valyutchik" ? "USD" : "RUB";
 
   const personFinanceRecords = financeRecords.filter((record) =>
     record.description?.startsWith(person.name)
@@ -200,19 +201,19 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
           <p className="text-gray-600 text-sm mb-1">Жами Сумма</p>
           <p className="text-3xl font-bold text-blue-600">
-            {formatCurrency(person.totalAmount, source === "wagons" ? "USD" : "RUB")}
+            {formatCurrency(person.totalAmount, currency)}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
           <p className="text-gray-600 text-sm mb-1">Тўланган</p>
           <p className="text-3xl font-bold text-green-600">
-            {formatCurrency(person.paidAmount, source === "wagons" ? "USD" : "RUB")}
+            {formatCurrency(person.paidAmount, currency)}
           </p>
         </div>
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
           <p className="text-gray-600 text-sm mb-1">Қолдиқ Сумма</p>
           <p className="text-3xl font-bold text-orange-600">
-            {formatCurrency(person.remainingAmount, source === "wagons" ? "USD" : "RUB")}
+            {formatCurrency(person.remainingAmount, currency)}
           </p>
         </div>
       </div>
@@ -347,7 +348,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                       {`${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`}
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                      {debt.amount.toLocaleString("en-US")}
+                      {formatCurrency(debt.amount, currency)}
                     </td>
                     <td className="px-4 py-3 text-center space-x-2">
                       <button
@@ -364,7 +365,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                       >
                         <Plus size={18} />
                       </button>
-                      {source === "myDebts" && (
+                      {(source === "myDebts" || source === "valyutchik") && (
                         <button
                           onClick={() => onDeleteDebt(debt.id)}
                           className="text-red-600 hover:text-red-800 transition"
@@ -412,7 +413,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                   }`}
                 >
                   {record.type === "income" ? "+" : "-"}
-                  {formatCurrency(parseFloat(record.amount), source === "wagons" ? "USD" : "RUB")}
+                  {formatCurrency(parseFloat(record.amount), currency)}
                 </p>
               </div>
               <button
@@ -428,3 +429,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     </div>
   );
 };
+
+
+
+

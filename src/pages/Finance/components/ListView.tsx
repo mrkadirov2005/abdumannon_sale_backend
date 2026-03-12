@@ -6,7 +6,7 @@ import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../
 interface ListViewProps {
   wagons: Wagon[];
   debts: Debt[];
-  source: "wagons" | "debts" | "myDebts";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik";
   onDeleteWagon: (wagonId: string) => void;
   onDeleteDebt: (debtId: string) => void;
 }
@@ -22,6 +22,7 @@ export const ListView: React.FC<ListViewProps> = ({
     const suffix = currency === "USD" ? "$" : "₽";
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
+  const debtCurrency = source === "valyutchik" ? "USD" : "RUB";
 
   const printDebt = (debt: Debt) => {
     const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
@@ -100,7 +101,7 @@ export const ListView: React.FC<ListViewProps> = ({
                     {`${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`}
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                    {formatCurrency(debt.amount, "RUB")}
+                    {formatCurrency(debt.amount, debtCurrency)}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span
@@ -121,7 +122,7 @@ export const ListView: React.FC<ListViewProps> = ({
                     >
                       <Printer size={18} />
                     </button>
-                    {source === "myDebts" && (
+                    {(source === "myDebts" || source === "valyutchik") && (
                       <button
                         onClick={() => onDeleteDebt(debt.id)}
                         className="text-red-600 hover:text-red-800 transition ml-3"
@@ -206,3 +207,7 @@ export const ListView: React.FC<ListViewProps> = ({
     </div>
   );
 };
+
+
+
+

@@ -157,10 +157,10 @@ export default function DebtManagement() {
   const token = useSelector(accessTokenFromStore);
   const shop_id = useSelector(getshopidfromstrore);
   const branches = useSelector(getBranchesFromStore);
-  const EXCLUDED_ADMIN_ID = "qarzlarim";
+  const EXCLUDED_ADMIN_IDS = new Set(["qarzlarim", "valyutchik"]);
 
   const filterVisibleDebts = (items: Debt[]) => {
-    return items.filter((d) => d.admin_id !== EXCLUDED_ADMIN_ID);
+    return items.filter((d) => !EXCLUDED_ADMIN_IDS.has(d.admin_id));
   };
 
   /* ================= FETCH DEBTS ================= */

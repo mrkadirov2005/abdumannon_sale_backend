@@ -5,7 +5,7 @@ import type { ViewMode } from "../types";
 
 interface FinanceStatsProps {
   uniquePersons: Person[];
-  source: "wagons" | "debts" | "myDebts";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik";
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onPersonSelect: (person: string | null) => void;
@@ -28,6 +28,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
     (sum, p) => sum + p.remainingAmount,
     0
   );
+  const currency = source === "wagons" || source === "valyutchik" ? "USD" : "RUB";
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -45,7 +46,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {formatCurrency(totalAmount, source === "wagons" ? "USD" : "RUB")}
+          {formatCurrency(totalAmount, currency)}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">
           {uniquePersons.length} та шахс
@@ -63,7 +64,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {formatCurrency(totalPaid, source === "wagons" ? "USD" : "RUB")}
+          {formatCurrency(totalPaid, currency)}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">Берилган пул</p>
       </div>
@@ -79,7 +80,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {formatCurrency(totalRemaining, source === "wagons" ? "USD" : "RUB")}
+          {formatCurrency(totalRemaining, currency)}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">Тўланмаган</p>
       </div>

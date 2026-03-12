@@ -3,8 +3,8 @@ import React from "react";
 interface FinanceHeaderProps {
   onSearchChange: (query: string) => void;
   searchQuery: string;
-  source: "wagons" | "debts" | "myDebts";
-  onSourceChange: (source: "wagons" | "debts" | "myDebts") => void;
+  source: "wagons" | "debts" | "myDebts" | "valyutchik";
+  onSourceChange: (source: "wagons" | "debts" | "myDebts" | "valyutchik") => void;
   onAddMyDebt: () => void;
 }
 
@@ -24,7 +24,7 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
         </p>
       </div>
       <div className="flex items-center gap-2">
-        {source === "myDebts" && (
+        {(source === "myDebts" || source === "valyutchik") && (
           <button
             onClick={onAddMyDebt}
             className="px-3 py-2 rounded-md text-sm font-medium transition bg-green-600 text-white hover:bg-green-700"
@@ -64,8 +64,23 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
         >
           Қарзларим
         </button>
+        <button
+          onClick={() => onSourceChange("valyutchik")}
+          className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+            source === "valyutchik"
+              ? "bg-blue-600 text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          Valyutchik $
+        </button>
         </div>
       </div>
     </header>
   );
 };
+
+
+
+
+

@@ -20,6 +20,7 @@ const Finance: React.FC = () => {
     amount: "",
     comment: "",
     isReturned: false,
+    date: new Date().toISOString().split("T")[0],
   });
   const {
     loading,
@@ -140,7 +141,7 @@ const Finance: React.FC = () => {
         formData={formData}
         onFormChange={(data) => setFormData({ ...formData, ...data })}
         onAddPayment={async () => {
-          if (source === "myDebts" && selectedPersonData) {
+          if ((source === "myDebts" || source === "valyutchik") && selectedPersonData) {
             const amount = parseFloat(formData.amount || "0");
             const delta = formData.type === "income" ? amount : -amount;
             const nextPaid = selectedPersonData.paidAmount + delta;
@@ -162,11 +163,11 @@ const Finance: React.FC = () => {
             amount: "",
             description: "",
             type: "income",
-            category: source === "myDebts" ? "my_debt" : "sales",
+            category: source === "myDebts" || source === "valyutchik" ? "my_debt" : "sales",
             date: new Date().toISOString().split("T")[0],
           });
         }}
-        hideCategory={source === "myDebts"}
+        hideCategory={source === "myDebts" || source === "valyutchik"}
       />
 
       <MyDebtModal
@@ -178,14 +179,27 @@ const Finance: React.FC = () => {
             myDebtForm.lender,
             Number(myDebtForm.amount),
             myDebtForm.comment,
-            myDebtForm.isReturned
+            myDebtForm.isReturned,
+            myDebtForm.date
           );
           setShowMyDebtModal(false);
-          setMyDebtForm({ lender: "", amount: "", comment: "", isReturned: false });
+          setMyDebtForm({
+            lender: "",
+            amount: "",
+            comment: "",
+            isReturned: false,
+            date: new Date().toISOString().split("T")[0],
+          });
         }}
         onClose={() => {
           setShowMyDebtModal(false);
-          setMyDebtForm({ lender: "", amount: "", comment: "", isReturned: false });
+          setMyDebtForm({
+            lender: "",
+            amount: "",
+            comment: "",
+            isReturned: false,
+            date: new Date().toISOString().split("T")[0],
+          });
         }}
       />
     </div>

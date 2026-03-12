@@ -23,6 +23,7 @@ const getHeaders = () => {
 };
 
 const MY_DEBTS_ADMIN_ID = "qarzlarim";
+const VALYUTCHIK_ADMIN_ID = "valyutchik";
 
 export const useFinanceLogic = (source: FinanceSource) => {
   const [wagons, setWagons] = useState<Wagon[]>([]);
@@ -64,7 +65,12 @@ export const useFinanceLogic = (source: FinanceSource) => {
       const normalizedDebts = Array.isArray(rawDebts)
         ? rawDebts.map((debt) => ({
             ...debt,
-            admin_id: debt.admin_id === MY_DEBTS_ADMIN_ID ? MY_DEBTS_ADMIN_ID : "qarzdorlar",
+            admin_id:
+              debt.admin_id === MY_DEBTS_ADMIN_ID
+                ? MY_DEBTS_ADMIN_ID
+                : debt.admin_id === VALYUTCHIK_ADMIN_ID
+                ? VALYUTCHIK_ADMIN_ID
+                : "qarzdorlar",
           }))
         : rawDebts;
       setDebts(normalizedDebts);
@@ -80,8 +86,13 @@ export const useFinanceLogic = (source: FinanceSource) => {
     if (source === "myDebts") {
       return debts.filter((d) => d.admin_id === MY_DEBTS_ADMIN_ID);
     }
+    if (source === "valyutchik") {
+      return debts.filter((d) => d.admin_id === VALYUTCHIK_ADMIN_ID);
+    }
     if (source === "debts") {
-      return debts.filter((d) => d.admin_id !== MY_DEBTS_ADMIN_ID);
+      return debts.filter(
+        (d) => d.admin_id !== MY_DEBTS_ADMIN_ID && d.admin_id !== VALYUTCHIK_ADMIN_ID
+      );
     }
     return debts;
   }, [debts, source]);
@@ -241,7 +252,9 @@ export const useFinanceLogic = (source: FinanceSource) => {
           amount: parseFloat(formData.amount),
         });
 
-        const categoryToSend = source === "myDebts" ? "my_debt" : formData.category;
+        const categoryToSend = source === "myDebts" || source === "valyutchik"
+          ? "my_debt"
+          : formData.category;
 
         const response = await fetch(`${DEFAULT_ENDPOINT}/finance`, {
           method: "POST",
@@ -265,7 +278,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
             amount: "",
             description: "",
             type: "income",
-            category: source === "myDebts" ? "my_debt" : "sales",
+            category: source === "myDebts" || source === "valyutchik" ? "my_debt" : "sales",
             date: new Date().toISOString().split("T")[0],
           });
           fetchData();
@@ -277,7 +290,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
         toast.error("Pul qo'shishda xatolik");
       }
     },
-    [formData, fetchData]
+    [formData, fetchData, source]
   );
 
   const handleDeleteDebt = useCallback(
@@ -336,7 +349,8 @@ export const useFinanceLogic = (source: FinanceSource) => {
       lender: string,
       amount: number,
       comment: string,
-      isReturned: boolean
+      isReturned: boolean,
+      date: string
     ) => {
       if (!lender?.trim() || !amount) {
         toast.error("Iltimos, qarz beruvchi va summani kiriting");
@@ -345,6 +359,12 @@ export const useFinanceLogic = (source: FinanceSource) => {
 
       try {
         const nameValue = lender.trim();
+        const parsedDate = date ? new Date(date) : new Date();
+        const safeDate = isNaN(parsedDate.getTime()) ? new Date() : parsedDate;
+        const day = safeDate.getDate();
+        const month = safeDate.getMonth() + 1;
+        const year = safeDate.getFullYear();
+        const created_at = safeDate.toISOString().split("T")[0];
         const response = await fetch(`${DEFAULT_ENDPOINT}/debts/create`, {
           method: "POST",
           headers: getHeaders(),
@@ -354,8 +374,12 @@ export const useFinanceLogic = (source: FinanceSource) => {
             product_names: comment ? [comment] : [],
             branch_id: 1,
             shop_id,
-            admin_id: MY_DEBTS_ADMIN_ID,
+            admin_id: source === "valyutchik" ? VALYUTCHIK_ADMIN_ID : MY_DEBTS_ADMIN_ID,
             isreturned: isReturned,
+            day,
+            month,
+            year,
+            created_at,
           }),
         });
 
@@ -372,7 +396,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
         toast.error("Qarz qo'shishda xatolik");
       }
     },
-    [fetchData, shop_id]
+    [fetchData, shop_id, source]
   );
 
   return {
