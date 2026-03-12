@@ -8,6 +8,7 @@ interface ListViewProps {
   debts: Debt[];
   source: "wagons" | "debts" | "myDebts";
   onDeleteWagon: (wagonId: string) => void;
+  onDeleteDebt: (debtId: string) => void;
 }
 
 export const ListView: React.FC<ListViewProps> = ({
@@ -15,6 +16,7 @@ export const ListView: React.FC<ListViewProps> = ({
   debts,
   source,
   onDeleteWagon,
+  onDeleteDebt,
 }) => {
   const formatCurrency = (value: number, currency: "USD" | "RUB") => {
     const suffix = currency === "USD" ? "$" : "₽";
@@ -72,19 +74,19 @@ export const ListView: React.FC<ListViewProps> = ({
             <thead className="bg-gray-100 border-b">
               <tr>
                 <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                  Mijoz
+                  Мижоз
                 </th>
                 <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                  Sana
+                  Сана
                 </th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                  Summa
+                  Сумма
                 </th>
                 <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                  Holat
+                  Ҳолат
                 </th>
                 <th className="px-4 py-3 text-center font-semibold text-gray-700">
-                  Amallar
+                  Амаллар
                 </th>
               </tr>
             </thead>
@@ -115,10 +117,19 @@ export const ListView: React.FC<ListViewProps> = ({
                     <button
                       onClick={() => printDebt(debt)}
                       className="text-purple-600 hover:text-purple-800 transition"
-                      title="Chop Etish"
+                      title="Чоп Етиш"
                     >
                       <Printer size={18} />
                     </button>
+                    {source === "myDebts" && (
+                      <button
+                        onClick={() => onDeleteDebt(debt.id)}
+                        className="text-red-600 hover:text-red-800 transition ml-3"
+                        title="Ўчириш"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -136,19 +147,19 @@ export const ListView: React.FC<ListViewProps> = ({
           <thead className="bg-gray-100 border-b">
             <tr>
               <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                Vagon Raqami
+                Вагон Рақами
               </th>
               <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                Jami Summa
+                Жами Сумма
               </th>
               <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                To'langan
+                Тўланган
               </th>
               <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                Qoldiq
+                Қолдиқ
               </th>
               <th className="px-4 py-3 text-center font-semibold text-gray-700">
-                Amallar
+                Амаллар
               </th>
             </tr>
           </thead>
@@ -175,14 +186,14 @@ export const ListView: React.FC<ListViewProps> = ({
                   <button
                     onClick={() => printWagon(wagon)}
                     className="text-purple-600 hover:text-purple-800 transition mr-2"
-                    title="Chop Etish"
+                    title="Чоп Етиш"
                   >
                     <Printer size={18} />
                   </button>
                   <button
                     onClick={() => onDeleteWagon(wagon.id)}
                     className="text-red-600 hover:text-red-800 transition"
-                    title="O'chirish"
+                    title="Ўчириш"
                   >
                     <Trash2 size={18} />
                   </button>

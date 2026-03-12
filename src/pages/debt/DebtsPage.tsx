@@ -56,6 +56,17 @@ interface DebtorSummary {
   debts: Debt[];
 }
 
+interface FinanceRecord {
+  id: number;
+  amount: string;
+  description?: string;
+  type: "income" | "expense";
+  category: string;
+  date: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 // Add this interface for product entries
 interface ProductEntry {
   id: string;
@@ -82,6 +93,8 @@ export default function DebtManagement() {
     return found ? found.label : normalized;
   };
   const [debts, setDebts] = useState<Debt[]>([]);
+  const [unreturnedDebts, setUnreturnedDebts] = useState<Debt[]>([]);
+  const [financeRecords, setFinanceRecords] = useState<FinanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [, setStatistics] = useState<DebtStatistics | null>(null);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
@@ -168,7 +181,7 @@ export default function DebtManagement() {
       toast.success(`${json.data?.length || 0} ta qarz yuklandi`);
     } catch (err) {
       console.error(err);
-      toast.error("Qarzlarni yuklashda xatolik");
+      toast.error("Қарзларни юклашда хатолик");
     } finally {
       setLoading(false);
     }
@@ -193,13 +206,13 @@ export default function DebtManagement() {
       setStatistics(json.data);
     } catch (err) {
       console.error(err);
-      toast.error("Statistikani yuklashda xatolik");
+      toast.error("Статистикани юклашда хатолик");
     }
   };
 
   const fetchUnreturnedDebts = async () => {
     try {
-      const toastId = toast.loading("Qaytarilmagan qarzlar yuklanmoqda...");
+      const toastId = toast.loading("Қайтарилмаган қарзлар юкланмоқда...");
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.unreturned}`, {
         method: "POST",
         headers: {
@@ -215,21 +228,65 @@ export default function DebtManagement() {
 
       const json = await res.json();
       setDebts(json.data || []);
+      setUnreturnedDebts(json.data || []);
       toast.update(toastId, {
-        render: `âœ… ${json.data?.length || 0} ta qaytarilmagan qarz yuklandi`,
+        render: ` ${json.data?.length || 0} ta qaytarilmagan qarz yuklandi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
       });
     } catch (err) {
       console.error(err);
-      toast.error("Qaytarilmagan qarzlarni yuklashda xatolik");
+      toast.error("Қайтарилмаган қарзларни юклашда хатолик");
+    }
+  };
+
+  const fetchUnreturnedDebtsCache = async () => {
+    try {
+      const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.unreturned}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ?? "",
+        },
+        body: JSON.stringify({ shop_id }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch unreturned debts");
+      }
+
+      const json = await res.json();
+      setUnreturnedDebts(json.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchFinanceRecords = async () => {
+    try {
+      const res = await fetch(`${DEFAULT_ENDPOINT}/finance`, {
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ?? "",
+        },
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch finance records");
+      }
+
+      const json = await res.json();
+      const records = json.data || json;
+      setFinanceRecords(Array.isArray(records) ? records : []);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   const fetchDebtsByBranch = async (branchId: string) => {
     try {
-      const toastId = toast.loading("Filial qarzlari yuklanmoqda...");
+      const toastId = toast.loading("Филиал қарзлари юкланмоқда...");
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.byBranch}`, {
         method: "POST",
         headers: {
@@ -247,14 +304,14 @@ export default function DebtManagement() {
       const json = await res.json();
       setDebts(json.data || []);
       toast.update(toastId, {
-        render: `âœ… Ushbu filial uchun ${json.data?.length || 0} ta qarz yuklandi`,
+        render: `Ushbu filial uchun ${json.data?.length || 0} ta qarz yuklandi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
       });
     } catch (err) {
       console.error(err);
-      toast.error("Filial qarzlarini yuklashda xatolik");
+      toast.error("Филиал қарзларини юклашда хатолик");
     }
   };
 
@@ -265,7 +322,7 @@ export default function DebtManagement() {
     }
 
     try {
-      const toastId = toast.loading("Qarzlar qidirilmoqda...");
+      const toastId = toast.loading("Қарзлар қидирилмоқда...");
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.byCustomer}`, {
         method: "POST",
         headers: {
@@ -282,20 +339,20 @@ export default function DebtManagement() {
       const json = await res.json();
       setDebts(json.data || []);
       toast.update(toastId, {
-        render: `âœ… "${customerName}" uchun ${json.data?.length || 0} ta qarz topildi`,
+        render: ` "${customerName}" uchun ${json.data?.length || 0} ta qarz topildi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
       });
     } catch (err) {
       console.error(err);
-      toast.error("Mijoz qarzlarini yuklashda xatolik");
+      toast.error("Мижоз қарзларини юклашда хатолик");
     }
   };
 
   const fetchDebtById = async (debtId: string) => {
     try {
-      const toastId = toast.loading("Qarz ma'lumotlari yuklanmoqda...");
+      const toastId = toast.loading("Қарз ма'лумотлари юкланмоқда...");
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.byId}`, {
         method: "POST",
         headers: {
@@ -313,14 +370,14 @@ export default function DebtManagement() {
       setSelectedDebt(json.data);
       setShowDebtDetail(true);
       toast.update(toastId, {
-        render: "âœ… Qarz ma'lumotlari yuklandi",
+        render: " Qarz ma'lumotlari yuklandi",
         type: "success",
         isLoading: false,
         autoClose: 2000,
       });
     } catch (err) {
       console.error(err);
-      toast.error("Qarz ma'lumotlarini yuklashda xatolik");
+      toast.error("Қарз ма'лумотларини юклашда хатолик");
     }
   };
 
@@ -328,6 +385,8 @@ export default function DebtManagement() {
     if (token && shop_id) {
       fetchDebts();
       fetchStatistics();
+      fetchUnreturnedDebtsCache();
+      fetchFinanceRecords();
     }
   }, [token, shop_id]);
 
@@ -418,7 +477,7 @@ export default function DebtManagement() {
       : Number(currentProduct.price);
 
     if (!currentProduct.name || !Number.isFinite(quantity) || quantity < 1 || !Number.isFinite(price) || price < 0) {
-      toast.error("Barcha mahsulot maydonlarini to'ldiring");
+      toast.error("Барча маҳсулот майдонларини тўлдиринг");
       return;
     }
 
@@ -463,12 +522,12 @@ export default function DebtManagement() {
     e.preventDefault();
 
     if (!formData.name || productEntries.length === 0) {
-      toast.error("Barcha majburiy maydonlarni to'ldiring");
+      toast.error("Барча мажбурий майдонларни тўлдиринг");
       return;
     }
 
     try {
-      const toastId = toast.loading("Qarz yaratilmoqda...");
+      const toastId = toast.loading("Қарз яратилмоқда...");
       const productNamesArray = formatProductsToArray(productEntries);
       const totalAmount = calculateTotalFromProducts(productEntries);
 
@@ -484,7 +543,7 @@ export default function DebtManagement() {
           product_names: productNamesArray,
           branch_id: typeof formData.branch_id === 'string' ? parseInt(formData.branch_id) : formData.branch_id,
           shop_id,
-          admin_id: "qarzlarim",
+          admin_id: "qarzdorlar",
         }),
       });
 
@@ -494,6 +553,7 @@ export default function DebtManagement() {
 
       const json = await res.json();
       setDebts([json.data, ...debts]);
+      fetchUnreturnedDebtsCache();
       setShowCreateModal(false);
       setFormData({ 
         name: "", 
@@ -513,7 +573,7 @@ export default function DebtManagement() {
       setDebtorNameInput("");
       setShowSuggestions(false);
       toast.update(toastId, {
-        render: `âœ… ${json.data.name} uchun qarz yaratildi`,
+        render: ` ${json.data.name} uchun qarz yaratildi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -521,7 +581,7 @@ export default function DebtManagement() {
       fetchStatistics();
     } catch (err: any) {
       console.error(err);
-      toast.error(`âŒ Qarz yaratishda xatolik: ${err.message}`);
+      toast.error(` Qarz yaratishda xatolik: ${err.message}`);
     }
   };
 
@@ -531,7 +591,7 @@ export default function DebtManagement() {
     if (!editingDebt) return;
 
     try {
-      const toastId = toast.loading("âœï¸ Qarz yangilanmoqda...");
+      const toastId = toast.loading(" Қарз янгиланмоқда...");
       
       // If editing with new products, format them; otherwise keep original format
       const productString = productEntries.length > 0 
@@ -571,7 +631,7 @@ export default function DebtManagement() {
         branch_id: isSuperAdmin ? 1 : (authData.user as unknown as Admin).branch, 
       });
       toast.update(toastId, {
-        render: "âœ… Qarz muvaffaqiyatli yangilandi",
+        render: " Qarz muvaffaqiyatli yangilandi",
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -579,7 +639,7 @@ export default function DebtManagement() {
       fetchStatistics();
     } catch (err: any) {
       console.error(err);
-      toast.error(`âŒ Qarzni yangilashda xatolik: ${err.message}`);
+      toast.error(`   Œ Qarzni yangilashda xatolik: ${err.message}`);
     }
   };
 
@@ -589,7 +649,7 @@ export default function DebtManagement() {
     }
 
     try {
-      const toastId = toast.loading("Qarz o'chirilmoqda...");
+      const toastId = toast.loading("Қарз ўчирилмоқда...");
       
       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.delete}`, {
         method: "DELETE",
@@ -606,8 +666,9 @@ export default function DebtManagement() {
       }
 
       setDebts(debts.filter((d) => d.id !== debtId));
+      fetchUnreturnedDebtsCache();
       toast.update(toastId, {
-        render: "âœ… Qarz muvaffaqiyatli o'chirildi",
+        render: " Qarz muvaffaqiyatli o'chirildi",
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -615,7 +676,7 @@ export default function DebtManagement() {
       fetchStatistics();
     } catch (err: any) {
       console.error(err);
-      toast.error(`âŒ Qarzni o'chirishda xatolik: ${err.message}`);
+      toast.error(`   Œ Qarzni o'chirishda xatolik: ${err.message}`);
     }
   };
 
@@ -638,6 +699,39 @@ export default function DebtManagement() {
   /* ================= HELPERS ================= */
 
   // NEW: Get unique debtors
+  const unreturnedByName = useMemo(() => {
+    let list = unreturnedDebts;
+    if (debtTypeFilter === "given") {
+      list = unreturnedDebts.filter((d) => d.branch_id === 0);
+    } else if (debtTypeFilter === "taken") {
+      list = unreturnedDebts.filter((d) => d.branch_id === 1);
+    }
+
+    const map = new Map<string, number>();
+    list.forEach((debt) => {
+      const normalizedName = debt.name.trim().toLowerCase();
+      map.set(normalizedName, (map.get(normalizedName) || 0) + debt.amount);
+    });
+
+    return map;
+  }, [unreturnedDebts, debtTypeFilter]);
+
+  const paymentsByName = useMemo(() => {
+    const map = new Map<string, number>();
+    financeRecords.forEach((record) => {
+      if (record.type !== "income") return;
+      if (record.category === "my_debt") return;
+      const descriptionParts = record.description?.split(": ") || [];
+      const rawPersonName = (descriptionParts[0] || "").trim();
+      if (!rawPersonName) return;
+      const key = rawPersonName.toLowerCase();
+      const amount = Number.parseFloat(record.amount || "0");
+      if (!Number.isFinite(amount)) return;
+      map.set(key, (map.get(key) || 0) + amount);
+    });
+    return map;
+  }, [financeRecords]);
+
   const getUniqueDebtors = useMemo((): DebtorSummary[] => {
     const debtorMap = new Map<string, DebtorSummary>();
 
@@ -665,18 +759,27 @@ export default function DebtManagement() {
       const summary = debtorMap.get(normalizedName)!;
       summary.totalDebts++;
       summary.totalAmount += debt.amount;
-      if (debt.isreturned) {
-        summary.returnedAmount += debt.amount;
-      } else {
-        summary.unreturnedAmount += debt.amount;
-      }
       summary.debts.push(debt);
     });
 
-    return Array.from(debtorMap.values()).sort((a, b) => 
-      b.unreturnedAmount - a.unreturnedAmount
-    );
-  }, [debts, debtTypeFilter]);
+    const normalized = Array.from(debtorMap.values()).map((summary) => {
+      const key = summary.name.trim().toLowerCase();
+      const basePaid = summary.debts
+        .filter((d) => d.isreturned)
+        .reduce((sum, d) => sum + d.amount, 0);
+      const baseRemaining = Math.max(0, summary.totalAmount - basePaid);
+      const payments = paymentsByName.get(key) || 0;
+      const returnedAmount = basePaid + payments;
+      const unreturnedAmount = Math.max(0, baseRemaining - payments);
+      return {
+        ...summary,
+        unreturnedAmount,
+        returnedAmount,
+      };
+    });
+
+    return normalized.sort((a, b) => b.unreturnedAmount - a.unreturnedAmount);
+  }, [debts, debtTypeFilter, paymentsByName, unreturnedByName]);
 
   // NEW: Filter debtors for autocomplete
   const filteredDebtorSuggestions = useMemo(() => {
@@ -750,10 +853,10 @@ export default function DebtManagement() {
       link.download = `qarzlar_${new Date().toISOString().split("T")[0]}.csv`;
       link.click();
       window.URL.revokeObjectURL(url);
-      toast.success("âœ… Qarzlar CSV formatida yuklandi");
+      toast.success(" Қарзлар ЦСВ форматида юкланди");
     } catch (err) {
       console.error(err);
-      toast.error("Qarzlarni eksport qilishda xatolik");
+      toast.error("Қарзларни експорт қилишда хатолик");
     }
   };
 
@@ -769,7 +872,7 @@ export default function DebtManagement() {
           total: Number(p.price) * Number(p.quantity),
         }))
       : [{
-          name: formatProductsForDisplay(debt.product_names) || "â€”",
+          name: formatProductsForDisplay(debt.product_names) || " €”",
           quantity: 1,
           unit: "pcs",
           price: debt.amount,
@@ -777,7 +880,7 @@ export default function DebtManagement() {
         }];
 
     printCheque({
-      title: "ÐÐ°ÐºÐ»Ð°Ð´Ð½Ð°Ñ",
+      title: "Ð  Ð°ÐºÐ»Ð°Ð´Ð½Ð°Ñ",
       number: generateChequeNumber(),
       date: formatDate(debt),
       supplier: DEFAULT_SUPPLIER_HTML,
@@ -792,18 +895,18 @@ export default function DebtManagement() {
 
   // NEW: Print all debts
   const printAllDebts = () => {
-    const totalAmount = filteredAndSorted.reduce((sum, d) => sum + d.amount, 0);
-    const returnedAmount = filteredAndSorted.filter(d => d.isreturned).reduce((sum, d) => sum + d.amount, 0);
-    const unreturnedAmount = filteredAndSorted.filter(d => !d.isreturned).reduce((sum, d) => sum + d.amount, 0);
+    const totalAmount = totals.total;
+    const unreturnedAmount = totals.unreturned;
+    const returnedAmount = totals.returned;
 
     printCheque({
       title: "ÐžÑ‚Ñ‡Ñ‘Ñ‚ Ð¿Ð¾ Ð´Ð¾Ð»Ð³Ð°Ð¼",
       number: generateChequeNumber(),
       date: new Date(),
       supplier: DEFAULT_SUPPLIER_HTML,
-      buyer: `Ð˜Ñ‚Ð¾Ð³Ð¾ Ð·Ð°Ð¿Ð¸ÑÐµÐ¹: ${filteredAndSorted.length} | Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰ÐµÐ½Ð¾: ${returnedAmount.toLocaleString("en-US")} | ÐÐµ Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰ÐµÐ½Ð¾: ${unreturnedAmount.toLocaleString("en-US")}`,
+      buyer: `Ð˜Ñ‚Ð¾Ð³Ð¾ Ð·Ð°Ð¿Ð¸ÑÐµÐ¹: ${filteredAndSorted.length} | Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‰ÐµÐ½Ð¾: ${returnedAmount.toLocaleString("en-US")} | Ð  Ðµ Ð²Ð¾Ð·Ð²Ñ€Ð°Ñ‰ÐµÐ½Ð¾: ${unreturnedAmount.toLocaleString("en-US")}`,
       products: filteredAndSorted.map((debt) => ({
-        name: `${debt.name} (${formatDate(debt)}) ${debt.isreturned ? "âœ“" : "â³"}`,
+        name: `${debt.name} (${formatDate(debt)}) ${debt.isreturned ? "ha" : "yoq"}`,
         quantity: 1,
         unit: "pcs",
         price: debt.amount,
@@ -855,17 +958,15 @@ export default function DebtManagement() {
 
   /* ================= FILTER + SORT ================= */
 
-  const filteredAndSorted = useMemo(() => {
-    let list = [...debts];
+  const applyFilters = (input: Debt[]) => {
+    let list = [...input];
 
-    // Filter by debt type using branch_id
     if (debtTypeFilter === "given") {
       list = list.filter((d) => d.branch_id === 0);
     } else if (debtTypeFilter === "taken") {
       list = list.filter((d) => d.branch_id === 1);
     }
 
-    // If a debtor is selected in folder view, filter to their debts only
     if (selectedDebtor) {
       list = list.filter((d) => d.name.toLowerCase() === selectedDebtor.toLowerCase());
     }
@@ -888,6 +989,11 @@ export default function DebtManagement() {
       list = list.filter((d) => isDateInRange(d));
     }
 
+    return list;
+  };
+
+  const filteredAndSorted = useMemo(() => {
+    const list = applyFilters(debts);
     list.sort((a, b) => {
       const dir = sortDirection === "asc" ? 1 : -1;
       switch (sortKey) {
@@ -907,20 +1013,75 @@ export default function DebtManagement() {
     return list;
   }, [debts, debtTypeFilter, selectedDebtor, searchName, filterBranch, filterStatus, sortKey, sortDirection, filterByDateRange, filterStartDate, filterEndDate]);
 
+  const filteredUnreturned = useMemo(() => {
+    return applyFilters(unreturnedDebts);
+  }, [unreturnedDebts, debtTypeFilter, selectedDebtor, searchName, filterBranch, filterStatus, filterByDateRange, filterStartDate, filterEndDate]);
+
   const totals = useMemo(() => {
-    return filteredAndSorted.reduce(
-      (acc, debt) => {
-        acc.total += debt.amount;
-        if (!debt.isreturned) {
-          acc.unreturned += debt.amount;
-        } else {
-          acc.returned += debt.amount;
-        }
-        return acc;
-      },
-      { total: 0, unreturned: 0, returned: 0 }
-    );
-  }, [filteredAndSorted]);
+    const total = filteredAndSorted.reduce((sum, debt) => sum + debt.amount, 0);
+    const basePaid = filteredAndSorted
+      .filter((d) => d.isreturned)
+      .reduce((sum, d) => sum + d.amount, 0);
+    const baseRemaining = Math.max(0, total - basePaid);
+
+    const uniqueNames = new Set(filteredAndSorted.map((d) => d.name.trim().toLowerCase()));
+    let payments = 0;
+    uniqueNames.forEach((key) => {
+      payments += paymentsByName.get(key) || 0;
+    });
+
+    const returned = basePaid + payments;
+    const unreturned = Math.max(0, baseRemaining - payments);
+    return { total, unreturned, returned };
+  }, [filteredAndSorted, paymentsByName]);
+
+  const moliyaStats = useMemo(() => {
+    const sumAmount = (list: Debt[]) => list.reduce((sum, d) => sum + d.amount, 0);
+
+    const totalTaken = debts.filter((d) => d.branch_id === 1);
+    const totalGiven = debts.filter((d) => d.branch_id === 0);
+
+    const totalTakenAmount = sumAmount(totalTaken);
+    const totalGivenAmount = sumAmount(totalGiven);
+    const basePaidTaken = sumAmount(totalTaken.filter((d) => d.isreturned));
+    const basePaidGiven = sumAmount(totalGiven.filter((d) => d.isreturned));
+    const baseRemainingTaken = Math.max(0, totalTakenAmount - basePaidTaken);
+    const baseRemainingGiven = Math.max(0, totalGivenAmount - basePaidGiven);
+
+    let paymentsTaken = 0;
+    let paymentsGiven = 0;
+    const takenNames = new Set(totalTaken.map((d) => d.name.trim().toLowerCase()));
+    const givenNames = new Set(totalGiven.map((d) => d.name.trim().toLowerCase()));
+    paymentsByName.forEach((amount, nameKey) => {
+      if (takenNames.has(nameKey)) paymentsTaken += amount;
+      if (givenNames.has(nameKey)) paymentsGiven += amount;
+    });
+
+    const unreturnedTakenAmount = Math.max(0, baseRemainingTaken - paymentsTaken);
+    const unreturnedGivenAmount = Math.max(0, baseRemainingGiven - paymentsGiven);
+    const returnedTakenAmount = basePaidTaken + paymentsTaken;
+    const returnedGivenAmount = basePaidGiven + paymentsGiven;
+
+    const unreturnedTakenCount = totalTaken.filter((d) => !d.isreturned).length;
+    const unreturnedGivenCount = totalGiven.filter((d) => !d.isreturned).length;
+    const returnedTakenCount = totalTaken.filter((d) => d.isreturned).length;
+    const returnedGivenCount = totalGiven.filter((d) => d.isreturned).length;
+
+    return {
+      totalTakenCount: totalTaken.length,
+      totalGivenCount: totalGiven.length,
+      totalTakenAmount,
+      totalGivenAmount,
+      unreturnedTakenCount,
+      unreturnedGivenCount,
+      unreturnedTakenAmount,
+      unreturnedGivenAmount,
+      returnedTakenCount,
+      returnedGivenCount,
+      returnedTakenAmount,
+      returnedGivenAmount,
+    };
+  }, [debts, paymentsByName]);
 
   /* ================= UI ================= */
 
@@ -929,7 +1090,7 @@ export default function DebtManagement() {
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Qarzlar yuklanmoqda...</p>
+          <p className="text-gray-600">Қарзлар юкланмоқда...</p>
         </div>
       </div>
     );
@@ -941,21 +1102,21 @@ export default function DebtManagement() {
       {/* Header */}
       <header className="mb-4 sm:mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">Qarz Boshqaruvi</h1>
-          <p className="text-sm sm:text-base md:text-lg text-gray-600">Mijozlar qarzlarini kuzatish va boshqarish</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">Қарз Бошқаруви</h1>
+          <p className="text-sm sm:text-base md:text-lg text-gray-600">Мижозлар қарзларини кузатиш ва бошқариш</p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
           className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2 shadow-lg"
         >
-          <Plus size={20} /> Yangi Qarz
+          <Plus size={20} /> Янги Қарз
         </button>
       </header>
 
       {/* View Mode Toggle */}
       <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mb-4 sm:mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
-          <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">Ko'rinish Rejimi</h3>
+          <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">Кўриниш Режими</h3>
           <div className="flex gap-2 w-full md:w-auto flex-wrap">
             <button
               onClick={() => {
@@ -969,7 +1130,7 @@ export default function DebtManagement() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              <Folder size={18} /> Qarzdorlar
+              <Folder size={18} /> Қарздорлар
             </button>
             <button
               onClick={() => {
@@ -982,7 +1143,7 @@ export default function DebtManagement() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              <DollarSign size={18} /> Barcha Qarzlar
+              <DollarSign size={18} /> Барча Қарзлар
             </button>
             <button
               onClick={() => {
@@ -995,7 +1156,7 @@ export default function DebtManagement() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              Statistika
+              Статистика
             </button>
           </div>
         </div>
@@ -1010,7 +1171,7 @@ export default function DebtManagement() {
               <Search className="absolute left-3 top-3 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Mijoz nomi bo'yicha qidirish..."
+                placeholder="Мижоз номи бўйича қидириш..."
                 value={searchName}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -1039,7 +1200,7 @@ export default function DebtManagement() {
             }}
             className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
           >
-            <option value="">Barcha Filiallar</option>
+            <option value="">Барча Филиаллар</option>
             {branches.branches?.map((branch) => (
               <option key={String(branch.id)} value={branch.id}>
                 {branch.name || "Unknown"}
@@ -1053,9 +1214,9 @@ export default function DebtManagement() {
             onChange={(e) => setFilterStatus(e.target.value as any)}
             className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
           >
-            <option value="all">Barcha Holatlar</option>
-            <option value="unreturned">Faqat Qaytarilmagan</option>
-            <option value="returned">Faqat Qaytarilgan</option>
+            <option value="all">Барча Ҳолатлар</option>
+            <option value="unreturned">Фақат Қайтарилмаган</option>
+            <option value="returned">Фақат Қайтарилган</option>
           </select>
 
           {/* Advanced Filters Toggle */}
@@ -1063,7 +1224,7 @@ export default function DebtManagement() {
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            <Filter size={18} /> Qo'shimcha
+            <Filter size={18} /> Қўшимча
           </button>
 
           {/* Export Button */}
@@ -1071,7 +1232,7 @@ export default function DebtManagement() {
             onClick={exportToCSV}
             className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 border border-green-300 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            <Download size={18} /> Yuklash
+            <Download size={18} /> Юклаш
           </button>
 
           {/* Print Button */}
@@ -1079,7 +1240,7 @@ export default function DebtManagement() {
             onClick={printAllDebts}
             className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 border border-purple-300 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            Barchasini Chop Etish
+            Барчасини Чоп Етиш
           </button>
 
           {/* Print by Debtors Button */}
@@ -1087,7 +1248,7 @@ export default function DebtManagement() {
             onClick={printByDebtors}
             className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 border border-indigo-300 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition font-medium flex items-center justify-center gap-2 text-sm sm:text-base"
           >
-            Qarzdorlar Bo'yicha Chop Etish
+            Қарздорлар Бўйича Чоп Етиш
           </button>
 
           {/* Quick Filter Buttons */}
@@ -1098,17 +1259,17 @@ export default function DebtManagement() {
             }}
             className="flex-1 sm:flex-none px-3 sm:px-4 py-2.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition font-medium text-sm"
           >
-            Qaytarilmagan
+            Қайтарилмаган
           </button>
         </div>
 
         {/* Advanced Filters */}
         {showAdvancedFilters && (
           <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Qo'shimcha Filtrlar</h3>
+            <h3 className="font-semibold text-gray-800 mb-3">Қўшимча Филтрлар</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Boshlanish Sanasi</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Бошланиш Санаси</label>
                 <input
                   type="date"
                   value={filterStartDate}
@@ -1117,7 +1278,7 @@ export default function DebtManagement() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tugash Sanasi</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Тугаш Санаси</label>
                 <input
                   type="date"
                   value={filterEndDate}
@@ -1133,7 +1294,7 @@ export default function DebtManagement() {
                     onChange={(e) => setFilterByDateRange(e.target.checked)}
                     className="w-5 h-5 text-blue-600 rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">Oraliq bo'yicha Filtrlash</span>
+                  <span className="text-sm font-medium text-gray-700">Оралиқ бўйича Филтрлаш</span>
                 </label>
                 <button
                   onClick={() => {
@@ -1143,7 +1304,7 @@ export default function DebtManagement() {
                   }}
                   className="ml-auto px-3 py-2 text-xs bg-white border border-gray-300 rounded hover:bg-gray-50"
                 >
-                  Tozalash
+                  Тозалаш
                 </button>
               </div>
             </div>
@@ -1153,19 +1314,19 @@ export default function DebtManagement() {
         {/* Filtered Totals */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-sm">
           <div className="p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Yozuvlar</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Ёзувлар</p>
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900">{filteredAndSorted.length}</p>
           </div>
           <div className="p-3 md:p-4 bg-purple-50 rounded-lg border border-purple-200">
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Jami Summa</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Жами Сумма</p>
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-900">{totals.total.toLocaleString("en-US")}</p>
           </div>
           <div className="p-3 md:p-4 bg-red-50 rounded-lg border border-red-200">
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Qaytarilmagan</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Қайтарилмаган</p>
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-900">{totals.unreturned.toLocaleString("en-US")}</p>
           </div>
           <div className="p-3 md:p-4 bg-green-50 rounded-lg border border-green-200">
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Qaytarilgan</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Қайтарилган</p>
             <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-900">{totals.returned.toLocaleString("en-US")}</p>
           </div>
         </div>
@@ -1175,41 +1336,41 @@ export default function DebtManagement() {
       {viewMode === "statistics" && (
         <div className="space-y-4">
           <div className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-6">Qarz Statistikasi Ko'rinishi</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-6">Қарз Статистикаси Кўриниши</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {/* Given Debts (Berilgan Nasiya) */}
               <div className="border-2 border-blue-200 rounded-lg p-4 sm:p-5 md:p-6 bg-blue-50">
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
-                  Berilgan Nasiya
+                  Берилган Насия
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between py-2 border-b border-blue-200">
-                    <span className="text-gray-700">Jami Soni:</span>
-                    <span className="font-bold text-blue-900">{debts.filter(d => d.branch_id === 0).length}</span>
+                    <span className="text-gray-700">Жами Сони:</span>
+                    <span className="font-bold text-blue-900">{moliyaStats.totalGivenCount}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-blue-200">
-                    <span className="text-gray-700">Jami Summa:</span>
+                    <span className="text-gray-700">Жами Сумма:</span>
                     <span className="font-bold text-blue-900">
-                      {debts.filter(d => d.branch_id === 0).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
+                      {moliyaStats.totalGivenAmount.toLocaleString("en-US")} ₽
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-blue-200">
-                    <span className="text-gray-700">To'langan Summa:</span>
+                    <span className="text-gray-700">Тўланган Сумма:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 0 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
+                      {moliyaStats.returnedGivenAmount.toLocaleString("en-US")} ₽
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-gray-700">Qaytarilmagan:</span>
+                    <span className="text-gray-700">Қайтарилмаган:</span>
                     <span className="font-bold text-red-700">
-                      {debts.filter(d => (d.branch_id === 0) && !d.isreturned).length}
+                      {moliyaStats.unreturnedGivenCount}
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-gray-700">Qaytarilgan:</span>
+                    <span className="text-gray-700">Қайтарилган:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => (d.branch_id === 0) && d.isreturned).length}
+                      {moliyaStats.returnedGivenCount}
                     </span>
                   </div>
                 </div>
@@ -1218,35 +1379,35 @@ export default function DebtManagement() {
               {/* My Debts (Nasiyam) */}
               <div className="border-2 border-red-200 rounded-lg p-4 sm:p-5 md:p-6 bg-red-50">
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-red-900 mb-4 flex items-center gap-2">
-                  Nasiyam
+                  Насиям
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between py-2 border-b border-red-200">
-                    <span className="text-gray-700">Jami Soni:</span>
-                    <span className="font-bold text-red-900">{debts.filter(d => d.branch_id === 1).length}</span>
+                    <span className="text-gray-700">Жами Сони:</span>
+                    <span className="font-bold text-red-900">{moliyaStats.totalTakenCount}</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-red-200">
-                    <span className="text-gray-700">Jami Summa:</span>
+                    <span className="text-gray-700">Жами Сумма:</span>
                     <span className="font-bold text-red-900">
-                      {debts.filter(d => d.branch_id === 1).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
+                      {moliyaStats.totalTakenAmount.toLocaleString("en-US")} ₽
                     </span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-red-200">
-                    <span className="text-gray-700">To'langan Summa:</span>
+                    <span className="text-gray-700">Тўланган Сумма:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => d.branch_id === 1 && d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
+                      {moliyaStats.returnedTakenAmount.toLocaleString("en-US")} ₽
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-gray-700">Qaytarilmagan:</span>
+                    <span className="text-gray-700">Қайтарилмаган:</span>
                     <span className="font-bold text-red-700">
-                      {debts.filter(d => (d.branch_id === 1) && !d.isreturned).length}
+                      {moliyaStats.unreturnedTakenCount}
                     </span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-gray-700">Qaytarilgan:</span>
+                    <span className="text-gray-700">Қайтарилган:</span>
                     <span className="font-bold text-green-700">
-                      {debts.filter(d => (d.branch_id === 1) && d.isreturned).length}
+                      {moliyaStats.returnedTakenCount}
                     </span>
                   </div>
                 </div>
@@ -1255,14 +1416,14 @@ export default function DebtManagement() {
 
             {/* Overall Summary */}
             <div className="mt-4 md:mt-6 border-2 border-purple-200 rounded-lg p-4 sm:p-5 md:p-6 bg-purple-50">
-              <h3 className="text-base sm:text-lg md:text-xl font-bold text-purple-900 mb-4">Umumiy Xulosala</h3>
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-purple-900 mb-4">Умумий Хулосала</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
                 <div className="bg-white rounded-lg p-4 border border-purple-200">
-                  <p className="text-sm text-gray-600 mb-1">Jami Qarzlar</p>
+                  <p className="text-sm text-gray-600 mb-1">Жами Қарзлар</p>
                   <p className="text-2xl font-bold text-purple-900">{debts.length}</p>
                 </div>
                 <div className="bg-white rounded-lg p-4 border border-purple-200">
-                  <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
+                  <p className="text-sm text-gray-600 mb-1">Жами Сумма</p>
                   <p className="text-2xl font-bold text-purple-900">
                     {debts.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")}
                   </p>
@@ -1272,30 +1433,28 @@ export default function DebtManagement() {
 
             {/* Net Position */}
             <div className="mt-4 md:mt-6 border-2 border-gray-300 rounded-lg p-4 sm:p-5 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-4">âš–ï¸ Sof Pozitsiya</h3>
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-4"> š–ï¸ Соф Позиция</h3>
               <div className="space-y-3">
                 <div className="flex justify-between py-2">
-                  <span className="text-gray-700">Men Olishim Kerak:</span>
+                  <span className="text-gray-700">Мен Олишим Керак:</span>
                   <span className="font-bold text-green-700 text-lg">
-                    +{debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
+                    +{moliyaStats.unreturnedGivenAmount.toLocaleString("en-US")} ₽
                   </span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-gray-700">Men To'lashim Kerak:</span>
+                  <span className="text-gray-700">Мен Тўлашим Керак:</span>
                   <span className="font-bold text-red-700 text-lg">
-                    -{debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
+                    -{moliyaStats.unreturnedTakenAmount.toLocaleString("en-US")} ₽
                   </span>
                 </div>
                 <div className="flex justify-between py-3 border-t-2 border-gray-300 mt-3">
-                  <span className="font-bold text-gray-900 text-lg">Sof Balans:</span>
+                  <span className="font-bold text-gray-900 text-lg">Соф Баланс:</span>
                   <span className={`font-bold text-xl ${
-                    (debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0) -
-                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)) >= 0
+                    (moliyaStats.unreturnedGivenAmount - moliyaStats.unreturnedTakenAmount) >= 0
                       ? "text-green-700"
                       : "text-red-700"
                   }`}>
-                    {(debts.filter(d => d.branch_id === 0 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0) -
-                    debts.filter(d => d.branch_id === 1 && !d.isreturned).reduce((sum, d) => sum + d.amount, 0)).toLocaleString("en-US")} ₽
+                    {(moliyaStats.unreturnedGivenAmount - moliyaStats.unreturnedTakenAmount).toLocaleString("en-US")} ₽
                   </span>
                 </div>
               </div>
@@ -1310,17 +1469,17 @@ export default function DebtManagement() {
           <div className="p-4 sm:p-5 md:p-6 border-b border-gray-200">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Folder className="text-blue-600" size={24} />
-              Qarzdorlar ({getUniqueDebtors.length})
+              Қарздорлар ({getUniqueDebtors.length})
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Qarzlarini ko'rish uchun qarzdorga bosing</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Қарзларини кўриш учун қарздорга босинг</p>
           </div>
 
           <div className="divide-y divide-gray-200">
             {getUniqueDebtors.length === 0 ? (
               <div className="p-8 sm:p-10 md:p-12 text-center">
                 <User size={48} className="text-gray-300 mb-4 mx-auto" />
-                <p className="text-base sm:text-lg md:text-xl font-medium text-gray-900">Qarzdorlar topilmadi</p>
-                <p className="text-sm md:text-base text-gray-500 mt-1">Yangi qarz qo'shishdan boshlang</p>
+                <p className="text-base sm:text-lg md:text-xl font-medium text-gray-900">Қарздорлар топилмади</p>
+                <p className="text-sm md:text-base text-gray-500 mt-1">Янги қарз қўшишдан бошланг</p>
               </div>
             ) : (
               getUniqueDebtors.map((debtor) => (
@@ -1342,7 +1501,7 @@ export default function DebtManagement() {
                           {debtor.name}
                         </h3>
                         <p className="text-xs sm:text-sm md:text-base text-gray-600">
-                          {debtor.totalDebts} qarz
+                          {debtor.totalDebts} қарз
                         </p>
                       </div>
                     </div>
@@ -1369,7 +1528,7 @@ export default function DebtManagement() {
                   {selectedDebtor.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm md:text-base font-medium text-blue-700">Qarzlari ko'rsatilmoqda:</p>
+                  <p className="text-xs sm:text-sm md:text-base font-medium text-blue-700">Қарзлари кўрсатилмоқда:</p>
                   <p className="text-base sm:text-lg md:text-xl font-bold text-blue-900">{selectedDebtor}</p>
                 </div>
               </div>
@@ -1377,7 +1536,7 @@ export default function DebtManagement() {
                 onClick={() => setSelectedDebtor(null)}
                 className="w-full sm:w-auto px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium flex items-center justify-center gap-2"
               >
-                <X size={18} /> Filtrni Tozalash
+                <X size={18} /> Филтрни Тозалаш
               </button>
             </div>
           )}
@@ -1387,7 +1546,7 @@ export default function DebtManagement() {
             {filteredAndSorted.length === 0 ? (
               <div className="bg-white rounded-lg p-8 text-center">
                 <DollarSign size={48} className="text-gray-300 mb-4 mx-auto" />
-                <p className="text-lg font-medium text-gray-900">Qarzlar topilmadi</p>
+                <p className="text-lg font-medium text-gray-900">Қарзлар топилмади</p>
                 <p className="text-sm text-gray-500 mt-1">
                   {debts.length === 0 ? "Yangi qarz qo'shishdan boshlang" : "Filtrlarni sozlashga harakat qiling"}
                 </p>
@@ -1409,23 +1568,23 @@ export default function DebtManagement() {
 
                   <div className="space-y-2 text-sm mb-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Jami Summa:</span>
+                      <span className="text-gray-600">Жами Сумма:</span>
                       <span className="font-semibold text-gray-900">
                         {debt.amount.toLocaleString("en-US")} ₽
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Filial:</span>
+                      <span className="text-gray-600">Филиал:</span>
                       <span className="text-gray-900">{getBranchName(debt.branch_id)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Tur:</span>
+                      <span className="text-gray-600">Тур:</span>
                       <span className={`text-xs font-semibold ${debt.branch_id === 1 ? "text-red-600" : "text-blue-600"}`}>
                         {debt.branch_id=== 1? "Nasiyam" : "Berilgan"}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">Mahsulotlar:</span>
+                      <span className="text-gray-600">Маҳсулотлар:</span>
                       <p className="text-gray-900 text-xs mt-1 line-clamp-2">{formatProductsForDisplay(debt.product_names)}</p>
                     </div>
                   </div>
@@ -1435,14 +1594,14 @@ export default function DebtManagement() {
                       onClick={() => printDebt(debt)}
                       className="flex-1 p-2 text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
                     >
-                      <Printer size={16} /> Chop Etish
+                      <Printer size={16} /> Чоп Етиш
                     </button>
 
                     <button
                       onClick={() => fetchDebtById(debt.id)}
                       className="flex-1 p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
                     >
-                      <Eye size={16} /> Ko'rish
+                      <Eye size={16} /> Кўриш
                     </button>
 
 
@@ -1476,7 +1635,7 @@ export default function DebtManagement() {
                   className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
                 >
                   <div className="flex items-center gap-2">
-                    Sana
+                    Сана
                     {getSortIcon("date")}
                   </div>
                 </th>
@@ -1485,24 +1644,24 @@ export default function DebtManagement() {
                   className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
                 >
                   <div className="flex items-center gap-2">
-                    Mijoz
+                    Мижоз
                     {getSortIcon("name")}
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Tur
+                  Тур
                 </th>
                 <th
                   onClick={() => handleSort("amount")}
                   className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
                 >
                   <div className="flex items-center gap-2">
-                    Jami
+                    Жами
                     {getSortIcon("amount")}
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Amallar
+                  Амаллар
                 </th>
               </tr>
             </thead>
@@ -1512,7 +1671,7 @@ export default function DebtManagement() {
                   <td colSpan={10} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <DollarSign size={48} className="text-gray-300 mb-4" />
-                      <p className="text-lg font-medium text-gray-900">Qarzlar topilmadi</p>
+                      <p className="text-lg font-medium text-gray-900">Қарзлар топилмади</p>
                       <p className="text-sm text-gray-500 mt-1">
                         {debts.length === 0 ? "Yangi qarz qo'shishdan boshlang" : "Filtrlarni sozlashga harakat qiling"}
                       </p>
@@ -1552,7 +1711,7 @@ export default function DebtManagement() {
                             <button
                               onClick={() => printDebt(debt)}
                               className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200"
-                              title="Chop Etish"
+                              title="Чоп Етиш"
                             >
                               <Printer size={18} />
                             </button>
@@ -1560,7 +1719,7 @@ export default function DebtManagement() {
                             <button
                               onClick={() => fetchDebtById(debt.id)}
                               className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
-                              title="Batafsil Ko'rish"
+                              title="Батафсил Кўриш"
                             >
                               <Eye size={18} />
                             </button>
@@ -1569,7 +1728,7 @@ export default function DebtManagement() {
                             <button
                               onClick={() => openEditModal(debt)}
                               className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors duration-200"
-                              title="Tahrirlash"
+                              title="Таҳрирлаш"
                             >
                               <Edit2 size={18} />
                             </button>
@@ -1577,7 +1736,7 @@ export default function DebtManagement() {
                             <button
                               onClick={() => handleDeleteDebt(debt.id)}
                               className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200"
-                              title="O'chirish"
+                              title="Ўчириш"
                             >
                               <Trash2 size={18} />
                             </button>
@@ -1590,7 +1749,7 @@ export default function DebtManagement() {
                   {/* TOTAL ROW */}
                   <tr className="bg-gradient-to-r from-blue-100 to-purple-100 font-bold border-t-2 border-gray-300">
                     <td colSpan={3} className="px-6 py-4 text-right text-base text-gray-900">
-                      TOTAL:
+                      ТОТАЛ:
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-base text-gray-900">
                       {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
@@ -1628,19 +1787,19 @@ export default function DebtManagement() {
             <div className="p-6 space-y-4">
               {/* Date */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-xs font-medium text-blue-700 mb-1">Sana</p>
+                <p className="text-xs font-medium text-blue-700 mb-1">Сана</p>
                 <p className="text-lg font-bold text-blue-900">{formatDate(selectedDebt)}</p>
               </div>
 
               {/* Amount */}
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <p className="text-xs font-medium text-purple-700 mb-1">Jami Summa</p>
+                <p className="text-xs font-medium text-purple-700 mb-1">Жами Сумма</p>
                 <p className="text-3xl font-bold text-purple-900">{selectedDebt.amount.toLocaleString("en-US")} ₽</p>
               </div>
 
               {/* Debt Type */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-xs font-medium text-gray-700 mb-1">Qarz Turi</p>
+                <p className="text-xs font-medium text-gray-700 mb-1">Қарз Тури</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
                   selectedDebt.branch_id === 1 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
                 }`}>
@@ -1650,7 +1809,7 @@ export default function DebtManagement() {
 
               {/* Products */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-xs font-medium text-gray-700 mb-3">Mahsulotlar</p>
+                <p className="text-xs font-medium text-gray-700 mb-3">Маҳсулотлар</p>
                 {parseProductsFromString(selectedDebt.product_names).length > 0 ? (
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {parseProductsFromString(selectedDebt.product_names).map((product, index) => (
@@ -1670,18 +1829,18 @@ export default function DebtManagement() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-600 italic">Mahsulotlar topilmadi</p>
+                  <p className="text-sm text-gray-600 italic">Маҳсулотлар топилмади</p>
                 )}
               </div>
 
               {/* Info */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-xs space-y-2">
                 <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600 font-medium">Debt ID:</span>
+                  <span className="text-gray-600 font-medium">Дебт ИД:</span>
                   <span className="font-mono text-gray-900">{selectedDebt.id}</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-gray-600 font-medium">Shop ID:</span>
+                  <span className="text-gray-600 font-medium">Шоп ИД:</span>
                   <span className="font-mono text-gray-900">{selectedDebt.shop_id}</span>
                 </div>
               </div>
@@ -1693,13 +1852,13 @@ export default function DebtManagement() {
                 onClick={() => setShowDebtDetail(false)}
                 className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium order-2 sm:order-1"
               >
-                Yopish
+                Ёпиш
               </button>
               <div className="flex flex-col sm:flex-row gap-2 order-1 sm:order-2">
                 <button
                   onClick={async () => {
                     try {
-                      const toastId = toast.loading("Saving changes...");
+                      const toastId = toast.loading("Савинг чангес...");
                       const isFullyPaid = selectedDebt.isreturned;
                       
                       const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
@@ -1725,27 +1884,28 @@ export default function DebtManagement() {
                       const json = await res.json();
                       setDebts(debts.map((d) => (d.id === json.data.id ? json.data : d)));
                       toast.update(toastId, {
-                        render: "âœ… Changes saved successfully",
+                        render: " Changes saved successfully",
                         type: "success",
                         isLoading: false,
                         autoClose: 3000,
                       });
                       fetchStatistics();
+                      fetchUnreturnedDebtsCache();
                       setShowDebtDetail(false);
                     } catch (err: any) {
                       console.error(err);
-                      toast.error(`âŒ Failed to save: ${err.message}`);
+                      toast.error(`   Œ Failed to save: ${err.message}`);
                     }
                   }}
                   className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2"
                 >
-                  O'zgarishlarni Saqlash
+                  Ўзгаришларни Сақлаш
                 </button>
                 <button
                   onClick={() => printDebt(selectedDebt)}
                   className="w-full sm:w-auto px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium flex items-center justify-center gap-2"
                 >
-                  Chop Etish
+                  Чоп Етиш
                 </button>
                 <button
                   onClick={() => {
@@ -1754,7 +1914,7 @@ export default function DebtManagement() {
                   }}
                   className="w-full sm:w-auto px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium flex items-center justify-center gap-2"
                 >
-                  <Edit2 size={18} /> Tahrirlash
+                  <Edit2 size={18} /> Таҳрирлаш
                 </button>
               </div>
             </div>
@@ -1769,7 +1929,7 @@ export default function DebtManagement() {
             {/* MODAL HEADER */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 sm:p-6 text-white flex items-center justify-between rounded-t-xl flex-shrink-0">
               <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                <Plus size={24} /> Yangi Qarz Yaratish
+                <Plus size={24} /> Янги Қарз Яратиш
               </h2>
               <button
                 onClick={() => {
@@ -1804,7 +1964,7 @@ export default function DebtManagement() {
                 {/* Customer Name with Autocomplete */}
                 <div className="relative">
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Mijoz Nomi <span className="text-red-500">*</span>
+                    Мижоз Номи <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -1816,7 +1976,7 @@ export default function DebtManagement() {
                     }}
                     onFocus={() => setShowSuggestions(debtorNameInput.length > 0)}
                     className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Mijoz nomini kiriting"
+                    placeholder="Мижоз номини киритинг"
                     required
                   />
                   
@@ -1824,7 +1984,7 @@ export default function DebtManagement() {
                   {showSuggestions && filteredDebtorSuggestions.length > 0 && (
                     <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                       <div className="p-2 text-xs text-gray-500 font-medium border-b border-gray-200">
-                        Mavjud Qarzdorlar
+                        Мавжуд Қарздорлар
                       </div>
                       {filteredDebtorSuggestions.map((debtor) => (
                         <button
@@ -1845,13 +2005,13 @@ export default function DebtManagement() {
                               <div>
                                 <p className="font-semibold text-gray-900">{debtor.name}</p>
                                 <p className="text-xs text-gray-600">
-                                  {debtor.totalDebts} qarz
+                                  {debtor.totalDebts} қарз
                                 </p>
                               </div>
                             </div>
                             {debtor.unreturnedAmount > 0 && (
                               <span className="text-xs font-semibold text-red-600">
-                                {debtor.unreturnedAmount.toLocaleString("en-US")} kutilmoqda
+                                {debtor.unreturnedAmount.toLocaleString("en-US")} кутилмоқда
                               </span>
                             )}
                           </div>
@@ -1863,13 +2023,13 @@ export default function DebtManagement() {
 
                 {/* Products Manual Entry Section - UPDATED */}
                 <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
-                  <h3 className="text-base font-bold text-gray-900 mb-4">Mahsulotlar</h3>
+                  <h3 className="text-base font-bold text-gray-900 mb-4">Маҳсулотлар</h3>
 
                   {/* Product Input Fields */}
                   <div className="space-y-3 mb-4 bg-white p-4 rounded-lg">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Mahsulot Nomi</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Маҳсулот Номи</label>
                         <input
                           type="text"
                           value={currentProduct.name}
@@ -1877,11 +2037,11 @@ export default function DebtManagement() {
                             setCurrentProduct({ ...currentProduct, name: e.target.value })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Masalan: Qalay"
+                          placeholder="Масалан: Қалай"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Miqdori</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Миқдори</label>
                         <input
                           type="number"
                           value={currentProduct.quantity}
@@ -1899,7 +2059,7 @@ export default function DebtManagement() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Oâ€˜lchov</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">О €˜лчов</label>
                         <select
                           value={currentProduct.unit}
                           onChange={(e) =>
@@ -1915,7 +2075,7 @@ export default function DebtManagement() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Narxi (so'm)</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Нархи (сўм)</label>
                         <input
                           type="number"
                           value={currentProduct.price}
@@ -1937,8 +2097,8 @@ export default function DebtManagement() {
                     {Number(currentProduct.price) > 0 && Number(currentProduct.quantity) > 0 && (
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
-                          Jami: <span className="font-bold text-blue-900">
-                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")} ₽ â€¢ {formatUnitLabel(currentProduct.unit)}
+                          Жами: <span className="font-bold text-blue-900">
+                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")} ₽  {formatUnitLabel(currentProduct.unit)}
                           </span>
                         </p>
                       </div>
@@ -1950,7 +2110,7 @@ export default function DebtManagement() {
                       onClick={addProductEntry}
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2"
                     >
-                      <Plus size={18} /> Mahsulotni Qo'shish
+                      <Plus size={18} /> Маҳсулотни Қўшиш
                     </button>
                   </div>
 
@@ -1959,14 +2119,14 @@ export default function DebtManagement() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium text-gray-900">
-                          Tanlangan Mahsulotlar ({productEntries.length})
+                          Танланган Маҳсулотлар ({productEntries.length})
                         </h4>
                         <button
                           type="button"
                           onClick={clearAllProducts}
                           className="text-xs text-red-600 hover:text-red-800 font-medium"
                         >
-                          Barchasini Tozalash
+                          Барчасини Тозалаш
                         </button>
                       </div>
 
@@ -1997,7 +2157,7 @@ export default function DebtManagement() {
 
                       {/* Total */}
                       <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between font-bold text-gray-900">
-                        <span>Jami Summa:</span>
+                        <span>Жами Сумма:</span>
                         <span className="text-lg text-blue-900">
                           {calculateTotalFromProducts(productEntries).toLocaleString("en-US")} ₽
                         </span>
@@ -2034,14 +2194,14 @@ export default function DebtManagement() {
                 }}
                 className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
               >
-                Bekor qilish
+                Бекор қилиш
               </button>
               <button
                 onClick={handleCreateDebt}
                 disabled={productEntries.length === 0 || !formData.name}
                 className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                <Plus size={18} /> Qarz Yaratish
+                <Plus size={18} /> Қарз Яратиш
               </button>
             </div>
           </div>
@@ -2055,7 +2215,7 @@ export default function DebtManagement() {
             {/* MODAL HEADER */}
             <div className="bg-gradient-to-r from-orange-600 to-red-600 p-4 sm:p-6 text-white flex items-center justify-between sticky top-0">
               <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                <Edit2 size={24} /> Qarzni Tahrirlash
+                <Edit2 size={24} /> Қарзни Таҳрирлаш
               </h2>
               <button
                 onClick={() => {
@@ -2079,7 +2239,7 @@ export default function DebtManagement() {
             <div className="p-4 sm:p-6">
               <form onSubmit={handleUpdateDebt} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Mijoz Nomi *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Мижоз Номи *</label>
                   <input
                     type="text"
                     value={formData.name}
@@ -2091,13 +2251,13 @@ export default function DebtManagement() {
 
                 {/* Products Section in Edit Modal */}
                 <div className="border-2 border-orange-200 rounded-lg p-4 bg-orange-50">
-                  <h3 className="text-base font-bold text-gray-900 mb-4">Mahsulotlar</h3>
+                  <h3 className="text-base font-bold text-gray-900 mb-4">Маҳсулотлар</h3>
 
                   {/* Product Input Fields */}
                   <div className="space-y-3 mb-4 bg-white p-4 rounded-lg">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Mahsulot Nomi</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Маҳсулот Номи</label>
                         <input
                           type="text"
                           value={currentProduct.name}
@@ -2105,11 +2265,11 @@ export default function DebtManagement() {
                             setCurrentProduct({ ...currentProduct, name: e.target.value })
                           }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Masalan: Qalay"
+                          placeholder="Масалан: Қалай"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Miqdori</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Миқдори</label>
                         <input
                           type="number"
                           value={currentProduct.quantity}
@@ -2127,7 +2287,7 @@ export default function DebtManagement() {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Oâ€˜lchov</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">О €˜лчов</label>
                         <select
                           value={currentProduct.unit}
                           onChange={(e) =>
@@ -2143,7 +2303,7 @@ export default function DebtManagement() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">Narxi (so'm)</label>
+                        <label className="block text-xs font-medium text-gray-700 mb-1">Нархи (сўм)</label>
                         <input
                           type="number"
                           value={currentProduct.price}
@@ -2165,8 +2325,8 @@ export default function DebtManagement() {
                     {Number(currentProduct.price) > 0 && Number(currentProduct.quantity) > 0 && (
                       <div className="bg-blue-100 p-3 rounded-lg">
                         <p className="text-xs text-gray-600">
-                          Jami: <span className="font-bold text-blue-900">
-                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")} ₽ â€¢ {formatUnitLabel(currentProduct.unit)}
+                          Жами: <span className="font-bold text-blue-900">
+                            {(Number(currentProduct.price) * Number(currentProduct.quantity)).toLocaleString("en-US")} ₽  {formatUnitLabel(currentProduct.unit)}
                           </span>
                         </p>
                       </div>
@@ -2178,7 +2338,7 @@ export default function DebtManagement() {
                       onClick={addProductEntry}
                       className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2"
                     >
-                      <Plus size={18} /> Mahsulotni Qo'shish
+                      <Plus size={18} /> Маҳсулотни Қўшиш
                     </button>
                   </div>
 
@@ -2187,14 +2347,14 @@ export default function DebtManagement() {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium text-gray-900">
-                          Tanlangan Mahsulotlar ({productEntries.length})
+                          Танланган Маҳсулотлар ({productEntries.length})
                         </h4>
                         <button
                           type="button"
                           onClick={clearAllProducts}
                           className="text-xs text-red-600 hover:text-red-800 font-medium"
                         >
-                          Barchasini Tozalash
+                          Барчасини Тозалаш
                         </button>
                       </div>
 
@@ -2225,7 +2385,7 @@ export default function DebtManagement() {
 
                       {/* Total */}
                       <div className="mt-3 pt-3 border-t border-orange-200 flex justify-between font-bold text-gray-900">
-                        <span>Jami Summa:</span>
+                        <span>Жами Сумма:</span>
                         <span className="text-lg text-orange-900">
                           {calculateTotalFromProducts(productEntries).toLocaleString("en-US")} ₽
                         </span>
@@ -2255,13 +2415,13 @@ export default function DebtManagement() {
                 }}
                 className="w-full sm:w-auto px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
               >
-                Bekor qilish
+                Бекор қилиш
               </button>
               <button
                 onClick={handleUpdateDebt}
                 className="w-full sm:w-auto px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium flex items-center justify-center gap-2"
               >
-                <Edit2 size={18} /> Yangilash
+                <Edit2 size={18} /> Янгилаш
               </button>
             </div>
           </div>
@@ -2271,6 +2431,7 @@ export default function DebtManagement() {
     </div>
   );
 }
+
 
 
 

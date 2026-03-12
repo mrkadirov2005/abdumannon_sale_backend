@@ -65,7 +65,7 @@ export default function Navbar() {
       });
 
       if (!response.ok) {
-        alert("Error logging out, please retry or contact the system manager.");
+        alert("Еррор логгинг оут, плеасе ретрй ор цонтацт тҳе сйстем манагер.");
         setLoading(false);
         return;
       }
@@ -80,7 +80,7 @@ export default function Navbar() {
       navigate("/auth/login");
       setTimeout(() => window.location.reload(), 50);
     } catch {
-      alert("Network error, please try again later.");
+      alert("Нетворк еррор, плеасе трй агаин латер.");
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ export default function Navbar() {
   const handlePrintCheque = async () => {
     const saleId = chequeSaleId.trim();
     if (!saleId) {
-      alert("Chek ID kiriting");
+      alert("Чек ИД киритинг");
       return;
     }
     if (printingCheque) return;
@@ -127,7 +127,7 @@ export default function Navbar() {
         salesList.find((s: any) => String(s.id) === saleId);
 
       if (!sale) {
-        alert("Sotuv topilmadi");
+        alert("Сотув топилмади");
         return;
       }
 
@@ -149,20 +149,20 @@ export default function Navbar() {
       const products = Array.isArray(productsJson.products) ? productsJson.products : [];
 
       const paymentLabel =
-        sale.payment_method === "cash" ? "ÐÐ°Ð»Ð¸Ñ‡Ð½Ñ‹Ðµ" :
-        sale.payment_method === "card" ? "ÐšÐ°Ñ€Ñ‚Ð°" : "ÐœÐ¾Ð±Ð¸Ð»ÑŒÐ½Ð°Ñ";
+        sale.payment_method === "cash" ? "Наличные" :
+        sale.payment_method === "card" ? "Карта" : "Мобильная";
 
       const chequeNumber = generateChequeNumber();
       const buyerName = escapeHtml(String(sale.customer_name || sale.buyer || sale.client_name || sale.admin_name || "Mijoz"));
 
       printCheque({
-        title: "ÐÐ°ÐºÐ»Ð°Ð´Ð½Ð°Ñ",
+        title: "Накладная",
         number: chequeNumber,
         date: sale.sale_time || new Date(),
         supplier: DEFAULT_SUPPLIER_HTML,
         buyer: buyerName,
-        buyerLabel: "ÐŸÐ¾ÐºÑƒÐ¿Ð°Ñ‚ÐµÐ»ÑŒ",
-        buyerRight: `Ð¡Ð¿Ð¾ÑÐ¾Ð± Ð¾Ð¿Ð»Ð°Ñ‚Ñ‹: ${paymentLabel}`,
+        buyerLabel: "Покупатель",
+        buyerRight: `Способ оплаты: ${paymentLabel}`,
         products: products.map((p: any) => ({
           name: p.product_name,
           quantity: p.amount,
@@ -170,9 +170,9 @@ export default function Navbar() {
           price: p.sell_price,
           total: p.sell_price * p.amount,
         })),
-        extraNote: "Ð’Ð¾Ð·Ð²Ñ€Ð°Ñ‚ Ñ‚Ð¾Ð²Ð°Ñ€Ð° Ð² Ñ‚ÐµÑ‡ÐµÐ½Ð¸Ðµ 14 Ð´Ð½ÐµÐ¹",
-        signatureLeft: "Ð ÑƒÐºÐ¾Ð²Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒ",
-        signatureRight: "Ð‘ÑƒÑ…Ð³Ð°Ð»Ñ‚ÐµÑ€",
+        extraNote: "Возврат товара в течение 14 дней",
+        signatureLeft: "Руководитель",
+        signatureRight: "Бухгалтер",
       });
 
       setIsChequeModalOpen(false);
@@ -188,7 +188,7 @@ export default function Navbar() {
   const handlePrintManualCheque = () => {
     const buyer = manualCheque.buyer.trim();
     if (!buyer) {
-      alert("Mijoz nomini kiriting");
+      alert("Мижоз номини киритинг");
       return;
     }
 
@@ -197,7 +197,7 @@ export default function Navbar() {
     );
 
     if (validProducts.length === 0) {
-      alert("Kamida bitta mahsulot kiriting");
+      alert("Камида битта маҳсулот киритинг");
       return;
     }
 
@@ -214,17 +214,17 @@ export default function Navbar() {
     });
 
     printCheque({
-      title: "ÐÐ°ÐºÐ»Ð°Ð´Ð½Ð°Ñ",
+      title: "Накладная",
       number: generateChequeNumber(),
       date: manualCheque.date || new Date(),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer,
-      buyerLabel: "ÐŸÐ¾ÐºÑƒÐ¿Ð°Ñ‚ÐµÐ»ÑŒ",
+      buyerLabel: "Покупатель",
       buyerRight: manualCheque.buyerRight || undefined,
       products,
       extraNote: manualCheque.extraNote || undefined,
-      signatureLeft: "Ð ÑƒÐºÐ¾Ð²Ð¾Ð´Ð¸Ñ‚ÐµÐ»ÑŒ",
-      signatureRight: "Ð‘ÑƒÑ…Ð³Ð°Ð»Ñ‚ÐµÑ€",
+      signatureLeft: "Руководитель",
+      signatureRight: "Бухгалтер",
     });
 
     setIsChequeModalOpen(false);
@@ -287,8 +287,8 @@ export default function Navbar() {
           disabled={loading}
           onClick={handleLogout}
           className="px-4 py-2 border rounded text-sm"
-          aria-label="Logout"
-          title="Logout"
+          aria-label="Логоут"
+          title="Логоут"
         >
                   
           <Logout />
@@ -322,7 +322,7 @@ export default function Navbar() {
                       : "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  Qo'lda
+                  Қўлда
                 </button>
                 <button
                   onClick={() => setChequeMode("auto")}
@@ -332,7 +332,7 @@ export default function Navbar() {
                       : "bg-gray-100 text-gray-700"
                   }`}
                 >
-                  Sotuv ID
+                  Сотув ИД
                 </button>
               </div>
             </div>
@@ -342,18 +342,18 @@ export default function Navbar() {
                   type="text"
                   value={chequeSaleId}
                   onChange={(e) => setChequeSaleId(e.target.value)}
-                  placeholder="SALE001 yoki sale_id"
+                  placeholder="САЛЕ001 ёки сале_ид"
                   className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />
                 <p className="text-xs text-gray-500">
-                  Sotuv ID bo'yicha avtomatik to'ldiriladi: sana, mijoz va mahsulotlar.
+                  Сотув ИД бўйича автоматик тўлдирилади: сана, мижоз ва маҳсулотлар.
                 </p>
                 <div className="pt-2 flex justify-end gap-3">
                   <button
                     onClick={() => setIsChequeModalOpen(false)}
                     className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition"
                   >
-                    Yopish
+                    Ёпиш
                   </button>
                   <button
                     onClick={handlePrintCheque}
@@ -371,7 +371,7 @@ export default function Navbar() {
                     type="text"
                     value={manualCheque.buyer}
                     onChange={(e) => setManualCheque({ ...manualCheque, buyer: e.target.value })}
-                    placeholder="Mijoz nomi"
+                    placeholder="Мижоз номи"
                     className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                   <input
@@ -384,14 +384,14 @@ export default function Navbar() {
                     type="text"
                     value={manualCheque.buyerRight}
                     onChange={(e) => setManualCheque({ ...manualCheque, buyerRight: e.target.value })}
-                    placeholder="Masalan: To×lov usuli"
+                    placeholder="Масалан: Тўлов усули"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                   <input
                     type="text"
                     value={manualCheque.extraNote}
                     onChange={(e) => setManualCheque({ ...manualCheque, extraNote: e.target.value })}
-                    placeholder="Qo×shimcha izoh"
+                    placeholder="Қўшимча изоҳ"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   />
                 </div>
@@ -403,7 +403,7 @@ export default function Navbar() {
                         type="text"
                         value={p.name}
                         onChange={(e) => updateManualProduct(index, "name", e.target.value)}
-                        placeholder="Mahsulot"
+                        placeholder="Маҳсулот"
                         className="col-span-12 sm:col-span-5 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                       />
                       <input
@@ -411,7 +411,7 @@ export default function Navbar() {
                         step="0.01"
                         value={p.quantity}
                         onChange={(e) => updateManualProduct(index, "quantity", e.target.value)}
-                        placeholder="Miqdor"
+                        placeholder="Миқдор"
                         className="col-span-4 sm:col-span-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                       />
                       <select
@@ -419,17 +419,17 @@ export default function Navbar() {
                         onChange={(e) => updateManualProduct(index, "unit", e.target.value)}
                         className="col-span-4 sm:col-span-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                       >
-                        <option value="pcs">Dona</option>
-                        <option value="kg">Kg</option>
-                        <option value="t">Tonna</option>
-                        <option value="l">Litr</option>
+                        <option value="pcs">Дона</option>
+                        <option value="kg">Кг</option>
+                        <option value="t">Тонна</option>
+                        <option value="l">Литр</option>
                       </select>
                       <input
                         type="number"
                         step="0.01"
                         value={p.price}
                         onChange={(e) => updateManualProduct(index, "price", e.target.value)}
-                        placeholder="Narx"
+                        placeholder="Нарх"
                         className="col-span-4 sm:col-span-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                       />
                       <button
@@ -447,7 +447,7 @@ export default function Navbar() {
                     onClick={addManualProduct}
                     className="w-full px-3 py-2 bg-gray-100 rounded-lg text-sm"
                   >
-                    + Mahsulot qo'shish
+                    + Маҳсулот қўшиш
                   </button>
                 </div>
 
@@ -456,13 +456,13 @@ export default function Navbar() {
                     onClick={() => setIsChequeModalOpen(false)}
                     className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition"
                   >
-                    Yopish
+                    Ёпиш
                   </button>
                   <button
                     onClick={handlePrintManualCheque}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
                   >
-                    Chop etish
+                    Чоп етиш
                   </button>
                 </div>
               </div>

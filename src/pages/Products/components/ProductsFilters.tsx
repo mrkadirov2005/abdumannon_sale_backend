@@ -24,7 +24,7 @@ export default function ProductsFilters({
           onChange={(e) => {
             onQueryChange(e.target.value);
           }}
-          placeholder="Mahsulotni nomi bo'yicha qidirish..."
+          placeholder="Маҳсулотни номи бўйича қидириш..."
           className="w-full px-3 py-2 border border-gray-200 rounded-lg pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -37,7 +37,7 @@ export default function ProductsFilters({
         }}
         className="px-3 py-2 border border-gray-200 rounded-lg w-44 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
-        <option value="All">Barcha Kategoriyalar</option>
+        <option value="All">Барча Категориялар</option>
         {categories.map((c) => (
           <option key={c.id} value={c.id}>
             {c.category_name}

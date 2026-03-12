@@ -35,7 +35,7 @@ export default function ChequePage() {
 
   const handlePrint = () => {
     if (!buyer.trim()) {
-      alert("Mijoz nomini kiriting");
+      alert("Мижоз номини киритинг");
       return;
     }
 
@@ -44,7 +44,7 @@ export default function ChequePage() {
     );
 
     if (validProducts.length === 0) {
-      alert("Kamida bitta mahsulot kiriting");
+      alert("Камида битта маҳсулот киритинг");
       return;
     }
 
@@ -85,7 +85,7 @@ export default function ChequePage() {
             type="text"
             value={buyer}
             onChange={(e) => setBuyer(e.target.value)}
-            placeholder="Mijoz nomi"
+            placeholder="Мижоз номи"
             className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
           <input
@@ -98,14 +98,14 @@ export default function ChequePage() {
             type="text"
             value={buyerRight}
             onChange={(e) => setBuyerRight(e.target.value)}
-            placeholder="Masalan: To'lov usuli"
+            placeholder="Масалан: Тўлов усули"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
           <input
             type="text"
             value={extraNote}
             onChange={(e) => setExtraNote(e.target.value)}
-            placeholder="Qo'shimcha izoh"
+            placeholder="Қўшимча изоҳ"
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
         </div>
@@ -117,7 +117,7 @@ export default function ChequePage() {
                 type="text"
                 value={p.name}
                 onChange={(e) => updateRow(index, "name", e.target.value)}
-                placeholder="Mahsulot"
+                placeholder="Маҳсулот"
                 className="col-span-12 sm:col-span-5 px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
               <input
@@ -125,7 +125,7 @@ export default function ChequePage() {
                 step="0.01"
                 value={p.quantity}
                 onChange={(e) => updateRow(index, "quantity", e.target.value)}
-                placeholder="Miqdor"
+                placeholder="Миқдор"
                 className="col-span-4 sm:col-span-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
               <select
@@ -133,17 +133,17 @@ export default function ChequePage() {
                 onChange={(e) => updateRow(index, "unit", e.target.value)}
                 className="col-span-4 sm:col-span-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
-                <option value="pcs">Dona</option>
-                <option value="kg">Kg</option>
-                <option value="t">Tonna</option>
-                <option value="l">Litr</option>
+                <option value="pcs">Дона</option>
+                <option value="kg">Кг</option>
+                <option value="t">Тонна</option>
+                <option value="l">Литр</option>
               </select>
               <input
                 type="number"
                 step="0.01"
                 value={p.price}
                 onChange={(e) => updateRow(index, "price", e.target.value)}
-                placeholder="Narx"
+                placeholder="Нарх"
                 className="col-span-4 sm:col-span-2 px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
               <button
@@ -161,7 +161,7 @@ export default function ChequePage() {
             onClick={addRow}
             className="w-full px-3 py-2 bg-gray-100 rounded-lg text-sm"
           >
-            + Mahsulot qo'shish
+            + Маҳсулот қўшиш
           </button>
         </div>
 
@@ -170,7 +170,7 @@ export default function ChequePage() {
             onClick={handlePrint}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
           >
-            Chop etish
+            Чоп етиш
           </button>
         </div>
       </div>

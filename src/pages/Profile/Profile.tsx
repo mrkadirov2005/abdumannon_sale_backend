@@ -102,7 +102,7 @@ export default function Profile() {
     } catch (err) {
       console.error("Error updating shop:", err);
       setIsSavingShop(false);
-      alert("Server error while updating shop");
+      alert("Сервер еррор вҳиле упдатинг шоп");
     }
   };
 
@@ -117,7 +117,7 @@ export default function Profile() {
   const handleSave = async () => {
     // TODO: Add API call to update user profile
     // For now, just show success message
-    alert("Profile update functionality will be added when API is ready");
+    alert("Профиле упдате фунцтионалитй вилл бе аддед вҳен АПИ ис реадй");
     setIsEditing(false);
   };
 
@@ -140,7 +140,7 @@ export default function Profile() {
     return (
       <div className="p-6">
         <div className="bg-white rounded-lg shadow p-6 text-center">
-          <p className="text-gray-500">No user data available. Please login again.</p>
+          <p className="text-gray-500">Но усер дата аваилабле. Плеасе логин агаин.</p>
         </div>
       </div>
     );
@@ -167,9 +167,9 @@ export default function Profile() {
             <div className="p-2 bg-blue-100 rounded-lg">
               <FiUser className="w-6 h-6 text-blue-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Profile & Settings</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Профиле & Сеттингс</h1>
           </div>
-          <p className="text-gray-600 ml-12">Manage your profile and shop information</p>
+          <p className="text-gray-600 ml-12">Манаге ёур профиле анд шоп информатион</p>
         </header>
 
         {/* Tabs */}
@@ -184,7 +184,7 @@ export default function Profile() {
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
               >
-                Profile
+                Профиле
               </button>
               {isSuperAdmin && (
                 <button
@@ -197,7 +197,7 @@ export default function Profile() {
                 >
                   <span className="flex items-center gap-2">
                     <FiShoppingBag className="w-4 h-4" />
-                    Shop Settings
+                    Шоп Сеттингс
                   </span>
                 </button>
               )}
@@ -216,7 +216,7 @@ export default function Profile() {
                       {admin.img_url || superUser.img_url ? (
                         <img
                           src={admin.img_url || superUser.img_url || ""}
-                          alt="Profile"
+                          alt="Профиле"
                           className="w-28 h-28 rounded-full object-cover"
                         />
                       ) : (
@@ -227,7 +227,7 @@ export default function Profile() {
                       <button
                         onClick={() => setIsEditing(true)}
                         className="absolute bottom-0 right-0 p-2 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                        title="Edit Profile"
+                        title="Едит Профиле"
                       >
                         <FiUser className="w-4 h-4 text-blue-600" />
                       </button>
@@ -246,7 +246,7 @@ export default function Profile() {
               {!isSuperAdmin && admin && (
                 <div className="p-6 space-y-4">
                   <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
-                    Performance
+                    Перформанце
                   </h3>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -255,7 +255,7 @@ export default function Profile() {
                           <FiDollarSign className="w-5 h-5 text-green-600" />
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500">Salary</p>
+                          <p className="text-xs text-gray-500">Саларй</p>
                           <p className="text-sm font-semibold text-gray-900">
                             {new Intl.NumberFormat("en-US", {
                               style: "currency",
@@ -271,7 +271,7 @@ export default function Profile() {
                           <FiTrendingUp className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500">Total Sales</p>
+                          <p className="text-xs text-gray-500">Тотал Салес</p>
                           <p className="text-sm font-semibold text-gray-900">{admin.sales || 0}</p>
                         </div>
                       </div>
@@ -282,7 +282,7 @@ export default function Profile() {
                           <FiDollarSign className="w-5 h-5 text-purple-600" />
                         </div>
                         <div>
-                          <p className="text-xs text-gray-500">Bonuses</p>
+                          <p className="text-xs text-gray-500">Бонусес</p>
                           <p className="text-sm font-semibold text-gray-900">
                             {new Intl.NumberFormat("en-US", {
                               style: "currency",
@@ -306,8 +306,8 @@ export default function Profile() {
                   <>
                     <div className="flex items-center justify-between mb-6">
                       <div>
-                        <h3 className="text-2xl font-bold text-gray-900">Personal Information</h3>
-                        <p className="text-sm text-gray-500 mt-1">Manage your account details</p>
+                        <h3 className="text-2xl font-bold text-gray-900">Персонал Информатион</h3>
+                        <p className="text-sm text-gray-500 mt-1">Манаге ёур аццоунт детаилс</p>
                       </div>
                     </div>
 
@@ -338,7 +338,7 @@ export default function Profile() {
                   {!isSuperAdmin && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Last Name
+                        Ласт Наме
                       </label>
                       {isEditing ? (
                         <input
@@ -347,7 +347,7 @@ export default function Profile() {
                           value={formData.lastName}
                           onChange={handleInputChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="Enter last name"
+                          placeholder="Ентер ласт наме"
                         />
                       ) : (
                         <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -361,7 +361,7 @@ export default function Profile() {
                   {/* Phone Number */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Phone Number
+                      Пҳоне Нумбер
                     </label>
                     {isEditing ? (
                       <input
@@ -370,7 +370,7 @@ export default function Profile() {
                         value={formData.phoneNumber}
                         onChange={handleInputChange}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Enter phone number"
+                        placeholder="Ентер пҳоне нумбер"
                       />
                     ) : (
                       <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -384,7 +384,7 @@ export default function Profile() {
                   {isSuperAdmin && (
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Email
+                        Емаил
                       </label>
                       {isEditing ? (
                         <input
@@ -393,7 +393,7 @@ export default function Profile() {
                           value={formData.email}
                           onChange={handleInputChange}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="Enter email"
+                          placeholder="Ентер емаил"
                         />
                       ) : (
                         <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -410,13 +410,13 @@ export default function Profile() {
                   {/* Read-only Information */}
                   <div className="space-y-4">
                     <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                      Account Information
+                      Аццоунт Информатион
                     </h4>
 
                     {/* User ID */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        User ID
+                        Усер ИД
                       </label>
                       <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                         <span className="font-mono text-sm text-gray-600">
@@ -428,7 +428,7 @@ export default function Profile() {
                     {/* UUID */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        User ID (UUID)
+                        Усер ИД (УУИД)
                       </label>
                       <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                         <FiUser className="text-gray-400 flex-shrink-0" />
@@ -442,7 +442,7 @@ export default function Profile() {
                     {isSuperAdmin && (superUser.shopname || "N/A") && (
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Shop Name
+                          Шоп Наме
                         </label>
                         <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                           <FiShoppingBag className="text-gray-400 flex-shrink-0" />
@@ -455,7 +455,7 @@ export default function Profile() {
                     {shop_id && (
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Shop ID
+                          Шоп ИД
                         </label>
                         <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                           <span className="font-mono text-sm text-gray-600">{shop_id}</span>
@@ -467,7 +467,7 @@ export default function Profile() {
                     {(admin.img_url || superUser.img_url) && (
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Profile Image URL
+                          Профиле Имаге УРЛ
                         </label>
                         <div className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                           <span className="font-mono text-sm text-gray-600 break-all">
@@ -480,7 +480,7 @@ export default function Profile() {
                     {/* Login Status */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Login Status
+                        Логин Статус
                       </label>
                       <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                         <div className={`w-2 h-2 rounded-full ${superUser.isloggedin ? "bg-green-500" : "bg-red-500"}`}></div>
@@ -493,7 +493,7 @@ export default function Profile() {
                     {/* Created Date */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Member Since
+                        Мембер Синце
                       </label>
                       <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                         <FiCalendar className="text-gray-400 flex-shrink-0" />
@@ -514,7 +514,7 @@ export default function Profile() {
                     {/* Updated Date */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Last Updated
+                        Ласт Упдатед
                       </label>
                       <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                         <FiCalendar className="text-gray-400 flex-shrink-0" />
@@ -541,13 +541,13 @@ export default function Profile() {
                           onClick={handleSave}
                           className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all font-medium shadow-sm"
                         >
-                          Save Changes
+                          Саве Чангес
                         </button>
                         <button
                           onClick={handleCancel}
                           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all font-medium"
                         >
-                          Cancel
+                          Цанцел
                         </button>
                       </div>
                     )}
@@ -555,8 +555,8 @@ export default function Profile() {
                 ) : (
                   <>
                     <div className="mb-6">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Shop Settings</h3>
-                      <p className="text-gray-600">Configure your store's basic information and preferences</p>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Шоп Сеттингс</h3>
+                      <p className="text-gray-600">Цонфигуре ёур сторе'с басиц информатион анд преференцес</p>
                     </div>
 
                     <div className="space-y-6">
@@ -564,69 +564,69 @@ export default function Profile() {
                       <div className="space-y-2">
                         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                           <FiShoppingBag className="w-4 h-4" />
-                          Store Name
+                          Сторе Наме
                         </label>
                         <input
                           type="text"
                           value={storeName}
                           onChange={(e) => setStoreName(e.target.value)}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="Enter your store name"
+                          placeholder="Ентер ёур сторе наме"
                         />
-                        <p className="text-xs text-gray-500">This name will appear in invoices and receipts</p>
+                        <p className="text-xs text-gray-500">Тҳис наме вилл аппеар ин инвоицес анд рецеипц</p>
                       </div>
 
                       {/* Currency */}
                       <div className="space-y-2">
                         <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                           <FiDollarSign className="w-4 h-4" />
-                          Default Currency
+                          Дефаулт Цурренцй
                         </label>
                         <select
                           value={currency}
                           onChange={(e) => setCurrency(e.target.value)}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                         >
-                          <option value="RUB">RUB - Russian ?e ({"\u20BD"})</option>
-                          <option value="UZS">UZS - Uzbekistani Som (so'm)</option>
-                          <option value="EUR">EUR - Euro (€)</option>
-                          <option value="GBP">GBP - British Pound (£)</option>
+                          <option value="RUB">РУБ - Руссиан ?е ({"\u20BD"})</option>
+                          <option value="UZS">УЗС - Узбекистани Сом (сўм)</option>
+                          <option value="EUR">ЕУР - Еуро (€)</option>
+                          <option value="GBP">ГБП - Бритиш Поунд (£)</option>
                         </select>
-                        <p className="text-xs text-gray-500">All prices will be displayed in this currency</p>
+                        <p className="text-xs text-gray-500">Алл прицес вилл бе дисплаед ин тҳис цурренцй</p>
                       </div>
 
                       {/* Timezone */}
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">
-                          Timezone
+                          Тимезоне
                         </label>
                         <select
                           value={timezone}
                           onChange={(e) => setTimezone(e.target.value)}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                         >
-                          <option value="UTC">UTC</option>
-                          <option value="America/New_York">Eastern Time (ET)</option>
-                          <option value="America/Chicago">Central Time (CT)</option>
-                          <option value="America/Denver">Mountain Time (MT)</option>
-                          <option value="America/Los_Angeles">Pacific Time (PT)</option>
-                          <option value="Asia/Tashkent">Asia/Tashkent</option>
+                          <option value="UTC">УТЦ</option>
+                          <option value="America/New_York">Еастерн Тиме (ЕТ)</option>
+                          <option value="America/Chicago">Централ Тиме (ЦТ)</option>
+                          <option value="America/Denver">Моунтаин Тиме (МТ)</option>
+                          <option value="America/Los_Angeles">Пацифиц Тиме (ПТ)</option>
+                          <option value="Asia/Tashkent">Асиа/Ташкент</option>
                         </select>
                       </div>
 
                       {/* Date Format */}
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700">
-                          Date Format
+                          Дате Формат
                         </label>
                         <select
                           value={dateFormat}
                           onChange={(e) => setDateFormat(e.target.value)}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
                         >
-                          <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                          <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                          <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                          <option value="MM/DD/YYYY">ММ/ДД/ЙЙЙЙ</option>
+                          <option value="DD/MM/YYYY">ДД/ММ/ЙЙЙЙ</option>
+                          <option value="YYYY-MM-DD">ЙЙЙЙ-ММ-ДД</option>
                         </select>
                       </div>
 
@@ -641,22 +641,22 @@ export default function Profile() {
                             {isSavingShop ? (
                               <>
                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                <span>Saving...</span>
+                                <span>Савинг...</span>
                               </>
                             ) : showShopSuccess ? (
                               <>
                                 <FiCheck className="w-4 h-4" />
-                                <span>Saved!</span>
+                                <span>Савед!</span>
                               </>
                             ) : (
                               <>
                                 <FiSave className="w-4 h-4" />
-                                <span>Save Changes</span>
+                                <span>Саве Чангес</span>
                               </>
                             )}
                           </button>
                           {showShopSuccess && (
-                            <span className="text-sm text-green-600 font-medium">Settings saved successfully!</span>
+                            <span className="text-sm text-green-600 font-medium">Сеттингс савед суццессфуллй!</span>
                           )}
                         </div>
                       </div>

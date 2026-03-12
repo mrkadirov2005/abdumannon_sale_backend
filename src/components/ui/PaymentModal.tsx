@@ -18,13 +18,13 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Prop
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-5">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Payment</h3>
-          <button onClick={onClose} className="text-sm text-gray-500">Close</button>
+          <h3 className="text-lg font-semibold">Паймент</h3>
+          <button onClick={onClose} className="text-sm text-gray-500">Цлосе</button>
         </div>
 
         <div className="space-y-3">
           <div>
-            <label htmlFor="payment-method" className="block text-xs text-gray-500">Payment method</label>
+            <label htmlFor="payment-method" className="block text-xs text-gray-500">Паймент метҳод</label>
             <select 
               id="payment-method"
               name="payment-method"
@@ -32,16 +32,16 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Prop
               onChange={(e) => setMethod(e.target.value)} 
               className="w-full border px-3 py-2 rounded mt-1"
             >
-              <option value="cash">Cash</option>
-              <option value="card">Card</option>
-              <option value="mobile">Mobile Pay</option>
+              <option value="cash">Цаш</option>
+              <option value="card">Цард</option>
+              <option value="mobile">Мобиле Пай</option>
             </select>
           </div>
 
           {method === "card" && (
             <div className="space-y-2">
               <div>
-                <label htmlFor="card-name" className="block text-xs text-gray-500">Name on card</label>
+                <label htmlFor="card-name" className="block text-xs text-gray-500">Наме он цард</label>
                 <input 
                   id="card-name"
                   name="card-name"
@@ -52,7 +52,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Prop
                 />
               </div>
               <div>
-                <label htmlFor="card-number" className="block text-xs text-gray-500">Card number</label>
+                <label htmlFor="card-number" className="block text-xs text-gray-500">Цард нумбер</label>
                 <input 
                   id="card-number"
                   name="card-number"
@@ -66,7 +66,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Prop
           )}
 
           <div className="flex items-center justify-between mt-2">
-            <div className="text-sm text-gray-600">Total</div>
+            <div className="text-sm text-gray-600">Тотал</div>
             <div className="text-lg font-semibold">{new Intl.NumberFormat("en-US", { style: "currency", currency: "RUB" }).format(total)}</div>
           </div>
 
@@ -75,10 +75,10 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Prop
               onClick={() => onConfirm(method, { name, cardNumber })}
               className="flex-1 py-2 bg-green-600 text-white rounded"
             >
-              Confirm Payment
+              Цонфирм Паймент
             </button>
 
-            <button onClick={onClose} className="py-2 px-4 border rounded">Cancel</button>
+            <button onClick={onClose} className="py-2 px-4 border rounded">Цанцел</button>
           </div>
         </div>
       </div>

@@ -60,7 +60,14 @@ export const useFinanceLogic = (source: FinanceSource) => {
 
       setWagons(wagonsData.data || wagonsData);
       setFinanceRecords(financeData.data || financeData);
-      setDebts(debtsData.data || debtsData);
+      const rawDebts = debtsData.data || debtsData;
+      const normalizedDebts = Array.isArray(rawDebts)
+        ? rawDebts.map((debt) => ({
+            ...debt,
+            admin_id: debt.admin_id === MY_DEBTS_ADMIN_ID ? MY_DEBTS_ADMIN_ID : "qarzdorlar",
+          }))
+        : rawDebts;
+      setDebts(normalizedDebts);
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Ma'lumotlarni yuklashda xatolik");
@@ -234,6 +241,8 @@ export const useFinanceLogic = (source: FinanceSource) => {
           amount: parseFloat(formData.amount),
         });
 
+        const categoryToSend = source === "myDebts" ? "my_debt" : formData.category;
+
         const response = await fetch(`${DEFAULT_ENDPOINT}/finance`, {
           method: "POST",
           headers: getHeaders(),
@@ -241,7 +250,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
             amount: parseFloat(formData.amount),
             description: `${selectedPersonName}: ${formData.description}`,
             type: formData.type,
-            category: formData.category,
+            category: categoryToSend,
             date: formData.date,
           }),
         });
@@ -256,7 +265,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
             amount: "",
             description: "",
             type: "income",
-            category: "sales",
+            category: source === "myDebts" ? "my_debt" : "sales",
             date: new Date().toISOString().split("T")[0],
           });
           fetchData();
@@ -269,6 +278,36 @@ export const useFinanceLogic = (source: FinanceSource) => {
       }
     },
     [formData, fetchData]
+  );
+
+  const handleDeleteDebt = useCallback(
+    async (debtId: string) => {
+      if (!window.confirm("Ушбу қарз ёзувини ўчиришни хоҳлайсизми?")) return;
+
+      try {
+        const response = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.delete}`, {
+          method: "DELETE",
+          headers: {
+            ...getHeaders(),
+            id: debtId,
+          },
+          body: JSON.stringify({ id: debtId }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          toast.success("Қарз ёзуви ўчирилди");
+          fetchData();
+        } else {
+          toast.error(data.error || data.message || "Ўчиришда хатолик");
+        }
+      } catch (error) {
+        console.error("Error deleting debt:", error);
+        toast.error("Ўчиришда хатолик");
+      }
+    },
+    [fetchData]
   );
 
   const markDebtsReturned = useCallback(async (debtsToMark: Debt[]) => {
@@ -360,6 +399,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
     fetchData,
     handleDeleteFinanceRecord,
     handleDeleteWagon,
+    handleDeleteDebt,
     handleAddPayment,
     handleAddMyDebt,
     markDebtsReturned,

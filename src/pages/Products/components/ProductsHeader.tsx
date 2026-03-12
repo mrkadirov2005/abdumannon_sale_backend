@@ -30,8 +30,8 @@ export default function ProductsHeader({
   return (
     <header className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
-        <h1 className="text-4xl font-bold text-gray-900">Mahsulotlar</h1>
-        <p className="text-sm text-gray-600 mt-1">Ombor va narxlarni boshqaring.</p>
+        <h1 className="text-4xl font-bold text-gray-900">Маҳсулотлар</h1>
+        <p className="text-sm text-gray-600 mt-1">Омбор ва нархларни бошқаринг.</p>
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
@@ -39,14 +39,14 @@ export default function ProductsHeader({
           onClick={onExportCSV}
           className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-700 text-sm hover:bg-gray-50 transition-colors"
         >
-          <FiDownload /> CSV Yuklash
+          <FiDownload /> ЦСВ Юклаш
         </button>
 
         <button
           onClick={onAddProduct}
           className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 transition-colors"
         >
-          <FiPlus /> Mahsulot Qo'sh
+          <FiPlus /> Маҳсулот Қўш
         </button>
 
         <button
@@ -56,7 +56,7 @@ export default function ProductsHeader({
           <Refresh />
         </button>
 
-        <Tooltip title="Ombor/Muddati Tugagan Filtri">
+        <Tooltip title="Омбор/Муддати Тугаган Филтри">
           <IconButton onClick={onFilterMenuOpen} className="border border-gray-200">
             <FilterList />
           </IconButton>
@@ -70,7 +70,7 @@ export default function ProductsHeader({
               onFilterMenuClose();
             }}
           >
-            Barcha Mahsulotlar
+            Барча Маҳсулотлар
           </MenuItem>
           <MenuItem
             selected={stockFilter === "low"}
@@ -79,7 +79,7 @@ export default function ProductsHeader({
               onFilterMenuClose();
             }}
           >
-            Kam Ombor (≤ {LOW_STOCK_THRESHOLD})
+            Кам Омбор (≤ {LOW_STOCK_THRESHOLD})
           </MenuItem>
           <MenuItem
             selected={stockFilter === "high"}
@@ -88,7 +88,7 @@ export default function ProductsHeader({
               onFilterMenuClose();
             }}
           >
-            Ko'p Ombor (&gt; {LOW_STOCK_THRESHOLD})
+            Кўп Омбор (&гт; {LOW_STOCK_THRESHOLD})
           </MenuItem>
           <MenuItem
             selected={stockFilter === "not_available"}
@@ -97,7 +97,7 @@ export default function ProductsHeader({
               onFilterMenuClose();
             }}
           >
-            Mavjud emas (Sotilgan)
+            Мавжуд емас (Сотилган)
           </MenuItem>
           <MenuItem
             selected={stockFilter === "expired"}
@@ -106,7 +106,7 @@ export default function ProductsHeader({
               onFilterMenuClose();
             }}
           >
-            Muddati Tugagan Mahsulotlar
+            Муддати Тугаган Маҳсулотлар
           </MenuItem>
         </Menu>
       </div>

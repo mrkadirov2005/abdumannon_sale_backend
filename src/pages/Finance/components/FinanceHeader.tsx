@@ -17,10 +17,10 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
     <header className="mb-4 sm:mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div>
         <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-          💰 Moliyaviy Boshqaruv
+          💰 Молиявий Бошқарув
         </h1>
         <p className="text-sm sm:text-base md:text-lg text-gray-600">
-          Pul moviy ma'lumotlarini boshqarish va sleduvchi
+          Пул мовий ма'лумотларини бошқариш ва следувчи
         </p>
       </div>
       <div className="flex items-center gap-2">
@@ -28,9 +28,9 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
           <button
             onClick={onAddMyDebt}
             className="px-3 py-2 rounded-md text-sm font-medium transition bg-green-600 text-white hover:bg-green-700"
-            title="Qarz qo'shish"
+            title="Қарз қўшиш"
           >
-            + Qarz
+            + Қарз
           </button>
         )}
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
@@ -42,7 +42,7 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
               : "text-gray-700 hover:bg-gray-100"
           }`}
         >
-          Vagonlar
+          Вагонлар
         </button>
         <button
           onClick={() => onSourceChange("debts")}
@@ -52,7 +52,7 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
               : "text-gray-700 hover:bg-gray-100"
           }`}
         >
-          Qarzdorlar
+          Қарздорлар
         </button>
         <button
           onClick={() => onSourceChange("myDebts")}
@@ -62,7 +62,7 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
               : "text-gray-700 hover:bg-gray-100"
           }`}
         >
-          Qarzlarim
+          Қарзларим
         </button>
         </div>
       </div>

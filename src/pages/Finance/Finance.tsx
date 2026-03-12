@@ -40,6 +40,7 @@ const Finance: React.FC = () => {
     fetchData,
     handleDeleteFinanceRecord,
     handleDeleteWagon,
+    handleDeleteDebt,
     handleAddPayment,
     handleAddMyDebt,
     markDebtsReturned,
@@ -54,7 +55,7 @@ const Finance: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Yuklanmoqda...</p>
+          <p className="text-gray-600">Юкланмоқда...</p>
         </div>
       </div>
     );
@@ -98,7 +99,7 @@ const Finance: React.FC = () => {
               onClick={() => setSelectedPerson(null)}
               className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 transition text-sm font-medium"
             >
-              ← Orqaga
+              ← Орқага
             </button>
           </div>
         ) : (
@@ -110,12 +111,13 @@ const Finance: React.FC = () => {
           />
         )
       ) : (
-        <ListView
-          wagons={wagons}
-          debts={debts}
-          source={source}
-          onDeleteWagon={handleDeleteWagon}
-        />
+      <ListView
+        wagons={wagons}
+        debts={debts}
+        source={source}
+        onDeleteWagon={handleDeleteWagon}
+        onDeleteDebt={handleDeleteDebt}
+      />
       )}
 
       {/* Details Panel */}
@@ -126,6 +128,7 @@ const Finance: React.FC = () => {
           onAddPayment={() => setShowPaymentModal(true)}
           onDeleteWagon={handleDeleteWagon}
           onDeleteFinanceRecord={handleDeleteFinanceRecord}
+          onDeleteDebt={handleDeleteDebt}
           source={source}
         />
       )}
@@ -159,10 +162,11 @@ const Finance: React.FC = () => {
             amount: "",
             description: "",
             type: "income",
-            category: "sales",
+            category: source === "myDebts" ? "my_debt" : "sales",
             date: new Date().toISOString().split("T")[0],
           });
         }}
+        hideCategory={source === "myDebts"}
       />
 
       <MyDebtModal

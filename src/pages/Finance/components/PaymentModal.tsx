@@ -8,6 +8,7 @@ interface PaymentModalProps {
   onFormChange: (data: Partial<FormData>) => void;
   onAddPayment: () => void;
   onClose: () => void;
+  hideCategory?: boolean;
 }
 
 export const PaymentModal: React.FC<PaymentModalProps> = ({
@@ -17,6 +18,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   onFormChange,
   onAddPayment,
   onClose,
+  hideCategory = false,
 }) => {
   if (!isOpen || !selectedPerson) return null;
 
@@ -24,13 +26,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mx-4">
         <h3 className="text-xl font-bold text-gray-900 mb-4">
-          {selectedPerson} ga pul berish
+          {selectedPerson} га пул бериш
         </h3>
 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Summa *
+              Сумма *
             </label>
             <input
               type="number"
@@ -43,7 +45,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Izohlar
+              Изоҳлар
             </label>
             <input
               type="text"
@@ -51,14 +53,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               onChange={(e) =>
                 onFormChange({ description: e.target.value })
               }
-              placeholder="Pul berish sababi"
+              placeholder="Пул бериш сабаби"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Turi
+              Тури
             </label>
             <select
               value={formData.type}
@@ -69,27 +71,29 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="income">Kirim</option>
-              <option value="expense">Chiqim</option>
+              <option value="income">Кирим</option>
+              <option value="expense">Чиқим</option>
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Kategoriya
-            </label>
-            <input
-              type="text"
-              value={formData.category}
-              onChange={(e) => onFormChange({ category: e.target.value })}
-              placeholder="sales, purchase, etc."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
+          {!hideCategory && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Категория
+              </label>
+              <input
+                type="text"
+                value={formData.category}
+                onChange={(e) => onFormChange({ category: e.target.value })}
+                placeholder="салес, пурчасе, етц."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Sana
+              Сана
             </label>
             <input
               type="date"
@@ -105,13 +109,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             onClick={onAddPayment}
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
           >
-            Qo'shish
+            Қўшиш
           </button>
           <button
             onClick={onClose}
             className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition font-semibold"
           >
-            Bekor qilish
+            Бекор қилиш
           </button>
         </div>
       </div>

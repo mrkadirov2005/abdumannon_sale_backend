@@ -22,7 +22,7 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
     <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mb-4 sm:mb-6">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4">
         <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800">
-          Ko'rinish Rejimi
+          Кўриниш Режими
         </h3>
         <div className="flex gap-2 w-full md:w-auto flex-wrap">
           <button
@@ -33,7 +33,7 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            <Folder size={18} /> Papkalar
+            <Folder size={18} /> Папкалар
           </button>
           <button
             onClick={() => handleModeChange("list")}
@@ -43,7 +43,7 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            <DollarSign size={18} /> Barcha Yozuvlar
+            <DollarSign size={18} /> Барча Ёзувлар
           </button>
         </div>
       </div>

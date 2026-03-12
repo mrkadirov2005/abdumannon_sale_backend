@@ -102,6 +102,7 @@ const WagonsPage: React.FC = () => {
     wagon_number: generateChequeNumber(),
     indicator: "none" as "debt_taken" | "debt_given" | "none",
     branch: null as number | null,
+    created_at: new Date().toISOString().split("T")[0],
   });
 
   const [productRows, setProductRows] = useState<Array<{
@@ -130,11 +131,11 @@ const WagonsPage: React.FC = () => {
       if (data.success) {
         setWagons(data.data);
       } else {
-        toast.error("Vagonlarni yuklashda xatolik");
+        toast.error("Вагонларни юклашда хатолик");
       }
     } catch (error) {
       console.error("Error fetching wagons:", error);
-      toast.error("Serverga ulanishda xatolik");
+      toast.error("Серверга уланишда хатолик");
     } finally {
       setLoading(false);
     }
@@ -154,7 +155,7 @@ const WagonsPage: React.FC = () => {
     );
 
     if (validProducts.length === 0) {
-      toast.error("Kamida bitta mahsulot qo'shing");
+      toast.error("Камида битта маҳсулот қўшинг");
       return;
     }
 
@@ -186,6 +187,7 @@ const WagonsPage: React.FC = () => {
           wagon_number: generateChequeNumber(),
           indicator: "none",
           branch: formData.branch,
+          created_at: formData.created_at,
           paid_amount: totalPaidAmount,
           products,
         }),
@@ -194,7 +196,7 @@ const WagonsPage: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        toast.success("Vagon muvaffaqiyatli yaratildi");
+        toast.success("Вагон муваффақиятли яратилди");
         setShowCreateModal(false);
         resetForm();
         fetchWagons();
@@ -203,7 +205,7 @@ const WagonsPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error creating wagon:", error);
-      toast.error("Serverga ulanishda xatolik");
+      toast.error("Серверга уланишда хатолик");
     }
   };
 
@@ -247,6 +249,7 @@ const WagonsPage: React.FC = () => {
           wagon_number: generateChequeNumber(),
           indicator: formData.indicator,
           branch: formData.branch,
+          created_at: formData.created_at,
           paid_amount: totalPaidAmount,
           products,
         }),
@@ -255,7 +258,7 @@ const WagonsPage: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        toast.success("Vagon muvaffaqiyatli yangilandi");
+        toast.success("Вагон муваффақиятли янгиланди");
         setShowEditModal(false);
         resetForm();
         fetchWagons();
@@ -264,7 +267,7 @@ const WagonsPage: React.FC = () => {
       }
     } catch (error) {
       console.error("Error updating wagon:", error);
-      toast.error("Serverga ulanishda xatolik");
+      toast.error("Серверга уланишда хатолик");
     }
   };
 
@@ -289,14 +292,14 @@ const WagonsPage: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        toast.success("Vagon o'chirildi");
+        toast.success("Вагон ўчирилди");
         fetchWagons();
       } else {
         toast.error(data.message || "Vagon o'chirishda xatolik");
       }
     } catch (error) {
       console.error("Error deleting wagon:", error);
-      toast.error("Serverga ulanishda xatolik");
+      toast.error("Серверга уланишда хатолик");
     }
   };
 
@@ -312,6 +315,9 @@ const WagonsPage: React.FC = () => {
       wagon_number: generateChequeNumber(),
       indicator: wagon.indicator,
       branch: wagon.branch,
+      created_at: wagon.created_at
+        ? new Date(wagon.created_at).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
     });
     setProductRows(
       wagon.products.map((p) => {
@@ -336,6 +342,7 @@ const WagonsPage: React.FC = () => {
       wagon_number: generateChequeNumber(),
       indicator: "none",
       branch: null,
+      created_at: new Date().toISOString().split("T")[0],
     });
     setProductRows([{ product_id: "", product_name: "", amount: "", price: "", paid_amount: "", unit: "pcs" }]);
     setSelectedWagon(null);
@@ -457,7 +464,7 @@ const WagonsPage: React.FC = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Yuklanmoqda...</p>
+          <p className="text-gray-600">Юкланмоқда...</p>
         </div>
       </div>
     );
@@ -469,17 +476,17 @@ const WagonsPage: React.FC = () => {
       <header className="mb-4 sm:mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            🚛 Vagonlar Boshqaruvi
+            🚛 Вагонлар Бошқаруви
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-gray-600">
-            Vagonlar va yuklar ma'lumotlarini boshqarish
+            Вагонлар ва юклар ма'лумотларини бошқариш
           </p>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
           className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2 shadow-lg"
         >
-          <Plus size={20} /> Yangi Vagon
+          <Plus size={20} /> Янги Вагон
         </button>
       </header>
 
@@ -487,7 +494,7 @@ const WagonsPage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-sm p-4 sm:p-5 md:p-6 mb-4 sm:mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600 mb-1">Jami Vagonlar</p>
+            <p className="text-sm text-gray-600 mb-1">Жами Вагонлар</p>
             <p className="text-2xl sm:text-3xl font-bold text-blue-900">{wagons.length}</p>
           </div>
           <Truck size={28} className="text-blue-600" />
@@ -500,17 +507,17 @@ const WagonsPage: React.FC = () => {
           <div className="p-4 sm:p-5 md:p-6 border-b border-gray-200">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Folder className="text-blue-600" size={24} />
-              Shaxslar ({getUniquePersons.length})
+              Шахслар ({getUniquePersons.length})
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Vagonlarini ko'rish uchun shaxsga bosing</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Вагонларини кўриш учун шахсга босинг</p>
           </div>
 
           <div className="divide-y divide-gray-200">
             {getUniquePersons.length === 0 ? (
               <div className="p-8 sm:p-10 md:p-12 text-center">
                 <User size={48} className="text-gray-300 mb-4 mx-auto" />
-                <p className="text-base sm:text-lg md:text-xl font-medium text-gray-900">Shaxslar topilmadi</p>
-                <p className="text-sm md:text-base text-gray-500 mt-1">Yangi vagon qo'shishdan boshlang</p>
+                <p className="text-base sm:text-lg md:text-xl font-medium text-gray-900">Шахслар топилмади</p>
+                <p className="text-sm md:text-base text-gray-500 mt-1">Янги вагон қўшишдан бошланг</p>
               </div>
             ) : (
               getUniquePersons.map((person) => (
@@ -531,7 +538,7 @@ const WagonsPage: React.FC = () => {
                           {person.name}
                         </h3>
                         <p className="text-xs sm:text-sm md:text-base text-gray-600">
-                          {person.totalWagons} vagon
+                          {person.totalWagons} вагон
                         </p>
                       </div>
                     </div>
@@ -563,7 +570,7 @@ const WagonsPage: React.FC = () => {
                   {selectedPerson.charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm md:text-base font-medium text-blue-700">Vagonlari ko'rsatilmoqda:</p>
+                  <p className="text-xs sm:text-sm md:text-base font-medium text-blue-700">Вагонлари кўрсатилмоқда:</p>
                   <p className="text-base sm:text-lg md:text-xl font-bold text-blue-900">{selectedPerson}</p>
                 </div>
               </div>
@@ -571,7 +578,7 @@ const WagonsPage: React.FC = () => {
                 onClick={() => setSelectedPerson(null)}
                 className="w-full sm:w-auto px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium flex items-center justify-center gap-2"
               >
-                <X size={18} /> Filtrni Tozalash
+                <X size={18} /> Филтрни Тозалаш
               </button>
             </div>
           )}
@@ -581,7 +588,7 @@ const WagonsPage: React.FC = () => {
         {filteredAndSorted.length === 0 ? (
           <div className="bg-white rounded-lg p-8 text-center">
             <Truck size={48} className="text-gray-300 mb-4 mx-auto" />
-            <p className="text-lg font-medium text-gray-900">Vagonlar topilmadi</p>
+            <p className="text-lg font-medium text-gray-900">Вагонлар топилмади</p>
             <p className="text-sm text-gray-500 mt-1">
               {wagons.length === 0 ? "Yangi vagon qo'shishdan boshlang" : "Filtrlarni o'zgartiring"}
             </p>
@@ -603,11 +610,11 @@ const WagonsPage: React.FC = () => {
 
               <div className="space-y-2 text-sm mb-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Mahsulotlar:</span>
-                  <span className="font-semibold text-gray-900">{wagon.products.length} ta</span>
+                  <span className="text-gray-600">Маҳсулотлар:</span>
+                  <span className="font-semibold text-gray-900">{wagon.products.length} та</span>
                 </div>
                 <div className="flex justify-between border-t border-gray-200 pt-2">
-                  <span className="text-gray-600 font-bold">Jami Summa:</span>
+                  <span className="text-gray-600 font-bold">Жами Сумма:</span>
                   <span className="font-bold text-blue-600 text-base md:text-lg">
                     {formatMoney(parseFloat(wagon.total.toString()))}
                   </span>
@@ -619,7 +626,7 @@ const WagonsPage: React.FC = () => {
                   onClick={() => printWagon(wagon)}
                   className="flex-1 p-2 text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
                 >
-                  🖨️ Chop
+                  🖨️ Чоп
                 </button>
 
                 <button
@@ -629,7 +636,7 @@ const WagonsPage: React.FC = () => {
                   }}
                   className="flex-1 p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
                 >
-                  <Eye size={16} /> Ko'rish
+                  <Eye size={16} /> Кўриш
                 </button>
 
                 <button
@@ -658,19 +665,19 @@ const WagonsPage: React.FC = () => {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Sana
+                  Сана
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Vagon Raqami
+                  Вагон Рақами
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Mahsulotlar
+                  Маҳсулотлар
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Jami Summa
+                  Жами Сумма
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Amallar
+                  Амаллар
                 </th>
               </tr>
             </thead>
@@ -680,7 +687,7 @@ const WagonsPage: React.FC = () => {
                   <td colSpan={5} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <Truck size={48} className="text-gray-300 mb-4" />
-                      <p className="text-lg font-medium text-gray-900">Vagonlar topilmadi</p>
+                      <p className="text-lg font-medium text-gray-900">Вагонлар топилмади</p>
                       <p className="text-sm text-gray-500 mt-1">
                         {wagons.length === 0
                           ? "Yangi vagon qo'shishdan boshlang"
@@ -705,7 +712,7 @@ const WagonsPage: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       <div className="flex items-center gap-2">
                         <Package size={16} />
-                        {wagon.products.length} ta
+                        {wagon.products.length} та
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
@@ -716,7 +723,7 @@ const WagonsPage: React.FC = () => {
                         <button
                           onClick={() => printWagon(wagon)}
                           className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition"
-                          title="Chop Etish"
+                          title="Чоп Етиш"
                         >
                           🖨️
                         </button>
@@ -726,21 +733,21 @@ const WagonsPage: React.FC = () => {
                             setShowDetailModal(true);
                           }}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                          title="Ko'rish"
+                          title="Кўриш"
                         >
                           <Eye size={18} />
                         </button>
                         <button
                           onClick={() => openEditModal(wagon)}
                           className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                          title="Tahrirlash"
+                          title="Таҳрирлаш"
                         >
                           <Edit2 size={18} />
                         </button>
                         <button
                           onClick={() => handleDeleteWagon(wagon.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                          title="O'chirish"
+                          title="Ўчириш"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -763,7 +770,7 @@ const WagonsPage: React.FC = () => {
             {/* MODAL HEADER */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 sm:p-6 text-white flex items-center justify-between rounded-t-xl flex-shrink-0">
               <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                <Plus size={24} /> Yangi Vagon Yaratish
+                <Plus size={24} /> Янги Вагон Яратиш
               </h2>
               <button
                 onClick={() => {
@@ -782,14 +789,14 @@ const WagonsPage: React.FC = () => {
                 {/* Client Name */}
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Klient Nomi <span className="text-red-500">*</span>
+                    Клиент Номи <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.client_name}
                     onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
                     className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Masalan: Ali Valiyev"
+                    placeholder="Масалан: Али Валиев"
                     required
                   />
                 </div>
@@ -797,14 +804,28 @@ const WagonsPage: React.FC = () => {
                 {/* Wagon Number */}
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Vagon Raqami <span className="text-red-500">*</span>
+                    Вагон Рақами <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.wagon_number}
                     onChange={(e) => setFormData({ ...formData, wagon_number: e.target.value })}
                     className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Masalan: VGN-12345"
+                    placeholder="Масалан: ВГН-12345"
+                    required
+                  />
+                </div>
+
+                {/* Date */}
+                <div>
+                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
+                    Сана <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.created_at}
+                    onChange={(e) => setFormData({ ...formData, created_at: e.target.value })}
+                    className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
@@ -812,21 +833,21 @@ const WagonsPage: React.FC = () => {
                 {/* Products */}
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Mahsulotlar <span className="text-red-500">*</span>
+                    Маҳсулотлар <span className="text-red-500">*</span>
                   </label>
                   <div className="space-y-3">
                     {productRows.map((row, index) => (
                       <div key={index} className="grid grid-cols-1 sm:grid-cols-12 gap-2">
                         <input
                           type="text"
-                          placeholder="ID"
+                          placeholder="ИД"
                           value={row.product_id}
                           onChange={(e) => updateProductRow(index, "product_id", e.target.value)}
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <input
                           type="text"
-                          placeholder="Mahsulot nomi"
+                          placeholder="Маҳсулот номи"
                           value={row.product_name}
                           onChange={(e) => updateProductRow(index, "product_name", e.target.value)}
                           className="sm:col-span-3 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -835,7 +856,7 @@ const WagonsPage: React.FC = () => {
                           type="text"
                           inputMode="decimal"
                           pattern="^[0-9]*[.,]?[0-9]*$"
-                          placeholder="Miqdor"
+                          placeholder="Миқдор"
                           value={row.amount}
                           onChange={(e) => updateProductRow(index, "amount", e.target.value)}
                           onBlur={(e) =>
@@ -862,7 +883,7 @@ const WagonsPage: React.FC = () => {
                           type="text"
                           inputMode="decimal"
                           pattern="^[0-9]*[.,]?[0-9]*$"
-                          placeholder="Narx"
+                          placeholder="Нарх"
                           value={row.price}
                           onChange={(e) => updateProductRow(index, "price", e.target.value)}
                           onBlur={(e) =>
@@ -889,7 +910,7 @@ const WagonsPage: React.FC = () => {
                       onClick={addProductRow}
                       className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition flex items-center justify-center gap-2 text-sm"
                     >
-                      <Plus size={18} /> Mahsulot Qo'shish
+                      <Plus size={18} /> Маҳсулот Қўшиш
                     </button>
                   </div>
                 </div>
@@ -904,13 +925,13 @@ const WagonsPage: React.FC = () => {
                     }}
                     className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
                   >
-                    Bekor Qilish
+                    Бекор Қилиш
                   </button>
                   <button
                     type="submit"
                     className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2"
                   >
-                    <Plus size={18} /> Yaratish
+                    <Plus size={18} /> Яратиш
                   </button>
                 </div>
               </form>
@@ -925,7 +946,7 @@ const WagonsPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl md:max-w-3xl max-h-[90vh] flex flex-col">
             <div className="bg-gradient-to-r from-orange-600 to-red-600 p-4 sm:p-6 text-white flex items-center justify-between rounded-t-xl flex-shrink-0">
               <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                <Edit2 size={24} /> Vagonni Tahrirlash
+                <Edit2 size={24} /> Вагонни Таҳрирлаш
               </h2>
               <button
                 onClick={() => {
@@ -942,49 +963,63 @@ const WagonsPage: React.FC = () => {
               <form onSubmit={handleUpdateWagon} className="space-y-4 sm:space-y-6">
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Klient Nomi <span className="text-red-500">*</span>
+                    Клиент Номи <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.client_name}
                     onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
                     className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Masalan: Ali Valiyev"
+                    placeholder="Масалан: Али Валиев"
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Vagon Raqami <span className="text-red-500">*</span>
+                    Вагон Рақами <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={formData.wagon_number}
                     onChange={(e) => setFormData({ ...formData, wagon_number: e.target.value })}
                     className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Masalan: VGN-12345"
+                    placeholder="Масалан: ВГН-12345"
+                    required
+                  />
+                </div>
+
+                {/* Date */}
+                <div>
+                  <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
+                    Сана <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.created_at}
+                    onChange={(e) => setFormData({ ...formData, created_at: e.target.value })}
+                    className="w-full px-4 py-2.5 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm md:text-base font-medium text-gray-700 mb-2">
-                    Mahsulotlar <span className="text-red-500">*</span>
+                    Маҳсулотлар <span className="text-red-500">*</span>
                   </label>
                   <div className="space-y-3">
                     {productRows.map((row, index) => (
                       <div key={index} className="grid grid-cols-1 sm:grid-cols-12 gap-2">
                         <input
                           type="text"
-                          placeholder="ID"
+                          placeholder="ИД"
                           value={row.product_id}
                           onChange={(e) => updateProductRow(index, "product_id", e.target.value)}
                           className="sm:col-span-2 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                         <input
                           type="text"
-                          placeholder="Mahsulot nomi"
+                          placeholder="Маҳсулот номи"
                           value={row.product_name}
                           onChange={(e) => updateProductRow(index, "product_name", e.target.value)}
                           className="sm:col-span-3 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -993,7 +1028,7 @@ const WagonsPage: React.FC = () => {
                           type="text"
                           inputMode="decimal"
                           pattern="^[0-9]*[.,]?[0-9]*$"
-                          placeholder="Miqdor"
+                          placeholder="Миқдор"
                           value={row.amount}
                           onChange={(e) => updateProductRow(index, "amount", e.target.value)}
                           onBlur={(e) =>
@@ -1020,7 +1055,7 @@ const WagonsPage: React.FC = () => {
                           type="text"
                           inputMode="decimal"
                           pattern="^[0-9]*[.,]?[0-9]*$"
-                          placeholder="Narx"
+                          placeholder="Нарх"
                           value={row.price}
                           onChange={(e) => updateProductRow(index, "price", e.target.value)}
                           onBlur={(e) =>
@@ -1047,7 +1082,7 @@ const WagonsPage: React.FC = () => {
                       onClick={addProductRow}
                       className="w-full px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition flex items-center justify-center gap-2 text-sm"
                     >
-                      <Plus size={18} /> Mahsulot Qo'shish
+                      <Plus size={18} /> Маҳсулот Қўшиш
                     </button>
                   </div>
                 </div>
@@ -1061,13 +1096,13 @@ const WagonsPage: React.FC = () => {
                     }}
                     className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
                   >
-                    Bekor Qilish
+                    Бекор Қилиш
                   </button>
                   <button
                     type="submit"
                     className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium flex items-center justify-center gap-2"
                   >
-                    <Edit2 size={18} /> Saqlash
+                    <Edit2 size={18} /> Сақлаш
                   </button>
                 </div>
               </form>
@@ -1082,7 +1117,7 @@ const WagonsPage: React.FC = () => {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl md:max-w-4xl max-h-[90vh] overflow-y-auto">
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 sm:p-6 text-white flex items-center justify-between sticky top-0">
               <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                <Eye size={24} /> Vagon Tafsilotlari
+                <Eye size={24} /> Вагон Тафсилотлари
               </h2>
               <button
                 onClick={() => setShowDetailModal(false)}
@@ -1101,17 +1136,17 @@ const WagonsPage: React.FC = () => {
                     {/* Basic Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="text-sm text-gray-600 mb-1">Vagon Raqami</p>
+                        <p className="text-sm text-gray-600 mb-1">Вагон Рақами</p>
                         <p className="text-lg font-bold text-blue-900">🚛 {selectedWagon.wagon_number}</p>
                       </div>
                       <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                        <p className="text-sm text-gray-600 mb-1">Jami Summa</p>
+                        <p className="text-sm text-gray-600 mb-1">Жами Сумма</p>
                         <p className="text-lg font-bold text-green-900">
                           {formatMoney(totalAmount)}
                         </p>
                       </div>
                       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-sm text-gray-600 mb-1">Yaratilgan Sana</p>
+                        <p className="text-sm text-gray-600 mb-1">Яратилган Сана</p>
                         <p className="text-lg font-bold text-gray-900">
                           {formatDate(selectedWagon.created_at)}
                         </p>
@@ -1121,7 +1156,7 @@ const WagonsPage: React.FC = () => {
               {/* Products Table */}
               <div className="mb-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <Package size={20} /> Mahsulotlar
+                  <Package size={20} /> Маҳсулотлар
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full border border-gray-200 rounded-lg">
@@ -1131,16 +1166,16 @@ const WagonsPage: React.FC = () => {
                           #
                         </th>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 border-b">
-                          Mahsulot
+                          Маҳсулот
                         </th>
                         <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 border-b">
-                          Miqdor
+                          Миқдор
                         </th>
                         <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 border-b">
-                          Narx
+                          Нарх
                         </th>
                         <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 border-b">
-                          Jami
+                          Жами
                         </th>
                       </tr>
                     </thead>
@@ -1166,7 +1201,7 @@ const WagonsPage: React.FC = () => {
                       })}
                       <tr className="bg-blue-50 font-bold">
                         <td colSpan={4} className="px-4 py-3 text-right text-gray-900">
-                          JAMI:
+                          ЖАМИ:
                         </td>
                         <td className="px-4 py-3 text-right text-blue-900 text-lg">
                           {formatMoney(parseFloat(selectedWagon.total.toString()))}
@@ -1183,7 +1218,7 @@ const WagonsPage: React.FC = () => {
                   onClick={() => printWagon(selectedWagon)}
                   className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium flex items-center justify-center gap-2"
                 >
-                  🖨️ Chop Etish
+                  🖨️ Чоп Етиш
                 </button>
                 <button
                   onClick={() => {
@@ -1192,13 +1227,13 @@ const WagonsPage: React.FC = () => {
                   }}
                   className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium flex items-center justify-center gap-2"
                 >
-                  <Edit2 size={18} /> Tahrirlash
+                  <Edit2 size={18} /> Таҳрирлаш
                 </button>
                 <button
                   onClick={() => setShowDetailModal(false)}
                   className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
                 >
-                  Yopish
+                  Ёпиш
                 </button>
               </div>
                   </>

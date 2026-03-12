@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import App from "../App";
 
 vi.mock("../routes/AppRoutes", () => ({
-  default: () => <div data-testid="app-routes">Routes</div>,
+  default: () => <div data-testid="app-routes">Роутес</div>,
 }));
 
 const setNavigatorOnline = (value: boolean) => {

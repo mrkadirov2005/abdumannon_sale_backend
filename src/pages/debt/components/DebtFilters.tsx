@@ -44,7 +44,7 @@ export const DebtFilters: React.FC<Props> = ({
           <Search className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
           <input
             type="text"
-            placeholder="Qarz beruvchini qidirish..."
+            placeholder="Қарз берувчини қидириш..."
             value={searchName}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -56,17 +56,17 @@ export const DebtFilters: React.FC<Props> = ({
           onChange={(e) => onFilterStatusChange(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="">Barcha holatlari</option>
-          <option value="partially">Qisman to'langan</option>
-          <option value="unpaid">To'lanmagan</option>
-          <option value="paid">To'langan</option>
+          <option value="">Барча ҳолатлари</option>
+          <option value="partially">Қисман тўланган</option>
+          <option value="unpaid">Тўланмаган</option>
+          <option value="paid">Тўланган</option>
         </select>
 
         <button
           onClick={onCreateClick}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
         >
-          + Yangi Qarz
+          + Янги Қарз
         </button>
       </div>
 
@@ -78,7 +78,7 @@ export const DebtFilters: React.FC<Props> = ({
         <ChevronDown
           className={`h-4 w-4 transition ${showAdvancedFilters ? "rotate-180" : ""}`}
         />
-        Qo'shimcha Filtrlar
+        Қўшимча Филтрлар
       </button>
 
       {/* Advanced Filters */}
@@ -91,7 +91,7 @@ export const DebtFilters: React.FC<Props> = ({
               onChange={(e) => onFilterByDateRange(e.target.checked)}
               className="h-4 w-4"
             />
-            <span className="text-sm text-gray-700">Sana bo'yicha filtrlash</span>
+            <span className="text-sm text-gray-700">Сана бўйича филтрлаш</span>
           </label>
 
           {filterByDateRange && (

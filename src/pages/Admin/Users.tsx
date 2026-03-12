@@ -51,11 +51,11 @@ export default function Admins() {
           if (Array.isArray(response)) {
             setPermissions(response);
           } else {
-            toast.error("Failed to load permissions");
+            toast.error("Рухсатларни юклашда хатолик");
             setPermissions([]);
           }
         } catch (error) {
-          toast.error("Failed to load permissions");
+          toast.error("Рухсатларни юклашда хатолик");
           console.error(error);
           setPermissions([]);
         } finally {
@@ -81,16 +81,16 @@ export default function Admins() {
     const errors: Record<string, string> = {};
 
     if (!formData.first_name?.trim()) {
-      errors.first_name = "First name is required";
+      errors.first_name = "Исми majburiy";
     }
     if (!formData.last_name?.trim()) {
-      errors.last_name = "Last name is required";
+      errors.last_name = "Фамилия majburiy";
     }
     if (!formData.phone_number?.trim()) {
-      errors.phone_number = "Phone number is required";
+      errors.phone_number = "Телефон рақами majburiy";
     }
     if (!formData.work_start) {
-      errors.work_start = "Work start date is required";
+      errors.work_start = "Иш бошланиш санаси majburiy";
     }
 
     setFormErrors(errors);
@@ -197,7 +197,7 @@ export default function Admins() {
 
   async function addAdminPermission(admin: Admin, permissionName: string) {
     if (!permissionName) {
-      toast.warning("Please select a permission");
+      toast.warning("Плеасе селецт а пермиссион");
       return;
     }
 
@@ -278,14 +278,14 @@ export default function Admins() {
       {/* HEADER */}
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Jamoa a'zolari</h1>
-          <p className="text-gray-600">Administratorlar va ularning ruxsatlarini boshqarish</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Жамоа а'золари</h1>
+          <p className="text-gray-600">Администраторлар ва уларнинг рухсатларини бошқариш</p>
         </div>
         <button
           onClick={handleOpenCreateModal}
           className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2 shadow-lg"
         >
-          <Plus size={20} /> Admin qo'shish
+          <Plus size={20} /> Админ қўшиш
         </button>
       </header>
 
@@ -296,7 +296,7 @@ export default function Admins() {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Ism bo'yicha qidirish..."
+            placeholder="Исм бўйича қидириш..."
             className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <Search className="absolute left-3 top-3.5 text-gray-400" size={20} />
@@ -311,7 +311,7 @@ export default function Admins() {
               <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-3 text-3xl">
                 👤
               </div>
-              <p className="text-lg font-medium text-gray-900">Adminlar topilmadi</p>
+              <p className="text-lg font-medium text-gray-900">Админлар топилмади</p>
               <p className="text-sm text-gray-500 mt-1">
                 {searchQuery
                   ? "Boshqa qidiruv so'rovini sinab ko'ring"
@@ -347,7 +347,7 @@ export default function Admins() {
               <div className="p-4 space-y-4 flex-1">
                 {/* CONTACT INFO */}
                 <div className="border-b border-gray-200 pb-3">
-                  <p className="text-xs font-medium text-gray-600 mb-1">Telefon</p>
+                  <p className="text-xs font-medium text-gray-600 mb-1">Телефон</p>
                   <p className="text-sm font-semibold text-gray-900">
                     {u.phone_number || "—"}
                   </p>
@@ -355,7 +355,7 @@ export default function Admins() {
 
                 {/* SALARY INFO */}
                 <div className="border-b border-gray-200 pb-3">
-                  <p className="text-xs font-medium text-gray-600 mb-1">Maosh</p>
+                  <p className="text-xs font-medium text-gray-600 mb-1">Маош</p>
                   <p className="text-sm font-semibold text-gray-900">
                     {u.salary > 0 ? `\u20BD${u.salary.toLocaleString("en-US")}` : "—"}
                   </p>
@@ -363,7 +363,7 @@ export default function Admins() {
 
                 {/* WORK START DATE */}
                 <div className="border-b border-gray-200 pb-3">
-                  <p className="text-xs font-medium text-gray-600 mb-1">Ish boshlanishi</p>
+                  <p className="text-xs font-medium text-gray-600 mb-1">Иш бошланиши</p>
                   <p className="text-sm font-semibold text-gray-900">
                     {u.work_start
                       ? new Date(u.work_start).toLocaleDateString("en-US", {
@@ -378,11 +378,11 @@ export default function Admins() {
                 {/* PERMISSIONS */}
                 <div className="pb-3">
                   <p className="text-xs font-medium text-gray-600 mb-2">
-                    Ruxsatlar ({u.permissions.length})
+                    Рухсатлар ({u.permissions.length})
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {u.permissions.length === 0 ? (
-                      <span className="text-gray-400 text-xs italic">Ruxsatlar yo'q</span>
+                      <span className="text-gray-400 text-xs italic">Рухсатлар йўқ</span>
                     ) : (
                       u.permissions.slice(0, 2).map((perm) => (
                         <span
@@ -415,7 +415,7 @@ export default function Admins() {
                     defaultValue=""
                   >
                     <option value="" disabled>
-                      + Ruxsat qo'shish
+                      + Рухсат қўшиш
                     </option>
                     {permissions
                       .filter((p) => !u.permissions.includes(p.name))
@@ -433,7 +433,7 @@ export default function Admins() {
                 <button
                   onClick={() => handleViewAdmin(u)}
                   className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
-                  title="Tezkor ko'rish"
+                  title="Тезкор кўриш"
                 >
                   <Eye size={18} />
                 </button>
@@ -441,7 +441,7 @@ export default function Admins() {
                 <button
                   onClick={() => handleViewExpandedAdmin(u)}
                   className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200"
-                  title="To'liq ma'lumotlarni ko'rish"
+                  title="Тўлиқ ма'лумотларни кўриш"
                 >
                   <ChevronDown size={18} />
                 </button>
@@ -449,7 +449,7 @@ export default function Admins() {
                 <button
                   onClick={() => handleOpenEditModal(u)}
                   className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors duration-200"
-                  title="Adminni tahrirlash"
+                  title="Админни таҳрирлаш"
                 >
                   <Edit2 size={18} />
                 </button>
@@ -457,7 +457,7 @@ export default function Admins() {
                 <button
                   onClick={() => handleDeleteAdmin(u)}
                   className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200"
-                  title="Adminni o'chirish"
+                  title="Админни ўчириш"
                 >
                   <Trash2 size={18} />
                 </button>
@@ -491,7 +491,7 @@ export default function Admins() {
                 {/* FIRST NAME */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ismi <span className="text-red-500">*</span>
+                    Исми <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -503,7 +503,7 @@ export default function Admins() {
                         ? "border-red-300 focus:ring-red-500 bg-red-50"
                         : "border-gray-300 focus:ring-blue-500"
                     }`}
-                    placeholder="Ismini kiriting"
+                    placeholder="Исмини киритинг"
                   />
                   {formErrors.first_name && (
                     <p className="text-xs text-red-600 mt-1">{formErrors.first_name}</p>
@@ -513,7 +513,7 @@ export default function Admins() {
                 {/* LAST NAME */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Familiyasi <span className="text-red-500">*</span>
+                    Фамилияси <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -525,7 +525,7 @@ export default function Admins() {
                         ? "border-red-300 focus:ring-red-500 bg-red-50"
                         : "border-gray-300 focus:ring-blue-500"
                     }`}
-                    placeholder="Familiyasini kiriting"
+                    placeholder="Фамилиясини киритинг"
                   />
                   {formErrors.last_name && (
                     <p className="text-xs text-red-600 mt-1">{formErrors.last_name}</p>
@@ -535,7 +535,7 @@ export default function Admins() {
                 {/* PHONE NUMBER */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Telefon raqami <span className="text-red-500">*</span>
+                    Телефон рақами <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
@@ -547,7 +547,7 @@ export default function Admins() {
                         ? "border-red-300 focus:ring-red-500 bg-red-50"
                         : "border-gray-300 focus:ring-blue-500"
                     }`}
-                    placeholder="Telefon raqamini kiriting"
+                    placeholder="Телефон рақамини киритинг"
                   />
                   {formErrors.phone_number && (
                     <p className="text-xs text-red-600 mt-1">{formErrors.phone_number}</p>
@@ -557,7 +557,7 @@ export default function Admins() {
                 {/* WORK START DATE */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ish boshlanish sanasi <span className="text-red-500">*</span>
+                    Иш бошланиш санаси <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
@@ -578,7 +578,7 @@ export default function Admins() {
                 {/* WORK END DATE */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ish tugash sanasi
+                    Иш тугаш санаси
                   </label>
                   <input
                     type="date"
@@ -592,7 +592,7 @@ export default function Admins() {
                 {/* SALARY */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Maosh
+                    Маош
                   </label>
                   <input
                     type="number"
@@ -600,7 +600,7 @@ export default function Admins() {
                     value={formData.salary ?? ""}
                     onChange={handleFormChange}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Maoshni kiriting"
+                    placeholder="Маошни киритинг"
                   />
                 </div>
 
@@ -615,7 +615,7 @@ export default function Admins() {
                     className="w-4 h-4 rounded cursor-pointer"
                   />
                   <label htmlFor="isloggedin" className="text-sm font-medium text-blue-900 cursor-pointer">
-                    Admin is Logged In
+                    Админ ис Логгед Ин
                   </label>
                 </div>
               </form>
@@ -627,7 +627,7 @@ export default function Admins() {
                 onClick={() => setShowCreateModal(false)}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
               >
-                Cancel
+                Цанцел
               </button>
               <button
                 onClick={handleSubmitForm}
@@ -652,7 +652,7 @@ export default function Admins() {
                   {selectedAdmin.first_name.charAt(0)}
                   {selectedAdmin.last_name.charAt(0)}
                 </div>
-                <h2 className="text-xl font-bold">Admin Details</h2>
+                <h2 className="text-xl font-bold">Админ Детаилс</h2>
               </div>
               <button
                 onClick={() => setShowDetailModal(false)}
@@ -666,22 +666,22 @@ export default function Admins() {
             <div className="p-6 space-y-4">
               {/* PERSONAL INFO */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-bold text-blue-900 mb-3">Personal Information</h3>
+                <h3 className="text-sm font-bold text-blue-900 mb-3">Персонал Информатион</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-xs font-medium text-blue-700">Name:</span>
+                    <span className="text-xs font-medium text-blue-700">Наме:</span>
                     <span className="text-sm font-semibold text-blue-900">
                       {selectedAdmin.first_name} {selectedAdmin.last_name}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs font-medium text-blue-700">Phone:</span>
+                    <span className="text-xs font-medium text-blue-700">Пҳоне:</span>
                     <span className="text-sm font-semibold text-blue-900">
                       {selectedAdmin.phone_number || "—"}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs font-medium text-blue-700">Status:</span>
+                    <span className="text-xs font-medium text-blue-700">Статус:</span>
                     <span
                       className={`text-sm font-semibold ${
                         selectedAdmin.isloggedin ? "text-green-600" : "text-red-600"
@@ -695,10 +695,10 @@ export default function Admins() {
 
               {/* WORK INFO */}
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                <h3 className="text-sm font-bold text-purple-900 mb-3">Work Information</h3>
+                <h3 className="text-sm font-bold text-purple-900 mb-3">Ворк Информатион</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-xs font-medium text-purple-700">Start Date:</span>
+                    <span className="text-xs font-medium text-purple-700">Старт Дате:</span>
                     <span className="text-sm font-semibold text-purple-900">
                       {selectedAdmin.work_start
                         ? new Date(selectedAdmin.work_start).toLocaleDateString("en-US", {
@@ -710,7 +710,7 @@ export default function Admins() {
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs font-medium text-purple-700">End Date:</span>
+                    <span className="text-xs font-medium text-purple-700">Енд Дате:</span>
                     <span className="text-sm font-semibold text-purple-900">
                       {selectedAdmin.work_end
                         ? new Date(selectedAdmin.work_end).toLocaleDateString("en-US", {
@@ -726,16 +726,16 @@ export default function Admins() {
 
               {/* FINANCIAL INFO */}
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h3 className="text-sm font-bold text-green-900 mb-3">Financial Information</h3>
+                <h3 className="text-sm font-bold text-green-900 mb-3">Финанциал Информатион</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-xs font-medium text-green-700">Salary:</span>
+                    <span className="text-xs font-medium text-green-700">Саларй:</span>
                     <span className="text-sm font-semibold text-green-900">
                       {"\u20BD"}{selectedAdmin.salary.toLocaleString("en-US")}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs font-medium text-green-700">Paid This Month:</span>
+                    <span className="text-xs font-medium text-green-700">Паид Тҳис Монтҳ:</span>
                     <span
                       className={`text-sm font-semibold ${
                         selectedAdmin.ispaidthismonth ? "text-green-600" : "text-red-600"
@@ -750,11 +750,11 @@ export default function Admins() {
               {/* PERMISSIONS */}
               <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                 <h3 className="text-sm font-bold text-orange-900 mb-3">
-                  Permissions ({selectedAdmin.permissions.length})
+                  Пермиссионс ({selectedAdmin.permissions.length})
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {selectedAdmin.permissions.length === 0 ? (
-                    <p className="text-sm text-orange-600 italic">No permissions</p>
+                    <p className="text-sm text-orange-600 italic">Но пермиссионс</p>
                   ) : (
                     selectedAdmin.permissions.map((perm) => (
                       <span key={perm} className="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">
@@ -772,13 +772,13 @@ export default function Admins() {
                 onClick={() => setShowDetailModal(false)}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
               >
-                Close
+                Цлосе
               </button>
               <button
                 onClick={() => handleViewExpandedAdmin(selectedAdmin)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center gap-2"
               >
-                <ChevronDown size={18} /> View Full Details
+                <ChevronDown size={18} /> Виев Фулл Детаилс
               </button>
             </div>
           </div>
@@ -796,7 +796,7 @@ export default function Admins() {
                   {selectedAdmin.first_name.charAt(0)}
                   {selectedAdmin.last_name.charAt(0)}
                 </div>
-                <h2 className="text-2xl font-bold">Complete Admin Profile</h2>
+                <h2 className="text-2xl font-bold">Цомплете Админ Профиле</h2>
               </div>
               <button
                 onClick={() => setShowExpandedModal(false)}
@@ -810,22 +810,22 @@ export default function Admins() {
             <div className="p-6 space-y-6">
               {/* PERSONAL INFO */}
               <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-5">
-                <h3 className="text-lg font-bold text-blue-900 mb-4">Personal Information</h3>
+                <h3 className="text-lg font-bold text-blue-900 mb-4">Персонал Информатион</h3>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-xs font-medium text-blue-700 mb-1">First Name</p>
+                    <p className="text-xs font-medium text-blue-700 mb-1">Фирст Наме</p>
                     <p className="text-xl font-bold text-blue-900">{selectedAdmin.first_name}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-blue-700 mb-1">Last Name</p>
+                    <p className="text-xs font-medium text-blue-700 mb-1">Ласт Наме</p>
                     <p className="text-xl font-bold text-blue-900">{selectedAdmin.last_name}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-blue-700 mb-1">Phone Number</p>
+                    <p className="text-xs font-medium text-blue-700 mb-1">Пҳоне Нумбер</p>
                     <p className="text-lg font-semibold text-blue-900">{selectedAdmin.phone_number || "—"}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-blue-700 mb-1">Status</p>
+                    <p className="text-xs font-medium text-blue-700 mb-1">Статус</p>
                     <p
                       className={`text-lg font-bold ${
                         selectedAdmin.isloggedin ? "text-green-600" : "text-red-600"
@@ -840,11 +840,11 @@ export default function Admins() {
               {/* WORK INFORMATION */}
               <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-5">
                 <h3 className="text-lg font-bold text-purple-900 mb-4 flex items-center gap-2">
-                  <Calendar size={20} /> Work Information
+                  <Calendar size={20} /> Ворк Информатион
                 </h3>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-xs font-medium text-purple-700 mb-1">Work Start Date</p>
+                    <p className="text-xs font-medium text-purple-700 mb-1">Ворк Старт Дате</p>
                     <p className="text-lg font-semibold text-purple-900">
                       {selectedAdmin.work_start
                         ? new Date(selectedAdmin.work_start).toLocaleDateString("en-US", {
@@ -856,7 +856,7 @@ export default function Admins() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-purple-700 mb-1">Work End Date</p>
+                    <p className="text-xs font-medium text-purple-700 mb-1">Ворк Енд Дате</p>
                     <p className="text-lg font-semibold text-purple-900">
                       {selectedAdmin.work_end
                         ? new Date(selectedAdmin.work_end).toLocaleDateString("en-US", {
@@ -868,11 +868,11 @@ export default function Admins() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-purple-700 mb-1">Branch</p>
+                    <p className="text-xs font-medium text-purple-700 mb-1">Бранч</p>
                     <p className="text-lg font-semibold text-purple-900">{selectedAdmin.branch || "—"}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-purple-700 mb-1">Shop ID</p>
+                    <p className="text-xs font-medium text-purple-700 mb-1">Шоп ИД</p>
                     <p className="text-lg font-mono text-purple-900">{selectedAdmin.shop_id || "—"}</p>
                   </div>
                 </div>
@@ -881,27 +881,27 @@ export default function Admins() {
               {/* FINANCIAL INFORMATION */}
               <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-5">
                 <h3 className="text-lg font-bold text-green-900 mb-4 flex items-center gap-2">
-                  <DollarSign size={20} /> Financial Information
+                  <DollarSign size={20} /> Финанциал Информатион
                 </h3>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-xs font-medium text-green-700 mb-1">Salary</p>
+                    <p className="text-xs font-medium text-green-700 mb-1">Саларй</p>
                     <p className="text-2xl font-bold text-green-900">{"\u20BD"}{selectedAdmin.salary.toLocaleString("en-US")}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-green-700 mb-1">Total Sales</p>
+                    <p className="text-xs font-medium text-green-700 mb-1">Тотал Салес</p>
                     <p className="text-2xl font-bold text-green-900">{"\u20BD"}{selectedAdmin.sales.toLocaleString("en-US")}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-green-700 mb-1">Expenses</p>
+                    <p className="text-xs font-medium text-green-700 mb-1">Ехпенсес</p>
                     <p className="text-lg font-semibold text-green-900">{"\u20BD"}{selectedAdmin.expenses.toLocaleString("en-US")}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-green-700 mb-1">Bonuses</p>
+                    <p className="text-xs font-medium text-green-700 mb-1">Бонусес</p>
                     <p className="text-lg font-semibold text-green-900">{"\u20BD"}{selectedAdmin.bonuses.toLocaleString("en-US")}</p>
                   </div>
                   <div className="col-span-2">
-                    <p className="text-xs font-medium text-green-700 mb-1">Paid This Month</p>
+                    <p className="text-xs font-medium text-green-700 mb-1">Паид Тҳис Монтҳ</p>
                     <p
                       className={`text-lg font-bold ${
                         selectedAdmin.ispaidthismonth ? "text-green-600" : "text-red-600"
@@ -916,11 +916,11 @@ export default function Admins() {
               {/* PERMISSIONS */}
               <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-5">
                 <h3 className="text-lg font-bold text-orange-900 mb-4">
-                  Assigned Permissions ({selectedAdmin.permissions.length})
+                  Ассигнед Пермиссионс ({selectedAdmin.permissions.length})
                 </h3>
                 <div className="flex flex-wrap gap-3 mb-4">
                   {selectedAdmin.permissions.length === 0 ? (
-                    <p className="text-lg text-orange-600 italic">No permissions assigned</p>
+                    <p className="text-lg text-orange-600 italic">Но пермиссионс ассигнед</p>
                   ) : (
                     selectedAdmin.permissions.map((perm) => (
                       <div
@@ -941,7 +941,7 @@ export default function Admins() {
 
                 {/* ADD NEW PERMISSION */}
                 <div className="pt-4 border-t border-orange-300">
-                  <label className="block text-sm font-medium text-orange-900 mb-2">Add New Permission</label>
+                  <label className="block text-sm font-medium text-orange-900 mb-2">Адд Нев Пермиссион</label>
                   <select
                     className="w-full border border-orange-300 p-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                     onChange={(e) => {
@@ -953,7 +953,7 @@ export default function Admins() {
                     defaultValue=""
                   >
                     <option value="" disabled>
-                      Select a permission
+                      Селецт а пермиссион
                     </option>
                     {permissions
                       .filter((p) => !selectedAdmin.permissions.includes(p.name))
@@ -968,32 +968,32 @@ export default function Admins() {
 
               {/* SYSTEM INFORMATION */}
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">System Information</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Сйстем Информатион</h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between py-3 border-b border-gray-300">
-                    <span className="text-gray-600 font-medium">ID:</span>
+                    <span className="text-gray-600 font-medium">ИД:</span>
                     <span className="font-mono text-gray-900 font-semibold">{selectedAdmin.id}</span>
                   </div>
                   <div className="flex justify-between py-3 border-b border-gray-300">
-                    <span className="text-gray-600 font-medium">UUID:</span>
+                    <span className="text-gray-600 font-medium">УУИД:</span>
                     <span className="font-mono text-gray-900 break-all text-right max-w-xs font-semibold">
                       {selectedAdmin.uuid || "—"}
                     </span>
                   </div>
                   <div className="flex justify-between py-3 border-b border-gray-300">
-                    <span className="text-gray-600 font-medium">Created:</span>
+                    <span className="text-gray-600 font-medium">Цреатед:</span>
                     <span className="font-mono text-gray-900 font-semibold">
                       {new Date(selectedAdmin.createdat).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between py-3 border-b border-gray-300">
-                    <span className="text-gray-600 font-medium">Updated:</span>
+                    <span className="text-gray-600 font-medium">Упдатед:</span>
                     <span className="font-mono text-gray-900 font-semibold">
                       {new Date(selectedAdmin.updatedat).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between py-3">
-                    <span className="text-gray-600 font-medium">Password:</span>
+                    <span className="text-gray-600 font-medium">Пассворд:</span>
                     <span className="font-mono text-gray-900 font-semibold">
                       {selectedAdmin.password ? "●●●●●●●●" : "—"}
                     </span>
@@ -1004,7 +1004,7 @@ export default function Admins() {
               {/* PROFILE IMAGE */}
               {selectedAdmin.img_url && (
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
-                  <p className="text-sm font-bold text-gray-700 mb-3">Profile Image</p>
+                  <p className="text-sm font-bold text-gray-700 mb-3">Профиле Имаге</p>
                   <img
                     src={selectedAdmin.img_url}
                     alt={`${selectedAdmin.first_name} ${selectedAdmin.last_name}`}
@@ -1020,7 +1020,7 @@ export default function Admins() {
                 onClick={() => setShowExpandedModal(false)}
                 className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
               >
-                Close
+                Цлосе
               </button>
               <button
                 onClick={() => {
@@ -1029,13 +1029,13 @@ export default function Admins() {
                 }}
                 className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-medium flex items-center gap-2"
               >
-                <Edit2 size={18} /> Edit Admin
+                <Edit2 size={18} /> Едит Админ
               </button>
               <button
                 onClick={() => handleDeleteAdmin(selectedAdmin)}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium flex items-center gap-2"
               >
-                <Trash2 size={18} /> Remove Admin
+                <Trash2 size={18} /> Ремове Админ
               </button>
             </div>
           </div>

@@ -9,6 +9,7 @@ interface DetailsPanelProps {
   onAddPayment: () => void;
   onDeleteWagon: (wagonId: string) => void;
   onDeleteFinanceRecord: (recordId: number) => void;
+  onDeleteDebt: (debtId: string) => void;
   source: "wagons" | "debts" | "myDebts";
 }
 
@@ -18,6 +19,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   onAddPayment,
   onDeleteWagon,
   onDeleteFinanceRecord,
+  onDeleteDebt,
   source,
 }) => {
   const formatCurrency = (value: number, currency: "USD" | "RUB") => {
@@ -190,25 +192,25 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           onClick={printPerson}
           className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
         >
-          <Printer size={16} /> Chop Etish
+          <Printer size={16} /> Чоп Етиш
         </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <p className="text-gray-600 text-sm mb-1">Jami Summa</p>
+          <p className="text-gray-600 text-sm mb-1">Жами Сумма</p>
           <p className="text-3xl font-bold text-blue-600">
             {formatCurrency(person.totalAmount, source === "wagons" ? "USD" : "RUB")}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <p className="text-gray-600 text-sm mb-1">To'langan</p>
+          <p className="text-gray-600 text-sm mb-1">Тўланган</p>
           <p className="text-3xl font-bold text-green-600">
             {formatCurrency(person.paidAmount, source === "wagons" ? "USD" : "RUB")}
           </p>
         </div>
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
-          <p className="text-gray-600 text-sm mb-1">Qoldiq Summa</p>
+          <p className="text-gray-600 text-sm mb-1">Қолдиқ Сумма</p>
           <p className="text-3xl font-bold text-orange-600">
             {formatCurrency(person.remainingAmount, source === "wagons" ? "USD" : "RUB")}
           </p>
@@ -219,13 +221,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
-              Vagonlar ({person.wagons?.length || 0})
+              Вагонлар ({person.wagons?.length || 0})
             </h3>
             <button
               onClick={printAllWagons}
               className="flex items-center gap-2 px-3 py-2 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
             >
-              <Printer size={14} /> Hammasini Chop Etish
+              <Printer size={14} /> Ҳаммасини Чоп Етиш
             </button>
           </div>
 
@@ -234,22 +236,22 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
               <thead className="bg-gray-100 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                    Vagon
+                    Вагон
                   </th>
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                    Mahsulotlar
+                    Маҳсулотлар
                   </th>
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                    Jami
+                    Жами
                   </th>
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                    To'langan
+                    Тўланган
                   </th>
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                    Qoldiq
+                    Қолдиқ
                   </th>
                   <th className="px-4 py-3 text-center font-semibold text-gray-700">
-                    Amallar
+                    Амаллар
                   </th>
                 </tr>
               </thead>
@@ -283,21 +285,21 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                         <button
                           onClick={() => printWagon(wagon)}
                           className="text-purple-600 hover:text-purple-800 transition"
-                          title="Chop Etish"
+                          title="Чоп Етиш"
                         >
                           <Printer size={18} />
                         </button>
                         <button
                           onClick={onAddPayment}
                           className="text-blue-600 hover:text-blue-800 transition"
-                          title="Pul qo'shish"
+                          title="Пул қўшиш"
                         >
                           <Plus size={18} />
                         </button>
                         <button
                           onClick={() => onDeleteWagon(wagon.id)}
                           className="text-red-600 hover:text-red-800 transition"
-                          title="O'chirish"
+                          title="Ўчириш"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -313,13 +315,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
-              Qarzlar ({debts.length})
+              Қарзлар ({debts.length})
             </h3>
             <button
               onClick={printAllDebts}
               className="flex items-center gap-2 px-3 py-2 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
             >
-              <Printer size={14} /> Hammasini Chop Etish
+              <Printer size={14} /> Ҳаммасини Чоп Етиш
             </button>
           </div>
 
@@ -328,13 +330,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
               <thead className="bg-gray-100 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                    Sana
+                    Сана
                   </th>
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">
-                    Summa
+                    Сумма
                   </th>
                   <th className="px-4 py-3 text-center font-semibold text-gray-700">
-                    Amallar
+                    Амаллар
                   </th>
                 </tr>
               </thead>
@@ -351,17 +353,26 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                       <button
                         onClick={() => printDebt(debt)}
                         className="text-purple-600 hover:text-purple-800 transition"
-                        title="Chop Etish"
+                        title="Чоп Етиш"
                       >
                         <Printer size={18} />
                       </button>
                       <button
                         onClick={onAddPayment}
                         className="text-blue-600 hover:text-blue-800 transition"
-                        title="Pul qo'shish"
+                        title="Пул қўшиш"
                       >
                         <Plus size={18} />
                       </button>
+                      {source === "myDebts" && (
+                        <button
+                          onClick={() => onDeleteDebt(debt.id)}
+                          className="text-red-600 hover:text-red-800 transition"
+                          title="Ўчириш"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -372,12 +383,12 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       )}
 
       <h3 className="text-lg font-semibold text-gray-900 mb-4 mt-6">
-        Pul berish tarixi ({personFinanceRecords.length})
+        Пул бериш тарихи ({personFinanceRecords.length})
       </h3>
 
       <div className="space-y-2">
         {personFinanceRecords.length === 0 ? (
-          <p className="text-gray-500">Pul berish tarixi yo'q</p>
+          <p className="text-gray-500">Пул бериш тарихи йўқ</p>
         ) : (
           personFinanceRecords.map((record) => (
             <div

@@ -12,7 +12,7 @@ export const DebtFolderView: React.FC<Props> = ({ debtors, onSelectDebtor }) => 
     <div className="p-4 border-b border-gray-200">
       <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
         <Folder className="text-blue-600" size={24} />
-        Qarzdorlar ({debtors.length})
+        Қарздорлар ({debtors.length})
       </h2>
     </div>
     <div className="divide-y divide-gray-200">
@@ -31,12 +31,12 @@ export const DebtFolderView: React.FC<Props> = ({ debtors, onSelectDebtor }) => 
                 <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600">
                   {debtor.name}
                 </h3>
-                <p className="text-sm text-gray-600">{debtor.totalDebts} qarz</p>
+                <p className="text-sm text-gray-600">{debtor.totalDebts} қарз</p>
               </div>
             </div>
             <div className="flex items-center gap-6">
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-600">Jami</p>
+                <p className="text-sm font-medium text-gray-600">Жами</p>
                 <p className="text-lg font-bold text-gray-900">
                   {debtor.totalAmount.toLocaleString("en-US")}
                 </p>

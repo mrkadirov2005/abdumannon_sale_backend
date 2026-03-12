@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { LinearProgress } from "@mui/material";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import TransliterateObserver from "./components/TransliterateObserver";
 
 function App() {
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
@@ -20,7 +19,7 @@ function App() {
 
     const handleClick = () => {
       if (!navigator.onLine) {
-        alert("You are offline. Please connect to the network.");
+        alert("Ёу аре оффлине. Плеасе цоннецт то тҳе нетворк.");
       }
     };
 
@@ -37,7 +36,6 @@ function App() {
 
   return (
     <HashRouter>
-      <TransliterateObserver />
       {!isOnline && <LinearProgress color="error" />}
       <ToastContainer
         position="top-right"

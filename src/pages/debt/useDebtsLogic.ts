@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+﻿import { useEffect, useState, useMemo, useCallback } from "react";
 import { toast } from "react-toastify";
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import type {
@@ -317,7 +317,7 @@ export const useDebtsLogic = (
             product_names: productNamesString,
             branch_id: formData.branch_id,
             shop_id,
-            admin_id: "qarzlarim",
+            admin_id: "qarzdorlar",
           }),
         });
 
@@ -593,3 +593,4 @@ export const useDebtsLogic = (
     handleSort,
   };
 };
+

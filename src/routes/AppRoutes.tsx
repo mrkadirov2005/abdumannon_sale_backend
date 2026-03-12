@@ -42,7 +42,7 @@ function RequireAuth({ children }: { children: JSX.Element }) {
 export default function AppRoutes() {
 
   return (
-    <Suspense fallback={<div style={{ padding: 20 }}>Loading...</div>}>
+    <Suspense fallback={<div style={{ padding: 20 }}>Лоадинг...</div>}>
       <Routes>
         {/* ---------- Public route ---------- */}
         <Route path="/auth/login" element={<Login />} />

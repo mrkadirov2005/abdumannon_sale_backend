@@ -41,13 +41,13 @@ export const DebtDetailModal: React.FC<Props> = ({
           {/* Amount Info */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Jami summa</p>
+              <p className="text-sm text-gray-600 mb-1">Жами сумма</p>
               <p className="text-2xl font-bold text-blue-600">
                 {debt.amount.toLocaleString("en-US")}
               </p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600 mb-1">Holat</p>
+              <p className="text-sm text-gray-600 mb-1">Ҳолат</p>
               <p className="text-2xl font-bold text-green-600">
                 {debt.isreturned ? '✓ Qaytarilgan' : '⏳ Kutilmoqda'}
               </p>
@@ -57,7 +57,7 @@ export const DebtDetailModal: React.FC<Props> = ({
           {/* Progress Bar */}
           <div>
             <div className="flex justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Holat</span>
+              <span className="text-sm font-medium text-gray-700">Ҳолат</span>
               <span className="text-sm font-medium text-gray-700">{debt.isreturned ? '100%' : '0%'}</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4">
@@ -71,13 +71,13 @@ export const DebtDetailModal: React.FC<Props> = ({
           {/* Details */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-600">Yaratilgan sana</p>
+              <p className="text-sm text-gray-600">Яратилган сана</p>
               <p className="text-lg font-medium text-gray-900">
                 {`${debt.year}-${String(debt.month).padStart(2, '0')}-${String(debt.day).padStart(2, '0')}`}
               </p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">Holati</p>
+              <p className="text-sm text-gray-600">Ҳолати</p>
               <p className="text-lg font-medium text-gray-900">
                 {debt.isreturned ? "✓ Qaytarilgan" : "⏳ Kutilmoqda"}
               </p>
@@ -87,7 +87,7 @@ export const DebtDetailModal: React.FC<Props> = ({
           {/* Products */}
           {products.length > 0 && (
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Mahsulotlar</h3>
+              <h3 className="font-semibold text-gray-900 mb-3">Маҳсулотлар</h3>
               <div className="space-y-2">
                 {products.map((product, idx) => (
                   <div
@@ -95,7 +95,7 @@ export const DebtDetailModal: React.FC<Props> = ({
                     className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
                   >
                     <span className="text-gray-700">{product.name}</span>
-                    <span className="text-gray-600">x{product.quantity}</span>
+                    <span className="text-gray-600">х{product.quantity}</span>
                   </div>
                 ))}
               </div>
@@ -109,14 +109,14 @@ export const DebtDetailModal: React.FC<Props> = ({
             onClick={onClose}
             className="flex-1 px-4 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition font-medium"
           >
-            Yopish
+            Ёпиш
           </button>
           <button
             onClick={onEdit}
             className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
           >
             <Edit2 className="h-4 w-4" />
-            Tahrirlash
+            Таҳрирлаш
           </button>
           {!debt.isreturned && (
             <button
@@ -124,7 +124,7 @@ export const DebtDetailModal: React.FC<Props> = ({
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
             >
               <DollarSign className="h-4 w-4" />
-              Qaytarish
+              Қайтариш
             </button>
           )}
         </div>

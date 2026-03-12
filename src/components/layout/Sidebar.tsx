@@ -65,7 +65,7 @@ export default function Sidebar({
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition"
-          aria-label="Toggle sidebar"
+          aria-label="Тоггле сидебар"
         >
           {collapsed ? ">" : "<"}
         </button>
@@ -77,17 +77,17 @@ export default function Sidebar({
           <MenuItem to="/cheque" icon={<AutoGraph />} label="Накладная" />
         )}
 
-        <MenuItem to="/sales" icon={<MonetizationOn />} label="Savdo" />
+        <MenuItem to="/sales" icon={<MonetizationOn />} label="Савдо" />
           <MenuItem
             to="/saleboard"
             icon={<BookmarkAddRounded />}
-            label="Savdolarim"
+            label="Савдоларим"
           />
 
         <MenuItem
           to="/products"
           icon={<ProductionQuantityLimits />}
-          label="Mahsulotlar"
+          label="Маҳсулотлар"
         />
 
        
@@ -96,23 +96,23 @@ export default function Sidebar({
           <MenuItem
             to="/debts"
             icon={<MinusSquareIcon />}
-            label="Qarzdorlar"
+            label="Қарздорлар"
           />
            <MenuItem
             to="/wagons"
             icon={<Truck />}
-            label="Vagonlar"
+            label="Вагонлар"
           />
           <MenuItem
             to="/finance"
             icon={<DollarSign />}
-            label="Moliya"
+            label="Молия"
           />
           { authData.isSuperAdmin && (
             <MenuItem
             to="/backup"
             icon={<Store />}
-            label="Zaxiralash"
+            label="Захиралаш"
           />
           )}
         
@@ -120,7 +120,7 @@ export default function Sidebar({
 
       {/* Footer */}
       <div className="pt-3 border-t border-gray-700">
-        <MenuItem to="/profile" icon={<FaUser />} label="Profile" />
+        <MenuItem to="/profile" icon={<FaUser />} label="Профиле" />
       </div>
     </motion.aside>
   );

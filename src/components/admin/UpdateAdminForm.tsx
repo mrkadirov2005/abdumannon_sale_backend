@@ -163,7 +163,7 @@ export default function UpdateAdminForm({
         {/* FIRST NAME */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Ismi <span className="text-red-500">*</span>
+            Исми <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -175,7 +175,7 @@ export default function UpdateAdminForm({
                 ? "border-red-300 focus:ring-red-500 bg-red-50"
                 : "border-gray-300 focus:ring-blue-500"
             }`}
-            placeholder="Ismini kiriting"
+            placeholder="Исмини киритинг"
           />
           {formErrors.first_name && (
             <p className="text-xs text-red-600 mt-1">{formErrors.first_name}</p>
@@ -185,7 +185,7 @@ export default function UpdateAdminForm({
         {/* LAST NAME */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Familiyasi <span className="text-red-500">*</span>
+            Фамилияси <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -197,7 +197,7 @@ export default function UpdateAdminForm({
                 ? "border-red-300 focus:ring-red-500 bg-red-50"
                 : "border-gray-300 focus:ring-blue-500"
             }`}
-            placeholder="Familiyasini kiriting"
+            placeholder="Фамилиясини киритинг"
           />
           {formErrors.last_name && (
             <p className="text-xs text-red-600 mt-1">{formErrors.last_name}</p>
@@ -207,7 +207,7 @@ export default function UpdateAdminForm({
         {/* PHONE NUMBER */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Telefon raqami <span className="text-red-500">*</span>
+            Телефон рақами <span className="text-red-500">*</span>
           </label>
           <input
             type="tel"
@@ -219,7 +219,7 @@ export default function UpdateAdminForm({
                 ? "border-red-300 focus:ring-red-500 bg-red-50"
                 : "border-gray-300 focus:ring-blue-500"
             }`}
-            placeholder="Telefon raqamini kiriting"
+            placeholder="Телефон рақамини киритинг"
           />
           {formErrors.phone_number && (
             <p className="text-xs text-red-600 mt-1">{formErrors.phone_number}</p>
@@ -229,7 +229,7 @@ export default function UpdateAdminForm({
         {/* WORK START DATE */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Ish boshlanish sanasi <span className="text-red-500">*</span>
+            Иш бошланиш санаси <span className="text-red-500">*</span>
           </label>
           <input
             type="date"
@@ -250,7 +250,7 @@ export default function UpdateAdminForm({
         {/* WORK END DATE */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Ish tugatish sanasi
+            Иш тугатиш санаси
           </label>
           <input
             type="date"
@@ -264,7 +264,7 @@ export default function UpdateAdminForm({
         {/* SALARY */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Maosh
+            Маош
           </label>
           <input
             type="number"
@@ -272,14 +272,14 @@ export default function UpdateAdminForm({
             value={formData.salary ?? ""}
             onChange={handleFormChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Maosh kiritish"
+            placeholder="Маош киритиш"
           />
         </div>
 
         {/* IMAGE URL */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Profil rasmi URL-i
+            Профил расми УРЛ-и
           </label>
           <input
             type="url"
@@ -287,14 +287,14 @@ export default function UpdateAdminForm({
             value={formData.img_url || ""}
             onChange={handleFormChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="https://example.com/image.jpg"
+            placeholder="ҳттпс://ехампле.цом/имаге.жпг"
           />
         </div>
 
         {/* BRANCH */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Filial ID
+            Филиал ИД
           </label>
           <input
             type="number"
@@ -302,7 +302,7 @@ export default function UpdateAdminForm({
             value={formData.branch ?? ""}
             onChange={handleFormChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Filial ID raqamini kiriting"
+            placeholder="Филиал ИД рақамини киритинг"
           />
         </div>
 
@@ -317,7 +317,7 @@ export default function UpdateAdminForm({
             className="w-4 h-4 rounded cursor-pointer"
           />
           <label htmlFor="isloggedin" className="text-sm font-medium text-blue-900 cursor-pointer">
-            Tizimda faol
+            Тизимда фаол
           </label>
         </div>
 
@@ -332,7 +332,7 @@ export default function UpdateAdminForm({
             className="w-4 h-4 rounded cursor-pointer"
           />
           <label htmlFor="ispaidthismonth" className="text-sm font-medium text-green-900 cursor-pointer">
-            Bu oy maosh to'landi
+            Бу ой маош тўланди
           </label>
         </div>
 
@@ -344,7 +344,7 @@ export default function UpdateAdminForm({
               onClick={onCancel}
               className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium"
             >
-              Bekor qilish
+              Бекор қилиш
             </button>
           )}
           <button

@@ -430,25 +430,25 @@ const CategoryManager: React.FC = () => {
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <CategoryIcon />
-                    Jami Kategoriyalar
+                    Жами Категориялар
                   </Box>
                 </TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <TrendingUpIcon />
-                    Mahsulotli
+                    Маҳсулотли
                   </Box>
                 </TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <TrendingUpIcon />
-                    Jami Mahsulotlar
+                    Жами Маҳсулотлар
                   </Box>
                 </TableCell>
                 <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <TrendingUpIcon />
-                    O'rtacha Mahsulot/Kat
+                    Ўртача Маҳсулот/Кат
                   </Box>
                 </TableCell>
               </TableRow>
@@ -476,37 +476,37 @@ const CategoryManager: React.FC = () => {
       <Paper sx={{ p: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h5" component="h1">
-            Kategoriyalar Boshqaruvi
+            Категориялар Бошқаруви
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
-            <Tooltip title="Yangilash">
+            <Tooltip title="Янгилаш">
               <Button
                 variant="outlined"
                 startIcon={<RefreshIcon />}
                 onClick={fetchCategories}
               >
-                Yangilash
+                Янгилаш
               </Button>
             </Tooltip>
-            <Tooltip title="CSV ga eksport qilish">
+            <Tooltip title="ЦСВ га експорт қилиш">
               <Button
                 variant="outlined"
                 startIcon={<ExportIcon />}
                 onClick={handleExportCSV}
                 disabled={filteredCategories.length === 0}
               >
-                Eksport
+                Експорт
               </Button>
             </Tooltip>
             {selectedIds.length > 0 && (
-              <Tooltip title="Tanlanganlarni o'chirish">
+              <Tooltip title="Танланганларни ўчириш">
                 <Button
                   variant="outlined"
                   color="error"
                   startIcon={<BulkDeleteIcon />}
                   onClick={() => setShowBulkDelete(true)}
                 >
-                  O'chirish ({selectedIds.length})
+                  Ўчириш ({selectedIds.length})
                 </Button>
               </Tooltip>
             )}
@@ -515,7 +515,7 @@ const CategoryManager: React.FC = () => {
               startIcon={<AddIcon />}
               onClick={() => setOpenCreateModal(true)}
             >
-              Kategoriya Qo'shish
+              Категория Қўшиш
             </Button>
           </Box>
         </Box>
@@ -523,7 +523,7 @@ const CategoryManager: React.FC = () => {
         {/* Search and Filter Controls */}
         <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           <TextField
-            placeholder="Kategoriyalarni qidirish..."
+            placeholder="Категорияларни қидириш..."
             variant="outlined"
             size="small"
             value={searchQuery}
@@ -538,27 +538,27 @@ const CategoryManager: React.FC = () => {
             sx={{ minWidth: 250 }}
           />
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Filtrlash</InputLabel>
+            <InputLabel>Филтрлаш</InputLabel>
             <Select
               value={filterBy}
-              label="Filtrlash"
+              label="Филтрлаш"
               onChange={(e) => setFilterBy(e.target.value as any)}
             >
-              <MenuItem value="all">Barcha Kategoriyalar</MenuItem>
-              <MenuItem value="hasProducts">Mahsulotli</MenuItem>
-              <MenuItem value="noProducts">Mahsulot yo'q</MenuItem>
+              <MenuItem value="all">Барча Категориялар</MenuItem>
+              <MenuItem value="hasProducts">Маҳсулотли</MenuItem>
+              <MenuItem value="noProducts">Маҳсулот йўқ</MenuItem>
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Saralash</InputLabel>
+            <InputLabel>Саралаш</InputLabel>
             <Select
               value={sortBy}
-              label="Saralash"
+              label="Саралаш"
               onChange={(e) => setSortBy(e.target.value as any)}
             >
-              <MenuItem value="name">Nom</MenuItem>
-              <MenuItem value="products">Mahsulotlar Soni</MenuItem>
-              <MenuItem value="date">Yaratilgan Sana</MenuItem>
+              <MenuItem value="name">Ном</MenuItem>
+              <MenuItem value="products">Маҳсулотлар Сони</MenuItem>
+              <MenuItem value="date">Яратилган Сана</MenuItem>
             </Select>
           </FormControl>
           <Button
@@ -587,13 +587,13 @@ const CategoryManager: React.FC = () => {
                       onChange={(e) => handleSelectAll(e.target.checked)}
                     />
                   </TableCell>
-                  <TableCell>ID</TableCell>
+                  <TableCell>ИД</TableCell>
                   <TableCell 
                     sx={{ cursor: 'pointer' }}
                     onClick={() => toggleSort('name')}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      Kategoriya Nomi
+                      Категория Номи
                       {sortBy === 'name' && (sortOrder === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />)}
                     </Box>
                   </TableCell>
@@ -602,7 +602,7 @@ const CategoryManager: React.FC = () => {
                     onClick={() => toggleSort('products')}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      Mavjud Mahsulotlar
+                      Мавжуд Маҳсулотлар
                       {sortBy === 'products' && (sortOrder === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />)}
                     </Box>
                   </TableCell>
@@ -611,12 +611,12 @@ const CategoryManager: React.FC = () => {
                     onClick={() => toggleSort('date')}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      Yaratilgan
+                      Яратилган
                       {sortBy === 'date' && (sortOrder === 'asc' ? <ArrowUpward fontSize="small" /> : <ArrowDownward fontSize="small" />)}
                     </Box>
                   </TableCell>
-                  <TableCell>Yangilangan</TableCell>
-                  <TableCell>Amallar</TableCell>
+                  <TableCell>Янгиланган</TableCell>
+                  <TableCell>Амаллар</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -652,7 +652,7 @@ const CategoryManager: React.FC = () => {
                         size="small"
                         color="info"
                         onClick={() => handleViewCategory(category.id)}
-                        title="Ko'rish"
+                        title="Кўриш"
                       >
                         <ViewIcon />
                       </IconButton>
@@ -660,7 +660,7 @@ const CategoryManager: React.FC = () => {
                         size="small"
                         color="primary"
                         onClick={() => handleEditClick(category)}
-                        title="Tahrirlash"
+                        title="Таҳрирлаш"
                       >
                         <EditIcon />
                       </IconButton>
@@ -668,7 +668,7 @@ const CategoryManager: React.FC = () => {
                         size="small"
                         color="error"
                         onClick={() => handleDeleteClick(category.id)}
-                        title="O'chirish"
+                        title="Ўчириш"
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -691,11 +691,11 @@ const CategoryManager: React.FC = () => {
         {filteredCategories.length > 0 && (
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="body2" color="text.secondary">
-              {categories.length} tadan {filteredCategories.length} ta ko'rsatilmoqda
+              {categories.length} тадан {filteredCategories.length} та кўрсатилмоқда
             </Typography>
             {selectedIds.length > 0 && (
               <Typography variant="body2" color="primary">
-                {selectedIds.length} ta tanlangan
+                {selectedIds.length} та танланган
               </Typography>
             )}
           </Box>
@@ -704,12 +704,12 @@ const CategoryManager: React.FC = () => {
 
       {/* Create Category Modal */}
       <Dialog open={openCreateModal} onClose={() => setOpenCreateModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Yangi Kategoriya Yaratish</DialogTitle>
+        <DialogTitle>Янги Категория Яратиш</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Kategoriya Nomi"
+            label="Категория Номи"
             type="text"
             fullWidth
             variant="outlined"
@@ -720,7 +720,7 @@ const CategoryManager: React.FC = () => {
           />
           <TextField
             margin="dense"
-            label="Mavjud Mahsulotlar (Ixtiyoriy)"
+            label="Мавжуд Маҳсулотлар (Ихтиёрий)"
             type="number"
             fullWidth
             variant="outlined"
@@ -733,7 +733,7 @@ const CategoryManager: React.FC = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenCreateModal(false)}>Bekor qilish</Button>
+          <Button onClick={() => setOpenCreateModal(false)}>Бекор қилиш</Button>
           <Button
             onClick={createCategory}
             variant="contained"
@@ -746,11 +746,11 @@ const CategoryManager: React.FC = () => {
 
       {/* Edit Category Modal */}
       <Dialog open={openEditModal} onClose={() => setOpenEditModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Kategoriyani Tahrirlash</DialogTitle>
+        <DialogTitle>Категорияни Таҳрирлаш</DialogTitle>
         <DialogContent>
           <TextField
             margin="dense"
-            label="Mavjud Mahsulotlar"
+            label="Мавжуд Маҳсулотлар"
             type="number"
             fullWidth
             variant="outlined"
@@ -762,11 +762,11 @@ const CategoryManager: React.FC = () => {
             sx={{ mt: 2 }}
           />
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-            Eslatma: Kategoriya nomini tahrirlash mumkin emas
+            Еслатма: Категория номини таҳрирлаш мумкин емас
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenEditModal(false)}>Bekor qilish</Button>
+          <Button onClick={() => setOpenEditModal(false)}>Бекор қилиш</Button>
           <Button
             onClick={updateCategory}
             variant="contained"
@@ -779,46 +779,46 @@ const CategoryManager: React.FC = () => {
 
       {/* View Category Modal */}
       <Dialog open={openViewModal} onClose={() => setOpenViewModal(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Kategoriya Tafsilotlari</DialogTitle>
+        <DialogTitle>Категория Тафсилотлари</DialogTitle>
         <DialogContent>
           {selectedCategory && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="body1" gutterBottom>
-                <strong>ID:</strong> {selectedCategory.id}
+                <strong>ИД:</strong> {selectedCategory.id}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>UUID:</strong> {selectedCategory.uuid}
+                <strong>УУИД:</strong> {selectedCategory.uuid}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>Nomi:</strong> {selectedCategory.category_name}
+                <strong>Номи:</strong> {selectedCategory.category_name}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>Mavjud Mahsulotlar:</strong> {selectedCategory.products_available}
+                <strong>Мавжуд Маҳсулотлар:</strong> {selectedCategory.products_available}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>Yaratilgan:</strong> {formatDate(selectedCategory.createdat)}
+                <strong>Яратилган:</strong> {formatDate(selectedCategory.createdat)}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                <strong>Oxirgi Yangilanish:</strong> {formatDate(selectedCategory.updatedat)}
+                <strong>Охирги Янгиланиш:</strong> {formatDate(selectedCategory.updatedat)}
               </Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenViewModal(false)}>Yopish</Button>
+          <Button onClick={() => setOpenViewModal(false)}>Ёпиш</Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Modal */}
       <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
-        <DialogTitle>O'chirishni Tasdiqlash</DialogTitle>
+        <DialogTitle>Ўчиришни Тасдиқлаш</DialogTitle>
         <DialogContent>
           <Typography>
-            Ushbu kategoriyani o'chirishga ishonchingiz komilmi? Bu amalni bekor qilish mumkin emas.
+            Ушбу категорияни ўчиришга ишончингиз комилми? Бу амални бекор қилиш мумкин емас.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDeleteModal(false)}>Bekor qilish</Button>
+          <Button onClick={() => setOpenDeleteModal(false)}>Бекор қилиш</Button>
           <Button
             onClick={deleteCategory}
             variant="contained"
@@ -832,15 +832,15 @@ const CategoryManager: React.FC = () => {
 
       {/* Bulk Delete Confirmation Modal */}
       <Dialog open={showBulkDelete} onClose={() => setShowBulkDelete(false)}>
-        <DialogTitle>Ko'plab O'chirishni Tasdiqlash</DialogTitle>
+        <DialogTitle>Кўплаб Ўчиришни Тасдиқлаш</DialogTitle>
         <DialogContent>
           <Typography>
-            {selectedIds.length} ta tanlangan kategoriyalarni o'chirishga ishonchingiz komilmi? 
-            Bu amalni bekor qilish mumkin emas.
+            {selectedIds.length} та танланган категорияларни ўчиришга ишончингиз комилми? 
+            Бу амални бекор қилиш мумкин емас.
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowBulkDelete(false)}>Bekor qilish</Button>
+          <Button onClick={() => setShowBulkDelete(false)}>Бекор қилиш</Button>
           <Button
             onClick={handleBulkDelete}
             variant="contained"

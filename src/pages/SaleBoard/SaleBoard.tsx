@@ -143,7 +143,7 @@ export default function SaleBoard() {
 
   useEffect(() => {
     if (!isSuperAdmin && (!REQUEST_BODY.shop_id || !REQUEST_BODY.admin_name)) {
-      toast.warning("Missing required information to load sales");
+      toast.warning("Миссинг реқуиред информатион то лоад салес");
       return;
     }
 
@@ -361,7 +361,7 @@ export default function SaleBoard() {
     setSortOrder("desc");
     setSelectedAdmin(null);
     setDateFilter("all");
-    toast.info("Filtrlar tozalandi");
+    toast.info("Филтрлар тозаланди");
   };
 
   // Handle payment method edit
@@ -391,7 +391,7 @@ export default function SaleBoard() {
   // Handle save admin name
   const handleSaveAdmin = async (saleId: number, sale_id: string) => {
     if (!editedAdminName.trim()) {
-      toast.error("Admin nomi bo'sh bo'lishi mumkin emas");
+      toast.error("Админ номи бўш бўлиши мумкин емас");
       return;
     }
 
@@ -425,7 +425,7 @@ export default function SaleBoard() {
         )
       );
 
-      toast.success("Admin nomi muvaffaqiyatli yangilandi");
+      toast.success("Админ номи муваффақиятли янгиланди");
       setEditingAdminId(null);
       setEditedAdminName("");
     } catch (err) {
@@ -451,7 +451,7 @@ export default function SaleBoard() {
   const handleSaveTotal = async (saleId: number, sale_id: string) => {
     const totalPrice = parseFloat(editedTotalPrice);
     if (isNaN(totalPrice) || totalPrice < 0) {
-      toast.error("Iltimos, to'g'ri summa kiriting");
+      toast.error("Илтимос, тўғри сумма киритинг");
       return;
     }
 
@@ -484,7 +484,7 @@ export default function SaleBoard() {
         )
       );
 
-      toast.success("Jami summa muvaffaqiyatli yangilandi");
+      toast.success("Жами сумма муваффақиятли янгиланди");
       setEditingTotalId(null);
       setEditedTotalPrice("");
     } catch (err) {
@@ -510,7 +510,7 @@ export default function SaleBoard() {
   const handleSaveProfit = async (saleId: number, sale_id: string) => {
     const profit = parseFloat(editedProfit);
     if (isNaN(profit)) {
-      toast.error("Iltimos, to'g'ri summa kiriting");
+      toast.error("Илтимос, тўғри сумма киритинг");
       return;
     }
 
@@ -543,7 +543,7 @@ export default function SaleBoard() {
         )
       );
 
-      toast.success("To'langan summa muvaffaqiyatli yangilandi");
+      toast.success("Тўланган сумма муваффақиятли янгиланди");
       setEditingProfitId(null);
       setEditedProfit("");
     } catch (err) {
@@ -560,7 +560,7 @@ export default function SaleBoard() {
     const finalPaymentMethod = editedPaymentMethod === "boshqa" ? customPaymentMethod : editedPaymentMethod;
     
     if (editedPaymentMethod === "boshqa" && !customPaymentMethod.trim()) {
-      toast.error("Iltimos, boshqa to'lov usulini kiriting");
+      toast.error("Илтимос, бошқа тўлов усулини киритинг");
       return;
     }
 
@@ -594,7 +594,7 @@ export default function SaleBoard() {
         )
       );
 
-      toast.success("To'lov usuli muvaffaqiyatli yangilandi");
+      toast.success("Тўлов усули муваффақиятли янгиланди");
       setEditingPaymentId(null);
       setEditedPaymentMethod("");
       setCustomPaymentMethod("");
@@ -635,7 +635,7 @@ export default function SaleBoard() {
       // Remove from local state
       setData((prevData) => prevData.filter((sale) => sale.id !== saleId));
 
-      toast.success("Sotuv muvaffaqiyatli o'chirildi");
+      toast.success("Сотув муваффақиятли ўчирилди");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Sotuvni o'chirish amalga oshmadi";
       toast.error(message);
@@ -718,7 +718,7 @@ export default function SaleBoard() {
   // Handle print all sales for selected admin
   const handlePrintAllAdminSales = () => {
     if (!selectedAdmin || filteredData.length === 0) {
-      toast.error("Chop etish uchun sotuvlar yo'q");
+      toast.error("Чоп етиш учун сотувлар йўқ");
       return;
     }
 
@@ -769,14 +769,14 @@ export default function SaleBoard() {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Yuklanmoqda...</p>
+            <p className="text-gray-600">Юкланмоқда...</p>
           </div>
         </div>
       )}
 
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg">
-          <p className="text-red-800 font-semibold">Xatolik:</p>
+          <p className="text-red-800 font-semibold">Хатолик:</p>
           <p className="text-red-700 text-sm">{error}</p>
         </div>
       )}
@@ -787,7 +787,7 @@ export default function SaleBoard() {
       <header className="mb-4 sm:mb-6 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            📊 Sotuvlar Boshqaruvi
+            📊 Сотувлар Бошқаруви
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-gray-600">
             {selectedAdmin ? `${selectedAdmin} - Sotuvlar ma'lumotlari` : "Barcha sotuvlar va ma'lumotlar"}
@@ -803,7 +803,7 @@ export default function SaleBoard() {
                   : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
               }`}
             >
-              📊 Jadval
+              📊 Жадвал
             </button>
             <button
               onClick={() => setViewMode("statistics")}
@@ -813,7 +813,7 @@ export default function SaleBoard() {
                   : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
               }`}
             >
-              <BarChart fontSize="small" /> Statistika
+              <BarChart fontSize="small" /> Статистика
             </button>
             <button
               onClick={() => {
@@ -823,7 +823,7 @@ export default function SaleBoard() {
               }}
               className="flex-1 sm:flex-none px-3 sm:px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition text-sm md:text-base bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
             >
-              Chek tekshirish
+              Чек текшириш
             </button>
           </div>
         </div>
@@ -836,13 +836,13 @@ export default function SaleBoard() {
             onClick={handlePrintAllAdminSales}
             className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition font-medium flex items-center justify-center gap-2 shadow-md"
           >
-            🖨️ Barcha sotuvlarni chop etish
+            🖨️ Барча сотувларни чоп етиш
           </button>
           <button
             onClick={handleBackToAdmins}
             className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition font-medium flex items-center justify-center gap-2"
           >
-            ← Adminlarga qaytish
+            ← Админларга қайтиш
           </button>
         </div>
       )}
@@ -865,7 +865,7 @@ export default function SaleBoard() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
             <input
               type="text"
-              placeholder="Admin nomini qidirish..."
+              placeholder="Админ номини қидириш..."
               className="w-full pl-10 pr-4 py-2 md:py-3 text-sm md:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -879,7 +879,7 @@ export default function SaleBoard() {
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
               >
-                <option value="all">Barcha sanalar</option>
+                <option value="all">Барча саналар</option>
                 {availableDates.map((date) => (
                   <option key={date} value={date}>
                     {date}
@@ -892,15 +892,15 @@ export default function SaleBoard() {
                 value={paymentFilter}
                 onChange={(e) => setPaymentFilter(e.target.value)}
               >
-                <option value="all">Barcha to'lovlar</option>
-                <option value="cash">Naqd</option>
-                <option value="card">Karta</option>
-                <option value="mobile">Mobil</option>
-                <option value="">Noma'lum</option>
+                <option value="all">Барча тўловлар</option>
+                <option value="cash">Нақд</option>
+                <option value="card">Карта</option>
+                <option value="mobile">Мобил</option>
+                <option value="">Нома'лум</option>
               </select>
 
               {/* Sorting/filter menu */}
-              <Tooltip title="Summa/foyda bo'yicha tartiblash">
+              <Tooltip title="Сумма/фойда бўйича тартиблаш">
                 <button
                   onClick={(e) => setSortMenuAnchor(e.currentTarget)}
                   className="w-full px-4 py-2 md:py-3 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition font-medium flex items-center justify-center gap-2"
@@ -908,7 +908,7 @@ export default function SaleBoard() {
                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24">
                     <path d="M10 17l5-5-5-5v10z" fill="currentColor" />
                   </svg>
-                  Tartiblash
+                  Тартиблаш
                 </button>
               </Tooltip>
               <Menu
@@ -920,31 +920,31 @@ export default function SaleBoard() {
                   selected={extraSort === "default"}
                   onClick={() => handleExtraSort("default")}
                 >
-                  Standart tartiblash
+                  Стандарт тартиблаш
                 </MenuItem>
                 <MenuItem
                   selected={extraSort === "amount_asc"}
                   onClick={() => handleExtraSort("amount_asc")}
                 >
-                  Summa: Kamdan ko'pga
+                  Сумма: Камдан кўпга
                 </MenuItem>
                 <MenuItem
                   selected={extraSort === "amount_desc"}
                   onClick={() => handleExtraSort("amount_desc")}
                 >
-                  Summa: Ko'pdan kamga
+                  Сумма: Кўпдан камга
                 </MenuItem>
                 <MenuItem
                   selected={extraSort === "profit_asc"}
                   onClick={() => handleExtraSort("profit_asc")}
                 >
-                  Foyda: Kamdan ko'pga
+                  Фойда: Камдан кўпга
                 </MenuItem>
                 <MenuItem
                   selected={extraSort === "profit_desc"}
                   onClick={() => handleExtraSort("profit_desc")}
                 >
-                  Foyda: Ko'pdan kamga
+                  Фойда: Кўпдан камга
                 </MenuItem>
               </Menu>
             </>
@@ -955,7 +955,7 @@ export default function SaleBoard() {
               onClick={handleResetFilters}
               className="w-full px-4 py-2 md:py-3 text-sm md:text-base bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition flex items-center justify-center gap-2 font-medium"
             >
-              <X size={18} /> Tozalash
+              <X size={18} /> Тозалаш
             </button>
           )}
         </div>
@@ -964,7 +964,7 @@ export default function SaleBoard() {
         {selectedAdmin && (
           <div className="mt-4 p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-sm md:text-base text-gray-700">
-              <span className="font-bold text-blue-900">{filteredData.length}</span> ta sotuv topildi • Jami: <span className="font-bold text-blue-900">{formatAmount(totals.totalPrice)}</span>
+              <span className="font-bold text-blue-900">{filteredData.length}</span> та сотув топилди • Жами: <span className="font-bold text-blue-900">{formatAmount(totals.totalPrice)}</span>
             </p>
           </div>
         )}
@@ -979,18 +979,18 @@ export default function SaleBoard() {
               <table className="min-w-full text-sm">
                 <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                   <tr>
-                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Admin Nomi</th>
-                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">So'nggi sotuv sanasi</th>
-                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Jami sotuvlar</th>
-                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Jami summa</th>
-                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Jami foyda</th>
+                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Админ Номи</th>
+                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Сўнгги сотув санаси</th>
+                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Жами сотувлар</th>
+                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Жами сумма</th>
+                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Жами фойда</th>
                   </tr>
                 </thead>
                 <tbody>
                   {groupedByAdmin.length === 0 && (
                     <tr>
                       <td colSpan={5} className="text-center py-8 text-gray-500">
-                        <p className="text-base">Ma'lumot topilmadi</p>
+                        <p className="text-base">Ма'лумот топилмади</p>
                       </td>
                     </tr>
                   )}
@@ -1011,7 +1011,7 @@ export default function SaleBoard() {
                 <tfoot className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 font-semibold">
                   <tr>
                     <td colSpan={5} className="px-4 md:px-5 py-3 md:py-4 text-sm text-gray-700">
-                      {groupedByAdmin.length} admin ko'rsatilmoqda
+                      {groupedByAdmin.length} админ кўрсатилмоқда
                     </td>
                   </tr>
                 </tfoot>
@@ -1019,7 +1019,7 @@ export default function SaleBoard() {
             </div>
           </div>
           <div className="mt-4 text-center text-sm text-gray-500">
-            {groupedByAdmin.length} admin ko'rsatilmoqda
+            {groupedByAdmin.length} админ кўрсатилмоқда
           </div>
         </>
       ) : (
@@ -1034,7 +1034,7 @@ export default function SaleBoard() {
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              Barchasi ({filteredData.length})
+              Барчаси ({filteredData.length})
             </button>
             <button
               onClick={() => setPaymentTab("paid")}
@@ -1044,7 +1044,7 @@ export default function SaleBoard() {
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              ✓ To'liq to'langan ({filteredData.filter((s) => Number(s.profit) >= Number(s.total_price)).length})
+              ✓ Тўлиқ тўланган ({filteredData.filter((s) => Number(s.profit) >= Number(s.total_price)).length})
             </button>
             <button
               onClick={() => setPaymentTab("debt")}
@@ -1054,18 +1054,18 @@ export default function SaleBoard() {
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
-              ✗ Qarzlar ({filteredData.filter((s) => Number(s.profit) < Number(s.total_price)).length})
+              ✗ Қарзлар ({filteredData.filter((s) => Number(s.profit) < Number(s.total_price)).length})
             </button>
           </div>
 
           {/* Detailed Sales View - Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
-              <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Jami Sotuvlar</p>
+              <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Жами Сотувлар</p>
               <p className="text-3xl md:text-4xl font-bold">{tabFilteredData.length}</p>
             </div>
             <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
-              <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Jami Summa</p>
+              <p className="text-sm md:text-base font-semibold opacity-90 mb-2">Жами Сумма</p>
               <p className="text-3xl md:text-4xl font-bold">{formatAmount(tabTotals.totalPrice)}</p>
               <p className="text-xs md:text-sm opacity-75 mt-1">?</p>
             </div>
@@ -1119,7 +1119,7 @@ export default function SaleBoard() {
                             onChange={(e) => setEditedAdminName(e.target.value)}
                             list="admin-names-list"
                             className="flex-1 px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                            placeholder="Admin nomini kiriting..."
+                            placeholder="Админ номини киритинг..."
                           />
                           <datalist id="admin-names-list">
                             {uniqueAdminNames.map((name) => (
@@ -1148,7 +1148,7 @@ export default function SaleBoard() {
                             onClick={() => handleEditAdmin(row)}
                             className="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            Tahrirlash
+                            Таҳрирлаш
                           </button>
                         </div>
                       )}
@@ -1162,7 +1162,7 @@ export default function SaleBoard() {
                             value={editedTotalPrice}
                             onChange={(e) => setEditedTotalPrice(e.target.value)}
                             className="flex-1 px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                            placeholder="Jami summani kiriting..."
+                            placeholder="Жами суммани киритинг..."
                           />
                           <button
                             onClick={() => handleSaveTotal(row.id, row.sale_id)}
@@ -1186,7 +1186,7 @@ export default function SaleBoard() {
                             onClick={() => handleEditTotal(row)}
                             className="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            Tahrirlash
+                            Таҳрирлаш
                           </button>
                         </div>
                       )}
@@ -1200,7 +1200,7 @@ export default function SaleBoard() {
                             value={editedProfit}
                             onChange={(e) => setEditedProfit(e.target.value)}
                             className="flex-1 px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                            placeholder="To'langan summani kiriting..."
+                            placeholder="Тўланган суммани киритинг..."
                           />
                           <button
                             onClick={() => handleSaveProfit(row.id, row.sale_id)}
@@ -1224,18 +1224,18 @@ export default function SaleBoard() {
                             onClick={() => handleEditProfit(row)}
                             className="px-3 py-1 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            Tahrirlash
+                            Таҳрирлаш
                           </button>
                         </div>
                       )}
                     </td>
                     <td className="px-4 md:px-5 py-3 md:py-4 text-center">
                       {row.profit === row.total_price ? (
-                        <span className="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-full font-bold text-lg" title="To'liq to'langan">
+                        <span className="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-600 rounded-full font-bold text-lg" title="Тўлиқ тўланган">
                           ✓
                         </span>
                       ) : (
-                        <span className="inline-flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-full font-bold text-lg" title="To'lanmagan yoki qisman to'langan">
+                        <span className="inline-flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-full font-bold text-lg" title="Тўланмаган ёки қисман тўланган">
                           ✗
                         </span>
                       )}
@@ -1253,20 +1253,20 @@ export default function SaleBoard() {
                             }}
                             className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           >
-                            <option value="">Noma'lum</option>
-                            <option value="Naqd">Naqd</option>
-                            <option value="Nasiya">Nasiya</option>
-                            <option value="cash">Naqd (cash)</option>
-                            <option value="card">Karta</option>
-                            <option value="mobile">Mobil</option>
-                            <option value="boshqa">Boshqa</option>
+                            <option value="">Нома'лум</option>
+                            <option value="Naqd">Нақд</option>
+                            <option value="Nasiya">Насия</option>
+                            <option value="cash">Нақд (цаш)</option>
+                            <option value="card">Карта</option>
+                            <option value="mobile">Мобил</option>
+                            <option value="boshqa">Бошқа</option>
                           </select>
                           {editedPaymentMethod === "boshqa" && (
                             <input
                               type="text"
                               value={customPaymentMethod}
                               onChange={(e) => setCustomPaymentMethod(e.target.value)}
-                              placeholder="To'lov usulini kiriting..."
+                              placeholder="Тўлов усулини киритинг..."
                               className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                             />
                           )}
@@ -1290,7 +1290,7 @@ export default function SaleBoard() {
                             disabled={updatingSale === row.id}
                             className="px-3 py-2 bg-gray-400 text-white rounded-lg text-xs hover:bg-gray-500 disabled:bg-gray-300 transition"
                           >
-                            Bekor qilish
+                            Бекор қилиш
                           </button>
                         </div>
                       ) : (
@@ -1298,7 +1298,7 @@ export default function SaleBoard() {
                           <button
                             onClick={() => handleViewProducts(row.sale_id)}
                             className="px-3 py-2 bg-indigo-600 text-white rounded-lg text-xs hover:bg-indigo-700 flex items-center gap-1 transition"
-                            title="Mahsulotlarni ko'rish"
+                            title="Маҳсулотларни кўриш"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -1309,7 +1309,7 @@ export default function SaleBoard() {
                             onClick={() => handleEditPayment(row)}
                             className="px-3 py-2 bg-blue-600 text-white rounded-lg text-xs hover:bg-blue-700 transition"
                           >
-                            To'lovni tahrirlash
+                            Тўловни таҳрирлаш
                           </button>
                           <button
                             onClick={() => handleDeleteSale(row.id, row.sale_id)}
@@ -1327,12 +1327,12 @@ export default function SaleBoard() {
               <tfoot className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 font-semibold">
                 <tr>
                   <td className="px-4 md:px-5 py-3 md:py-4 text-right" colSpan={2}>
-                    Jami:
+                    Жами:
                   </td>
                   <td className="px-4 md:px-5 py-3 md:py-4 text-gray-900">{formatAmount(tabTotals.totalPrice)}</td>
                   <td className="px-4 md:px-5 py-3 md:py-4 text-green-600">{formatAmount(tabTotals.totalProfit)}</td>
                   <td className="px-4 md:px-5 py-3 md:py-4" colSpan={3}>
-                    {tabFilteredData.length} sotuv
+                    {tabFilteredData.length} сотув
                   </td>
                 </tr>
               </tfoot>
@@ -1341,7 +1341,7 @@ export default function SaleBoard() {
           </div>
 
           <div className="mt-4 text-center text-sm text-gray-500">
-            {data.length} dan {tabFilteredData.length} sotuv ko'rsatilmoqda
+            {data.length} дан {tabFilteredData.length} сотув кўрсатилмоқда
           </div>
         </>
       )}
@@ -1351,7 +1351,7 @@ export default function SaleBoard() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleCloseProductsModal}>
           <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="p-5 md:p-6 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
-              <h3 className="text-lg md:text-xl font-bold text-gray-900">Sotilgan mahsulotlar</h3>
+              <h3 className="text-lg md:text-xl font-bold text-gray-900">Сотилган маҳсулотлар</h3>
               <button
                 onClick={handleCloseProductsModal}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -1367,7 +1367,7 @@ export default function SaleBoard() {
                 </div>
               ) : saleProducts.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
-                  <p className="text-lg">Mahsulot topilmadi</p>
+                  <p className="text-lg">Маҳсулот топилмади</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -1375,12 +1375,12 @@ export default function SaleBoard() {
                   <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                     <tr>
                       <th className="px-4 py-3 text-left font-semibold text-gray-700">#</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Mahsulot nomi</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Miqdor</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Tan narxi</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Sotuv narxi</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Jami</th>
-                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Foyda</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Маҳсулот номи</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Миқдор</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Тан нархи</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Сотув нархи</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Жами</th>
+                      <th className="px-4 py-3 text-left font-semibold text-gray-700">Фойда</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1404,7 +1404,7 @@ export default function SaleBoard() {
                   </tbody>
                   <tfoot className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200 font-semibold">
                     <tr>
-                      <td colSpan={5} className="px-4 py-3 text-right text-gray-900">Jami:</td>
+                      <td colSpan={5} className="px-4 py-3 text-right text-gray-900">Жами:</td>
                       <td className="px-4 py-3 text-gray-900">
                         {formatAmount(saleProducts.reduce((sum, p) => sum + (p.sell_price * p.amount), 0))}
                       </td>
@@ -1423,7 +1423,7 @@ export default function SaleBoard() {
                 onClick={() => {
                   const sale = data.find(s => s.sale_id === viewingProductsSaleId);
                   if (!sale) {
-                    toast.error("Sotuv topilmadi");
+                    toast.error("Сотув топилмади");
                     return;
                   }
                   setPendingPrintSale(sale);
@@ -1434,13 +1434,13 @@ export default function SaleBoard() {
                 className="px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 font-medium transition"
               >
                 <span>🖨️</span>
-                Chop etish
+                Чоп етиш
               </button>
               <button
                 onClick={handleCloseProductsModal}
                 className="px-4 md:px-6 py-2 md:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition"
               >
-                Yopish
+                Ёпиш
               </button>
             </div>
           </div>
@@ -1452,7 +1452,7 @@ export default function SaleBoard() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => { setIsCustomerModalOpen(false); setPendingPrintSale(null); }}>
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
-              <h3 className="text-lg font-bold text-gray-900">Mijoz nomi</h3>
+              <h3 className="text-lg font-bold text-gray-900">Мижоз номи</h3>
               <button
                 onClick={() => { setIsCustomerModalOpen(false); setPendingPrintSale(null); }}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -1465,7 +1465,7 @@ export default function SaleBoard() {
                 type="text"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Mijoz ismi..."
+                placeholder="Мижоз исми..."
                 className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
             </div>
@@ -1474,17 +1474,17 @@ export default function SaleBoard() {
                 onClick={() => { setIsCustomerModalOpen(false); setPendingPrintSale(null); }}
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition"
               >
-                Bekor qilish
+                Бекор қилиш
               </button>
               <button
                 onClick={() => {
                   const name = customerName.trim();
                   if (!name) {
-                    toast.error("Mijoz ismini kiriting");
+                    toast.error("Мижоз исмини киритинг");
                     return;
                   }
                   if (!pendingPrintSale) {
-                    toast.error("Sotuv topilmadi");
+                    toast.error("Сотув топилмади");
                     return;
                   }
                   printSaleAsInvoice(pendingPrintSale, name);
@@ -1493,7 +1493,7 @@ export default function SaleBoard() {
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
               >
-                Chop etish
+                Чоп етиш
               </button>
             </div>
           </div>
@@ -1505,7 +1505,7 @@ export default function SaleBoard() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setIsChequeVerifyOpen(false)}>
           <div className="bg-white rounded-lg shadow-2xl max-w-md w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
-              <h3 className="text-lg font-bold text-gray-900">Chek tekshirish</h3>
+              <h3 className="text-lg font-bold text-gray-900">Чек текшириш</h3>
               <button
                 onClick={() => setIsChequeVerifyOpen(false)}
                 className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
@@ -1518,7 +1518,7 @@ export default function SaleBoard() {
                 type="text"
                 value={chequeInput}
                 onChange={(e) => setChequeInput(e.target.value)}
-                placeholder="123456A"
+                placeholder="123456А"
                 className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
               />
               {chequeResult && (
@@ -1532,13 +1532,13 @@ export default function SaleBoard() {
                 onClick={() => setIsChequeVerifyOpen(false)}
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium transition"
               >
-                Yopish
+                Ёпиш
               </button>
               <button
                 onClick={() => setChequeResult(verifyChequeNumber(chequeInput))}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
               >
-                Tekshirish
+                Текшириш
               </button>
             </div>
           </div>

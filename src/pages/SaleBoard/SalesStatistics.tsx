@@ -71,9 +71,9 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">Sotuvlar Statistikasi</h2>
+        <h2 className="text-3xl font-bold text-gray-800">Сотувлар Статистикаси</h2>
         <div className="text-sm text-gray-500">
-          Jami sotuvlar: <span className="font-semibold text-gray-900">{statistics.totalSales}</span>
+          Жами сотувлар: <span className="font-semibold text-gray-900">{statistics.totalSales}</span>
         </div>
       </div>
 
@@ -83,7 +83,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <ShoppingCart className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">Jami Sotuvlar</span>
+            <span className="text-sm font-medium opacity-90">Жами Сотувлар</span>
           </div>
           <div className="text-3xl font-bold mb-1">{statistics.totalSales}</div>
           <div className="text-sm opacity-80">{formatter.format(statistics.totalAmount)}</div>
@@ -93,17 +93,17 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <TrendingUp className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">Jami Foyda</span>
+            <span className="text-sm font-medium opacity-90">Жами Фойда</span>
           </div>
           <div className="text-3xl font-bold mb-1">{formatter.format(statistics.totalAmount)}</div>
-          <div className="text-sm opacity-80">Foyda darajasi: {statistics.profitMargin.toFixed(1)}%</div>
+          <div className="text-sm opacity-80">Фойда даражаси: {statistics.profitMargin.toFixed(1)}%</div>
         </div>
 
         {/* Cash Paid Card */}
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <AttachMoney className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">Naqd To'langan</span>
+            <span className="text-sm font-medium opacity-90">Нақд Тўланган</span>
           </div>
           <div className="text-3xl font-bold mb-1">{formatter.format(statistics.paidCash)}</div>
           <div className="text-sm opacity-80">
@@ -115,7 +115,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
         <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <CreditCard className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">Nasiya</span>
+            <span className="text-sm font-medium opacity-90">Насия</span>
           </div>
           <div className="text-3xl font-bold mb-1">{formatter.format(statistics.onCredit)}</div>
           <div className="text-sm opacity-80">
@@ -128,13 +128,13 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
           <Percent className="text-blue-600" />
-          To'lov Usullari Taqsimoti
+          Тўлов Усуллари Тақсимоти
         </h3>
         <div className="space-y-4">
           {/* Cash Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">💵 Naqd</span>
+              <span className="text-sm font-medium text-gray-700">💵 Нақд</span>
               <span className="text-sm font-semibold text-gray-900">
                 {statistics.paidPercentage.toFixed(1)}% ({formatter.format(statistics.paidCash)})
               </span>
@@ -150,7 +150,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
           {/* Credit Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">💳 Nasiya</span>
+              <span className="text-sm font-medium text-gray-700">💳 Насия</span>
               <span className="text-sm font-semibold text-gray-900">
                 {statistics.creditPercentage.toFixed(1)}% ({formatter.format(statistics.onCredit)})
               </span>
@@ -169,17 +169,17 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
           <TrendingUp className="text-green-600" />
-          Eng Yaxshi Adminlar (Top 5)
+          Енг Яхши Админлар (Топ 5)
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">#</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Admin Nomi</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Sotuvlar</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Jami Summa</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Foyda</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Админ Номи</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Сотувлар</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Жами Сумма</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Фойда</th>
               </tr>
             </thead>
             <tbody>
@@ -210,21 +210,21 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
       {/* Summary Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-5 border-l-4 border-blue-500">
-          <div className="text-sm text-gray-600 mb-1">O'rtacha Sotuv</div>
+          <div className="text-sm text-gray-600 mb-1">Ўртача Сотув</div>
           <div className="text-2xl font-bold text-gray-900">
             {formatter.format(statistics.totalSales > 0 ? statistics.totalAmount / statistics.totalSales : 0)}
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-5 border-l-4 border-green-500">
-          <div className="text-sm text-gray-600 mb-1">O'rtacha Foyda</div>
+          <div className="text-sm text-gray-600 mb-1">Ўртача Фойда</div>
           <div className="text-2xl font-bold text-gray-900">
             {formatter.format(statistics.totalSales > 0 ? statistics.totalProfit / statistics.totalSales : 0)}
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-5 border-l-4 border-purple-500">
-          <div className="text-sm text-gray-600 mb-1">Foyda Foizi</div>
+          <div className="text-sm text-gray-600 mb-1">Фойда Фоизи</div>
           <div className="text-2xl font-bold text-gray-900">{statistics.profitMargin.toFixed(2)}%</div>
         </div>
       </div>

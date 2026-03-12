@@ -37,8 +37,8 @@ export default function ExpiredProductsModal({
               <WarningAmber className="text-white text-2xl" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-red-900">Muddati Tugagan Mahsulotlar</h2>
-              <p className="text-red-700 text-sm">Muddati o'tgan mahsulotlar</p>
+              <h2 className="text-2xl font-bold text-red-900">Муддати Тугаган Маҳсулотлар</h2>
+              <p className="text-red-700 text-sm">Муддати ўтган маҳсулотлар</p>
             </div>
           </div>
           <button onClick={onClose} className="text-red-600 hover:text-red-700 text-2xl font-bold">
@@ -50,17 +50,17 @@ export default function ExpiredProductsModal({
         <div className="p-6">
           {expiredProducts.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">Muddati tugagan mahsulot topilmadi</p>
+              <p className="text-gray-500 text-lg">Муддати тугаган маҳсулот топилмади</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm border-collapse">
                 <thead>
                   <tr className="bg-red-100">
-                    <th className="px-4 py-3 text-left font-semibold text-red-900 border border-red-200">Mahsulot Nomi</th>
-                    <th className="px-4 py-3 text-left font-semibold text-red-900 border border-red-200">Kategoriya</th>
-                    <th className="px-4 py-3 text-right font-semibold text-red-900 border border-red-200">Ombor</th>
-                    <th className="px-4 py-3 text-left font-semibold text-red-900 border border-red-200">Amallar</th>
+                    <th className="px-4 py-3 text-left font-semibold text-red-900 border border-red-200">Маҳсулот Номи</th>
+                    <th className="px-4 py-3 text-left font-semibold text-red-900 border border-red-200">Категория</th>
+                    <th className="px-4 py-3 text-right font-semibold text-red-900 border border-red-200">Омбор</th>
+                    <th className="px-4 py-3 text-left font-semibold text-red-900 border border-red-200">Амаллар</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -70,7 +70,7 @@ export default function ExpiredProductsModal({
                         <div className="font-medium text-gray-900">{p.name}</div>
                         <div className="text-xs text-gray-500">
                           {/* @ts-ignore */}
-                          Expired: {new Date(p.expire_date || p.expiry_date).toLocaleDateString()}
+                          Ехпиред: {new Date(p.expire_date || p.expiry_date).toLocaleDateString()}
                         </div>
                       </td>
                       <td className="px-4 py-3 border border-gray-200">
@@ -124,7 +124,7 @@ export default function ExpiredProductsModal({
             onClick={onClose}
             className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
           >
-            Yopish
+            Ёпиш
           </button>
         </div>
       </div>

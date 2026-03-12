@@ -28,7 +28,7 @@ export interface ChequeData {
 }
 
 export const DEFAULT_SUPPLIER_HTML =
-  "\u041c\u0443\u0445\u0430\u043c\u043c\u0430\u0434\u0436\u043e\u043d, \u0433. \u041c\u043e\u0441\u043a\u0432\u0430, \u0440\u044b\u043d\u043e\u043a \u00ab\u0424\u0443\u0434 \u0421\u0438\u0442\u0438\u00bb \u0422\u043e\u0440\u0433\u043e\u0432\u0430\u044f \u0442\u043e\u0447\u043a\u0430: 2-9-040 \u0422\u0435\u043b: 8-915-016-16-15, 8-916-576-07-07";
+  "\u041c\u0443\u0445\u0430\u043c\u043c\u0430\u0434\u0436\u043e\u043d, \u0433. \u041c\u043e\u0441\u043a\u0432\u0430, \u0440\u044b\u043d\u043e\u043a \u00ab\u0424\u0443\u0434 \u0421\u0438\u0442\u0438\u00bb \u0422\u043e\u0440\u0433\u043e\u0432\u0430\u044f \u0442\u043e\u0447\u043a\u0430: 2-9-040<br/> \u0422\u0435\u043b: 8-915-016-16-15, 8-916-576-07-07";
 
 const RU = {
   title: "\u041d\u0430\u043a\u043b\u0430\u0434\u043d\u0430\u044f",
@@ -192,7 +192,7 @@ export function generateChequeHTML(data: ChequeData): string {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: "Times New Roman", Times, serif; padding: 30px 40px; max-width: 900px; margin: 0 auto; font-size: 13px; color: #000; }
-    .page { border: 1px solid #000; padding: 20px 24px; }
+    .page { padding: 20px 24px; }
     .doc-type { font-size: 11px; margin-bottom: 4px; }
     .doc-type span { font-size: 13px; }
     h1 { font-size: 18px; font-weight: bold; margin-bottom: 16px; }

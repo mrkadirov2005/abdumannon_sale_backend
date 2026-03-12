@@ -58,7 +58,7 @@ export const CreateDebtModal: React.FC<Props> = ({
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white">
-          <h2 className="text-2xl font-bold text-gray-900">Yangi Qarz Yaratish</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Янги Қарз Яратиш</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition"
@@ -72,7 +72,7 @@ export const CreateDebtModal: React.FC<Props> = ({
           {/* Debtor Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Qarz beruvchi nomi
+              Қарз берувчи номи
             </label>
             <div className="relative">
               <input
@@ -81,7 +81,7 @@ export const CreateDebtModal: React.FC<Props> = ({
                 onChange={(e) => onDebtorNameChange(e.target.value)}
                 onFocus={() => onShowSuggestionsChange(true)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Qarz beruvchini kiriting..."
+                placeholder="Қарз берувчини киритинг..."
               />
               {showSuggestions && suggestions.length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
@@ -107,7 +107,7 @@ export const CreateDebtModal: React.FC<Props> = ({
           {isSuperAdmin && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Qarz turi
+                Қарз тури
               </label>
               <select
                 value={formData.branch_id}
@@ -116,8 +116,8 @@ export const CreateDebtModal: React.FC<Props> = ({
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value={1}>Nasiyam (Meni)</option>
-                <option value={0}>Berilgan Nasiya</option>
+                <option value={1}>Насиям (Мени)</option>
+                <option value={0}>Берилган Насия</option>
               </select>
             </div>
           )}
@@ -125,7 +125,7 @@ export const CreateDebtModal: React.FC<Props> = ({
           {/* Amount */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Summa
+              Сумма
             </label>
               <input
                 type="number"
@@ -140,7 +140,7 @@ export const CreateDebtModal: React.FC<Props> = ({
 
           {/* Products */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-3">Mahsulotlar</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">Маҳсулотлар</h3>
 
             {/* Add Product */}
             <div className="space-y-3 mb-4">
@@ -151,7 +151,7 @@ export const CreateDebtModal: React.FC<Props> = ({
                   onCurrentProductChange({ ...currentProduct, name: e.target.value })
                 }
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Mahsulot nomi"
+                placeholder="Маҳсулот номи"
               />
               <div className="grid grid-cols-2 gap-3">
                 <input
@@ -164,7 +164,7 @@ export const CreateDebtModal: React.FC<Props> = ({
                     })
                   }
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Miqdori"
+                  placeholder="Миқдори"
                 />
                 <input
                   type="number"
@@ -176,7 +176,7 @@ export const CreateDebtModal: React.FC<Props> = ({
                     })
                   }
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Narxi"
+                  placeholder="Нархи"
                 />
               </div>
               <button
@@ -184,7 +184,7 @@ export const CreateDebtModal: React.FC<Props> = ({
                 className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
               >
                 <Plus className="h-4 w-4" />
-                Mahsulot Qo'shish
+                Маҳсулот Қўшиш
               </button>
             </div>
 
@@ -199,7 +199,7 @@ export const CreateDebtModal: React.FC<Props> = ({
                     <div>
                       <p className="font-medium text-gray-900">{product.name}</p>
                       <p className="text-sm text-gray-600">
-                        {product.quantity} x {product.price} = {product.quantity * product.price}
+                        {product.quantity} х {product.price} = {product.quantity * product.price}
                       </p>
                     </div>
                     <button
@@ -214,7 +214,7 @@ export const CreateDebtModal: React.FC<Props> = ({
                   onClick={onClearProducts}
                   className="w-full px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition"
                 >
-                  Barchasini o'chirish
+                  Барчасини ўчириш
                 </button>
               </div>
             )}
@@ -223,7 +223,7 @@ export const CreateDebtModal: React.FC<Props> = ({
           {/* Total */}
           {total > 0 && (
             <div className="p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-600">Mahsulotlardan jami</p>
+              <p className="text-sm text-gray-600">Маҳсулотлардан жами</p>
               <p className="text-2xl font-bold text-blue-600">{total.toLocaleString("en-US")}</p>
             </div>
           )}
@@ -235,7 +235,7 @@ export const CreateDebtModal: React.FC<Props> = ({
             onClick={onClose}
             className="flex-1 px-4 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition font-medium"
           >
-            Bekor qilish
+            Бекор қилиш
           </button>
           <button
             onClick={handleSubmit}

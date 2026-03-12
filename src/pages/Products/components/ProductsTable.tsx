@@ -47,15 +47,15 @@ export default function ProductsTable({
       <table className="min-w-full text-sm border-collapse">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th className="px-4 py-3 text-left font-semibold text-gray-900 border border-gray-200">Nomi</th>
-            <th className="px-4 py-3 text-left font-semibold text-gray-900 border border-gray-200">Kategoriya</th>
-            <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Sotish Narxi</th>
+            <th className="px-4 py-3 text-left font-semibold text-gray-900 border border-gray-200">Номи</th>
+            <th className="px-4 py-3 text-left font-semibold text-gray-900 border border-gray-200">Категория</th>
+            <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Сотиш Нархи</th>
             {(permissions.includes("PRODUCT_DETAILS") || isSuperUser) && (
-              <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Foyda</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Фойда</th>
             )}
-            <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Ombor</th>
-            <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">To'ldirish</th>
-            <th className="px-4 py-3 font-semibold text-gray-900 border border-gray-200">Amallar</th>
+            <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Омбор</th>
+            <th className="px-4 py-3 text-right font-semibold text-gray-900 border border-gray-200">Тўлдириш</th>
+            <th className="px-4 py-3 font-semibold text-gray-900 border border-gray-200">Амаллар</th>
           </tr>
         </thead>
 
@@ -65,7 +65,7 @@ export default function ProductsTable({
               <td
                 className="px-4 py-3 border border-gray-200 cursor-pointer hover:bg-blue-100 transition-colors"
                 onClick={() => onProductClick(p)}
-                title="Mahsulot tafsilotlarini ko'rish"
+                title="Маҳсулот тафсилотларини кўриш"
               >
                 <div className="font-medium text-gray-900 flex items-center gap-2">
                   {p.name}
@@ -124,7 +124,7 @@ export default function ProductsTable({
                     }}
                     className="px-3 py-1 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors text-xs font-medium"
                   >
-                    <FaDownload className="inline mr-1" /> To'ldirish
+                    <FaDownload className="inline mr-1" /> Тўлдириш
                   </button>
                 )}
               </td>
@@ -159,7 +159,7 @@ export default function ProductsTable({
           {products.length === 0 && (
             <tr>
               <td colSpan={7} className="px-4 py-6 text-center text-gray-500">
-                Mahsulot topilmadi
+                Маҳсулот топилмади
               </td>
             </tr>
           )}

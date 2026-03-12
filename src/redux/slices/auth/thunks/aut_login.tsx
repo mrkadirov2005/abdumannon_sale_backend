@@ -41,7 +41,7 @@ export const loginSuperUser = createAsyncThunk<
 
       const data = await response.json();
 
-      toast.success("Login successful");
+      toast.success("Логин суццессфул");
 
       // Must match ComingResponse
       return {
@@ -89,7 +89,7 @@ export const loginAdmin = createAsyncThunk<
 
       const data = await response.json();
 
-      toast.success("Admin login successful");
+      toast.success("Админ логин суццессфул");
 
       // Must match ComingResponse
       return {

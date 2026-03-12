@@ -42,7 +42,7 @@ export default function ProductDetailsModal({
         <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 p-6 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-white">{product.name}</h2>
-            <p className="text-blue-100 text-sm mt-1">Mahsulot tafsilotlari</p>
+            <p className="text-blue-100 text-sm mt-1">Маҳсулот тафсилотлари</p>
           </div>
           <button onClick={onClose} className="text-white hover:text-gray-200 text-2xl font-bold">
             ✕
@@ -53,31 +53,31 @@ export default function ProductDetailsModal({
         <div className="p-6 space-y-6">
           {/* Basic Information */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-            <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Asosiy Ma'lumotlar</h3>
+            <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Асосий Ма'лумотлар</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-semibold text-gray-600">Mahsulot ID</label>
+                <label className="text-xs font-semibold text-gray-600">Маҳсулот ИД</label>
                 <p className="text-sm font-mono text-gray-900">{product.id}</p>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-600">Mahsulot Nomi</label>
+                <label className="text-xs font-semibold text-gray-600">Маҳсулот Номи</label>
                 <p className="text-sm text-gray-900 font-medium">{product.name}</p>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-600">Kategoriya</label>
+                <label className="text-xs font-semibold text-gray-600">Категория</label>
                 <p className="text-sm text-gray-900">{convertIdToCategoryName(product.category_id, categories)}</p>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-600">O'lchov birligi</label>
+                <label className="text-xs font-semibold text-gray-600">Ўлчов бирлиги</label>
                 <p className="text-sm text-gray-900">{formatUnit(product.unit)}</p>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-600">Yetkazib beruvchi</label>
+                <label className="text-xs font-semibold text-gray-600">Етказиб берувчи</label>
                 <p className="text-sm text-gray-900">{product.supplier || "—"}</p>
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-600">Yaratilgan</label>
+                <label className="text-xs font-semibold text-gray-600">Яратилган</label>
                 <p className="text-sm text-gray-900">{product.createdat}</p>
               </div>
             </div>
@@ -85,21 +85,21 @@ export default function ProductDetailsModal({
 
           {/* Price & Stock Information */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-            <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Narx va Ombor</h3>
+            <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Нарх ва Омбор</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white p-3 rounded-lg border border-gray-200">
-                <label className="text-xs font-semibold text-gray-600">Sotish Narxi</label>
+                <label className="text-xs font-semibold text-gray-600">Сотиш Нархи</label>
                 <p className="text-xl font-bold text-green-600">{product.sell_price}</p>
               </div>
               {(permissions.includes("PRODUCT_DETAILS") || isSuperUser) && (
                 <div className="bg-white p-3 rounded-lg border border-gray-200">
-                  <label className="text-xs font-semibold text-gray-600">Tozalangan Narxi</label>
+                  <label className="text-xs font-semibold text-gray-600">Тозаланган Нархи</label>
                   <p className="text-xl font-bold text-gray-900">{product.net_price}</p>
                 </div>
               )}
               {(permissions.includes("PRODUCT_DETAILS") || isSuperUser) && (
                 <div className="bg-white p-3 rounded-lg border border-gray-200">
-                  <label className="text-xs font-semibold text-gray-600">Foyda</label>
+                  <label className="text-xs font-semibold text-gray-600">Фойда</label>
                   <p className="text-xl font-bold text-blue-600">
                     {(product.cost_price ?? 0) + product.net_price - product.sell_price < 1
                       ? String((product.cost_price ?? 0) + product.net_price - product.sell_price).substring(0, 3)
@@ -108,7 +108,7 @@ export default function ProductDetailsModal({
                 </div>
               )}
               <div className="bg-white p-3 rounded-lg border border-gray-200">
-                <label className="text-xs font-semibold text-gray-600">Ombor</label>
+                <label className="text-xs font-semibold text-gray-600">Омбор</label>
                 <p
                   className={`text-xl font-bold ${
                     product.availability === 0
@@ -127,16 +127,16 @@ export default function ProductDetailsModal({
           {/* Additional Details */}
           {(product.expire_date || (product as any).expiry_date) && (
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-              <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Qo'shimcha Ma'lumotlar</h3>
+              <h3 className="text-lg font-bold text-gray-900 border-b pb-2">Қўшимча Ма'лумотлар</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-semibold text-gray-600">Amal Qilish Muddati</label>
+                  <label className="text-xs font-semibold text-gray-600">Амал Қилиш Муддати</label>
                   <p
                     className={`text-sm font-medium ${isExpired(product) ? "text-red-600" : "text-gray-900"}`}
                   >
                     {/* @ts-ignore */}
                     {new Date(product.expire_date || product.expiry_date).toLocaleDateString()}
-                    {isExpired(product) && <span className="ml-2 text-xs">(Muddati o'tgan)</span>}
+                    {isExpired(product) && <span className="ml-2 text-xs">(Муддати ўтган)</span>}
                   </p>
                 </div>
               </div>
@@ -146,21 +146,21 @@ export default function ProductDetailsModal({
           {/* Status Badges */}
           <div className="flex flex-wrap gap-2">
             {product.availability === 0 && (
-              <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Sotilgan</span>
+              <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">Сотилган</span>
             )}
             {product.availability > 0 && product.availability <= LOW_STOCK_THRESHOLD && (
               <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-semibold">
-                Kam Ombor
+                Кам Омбор
               </span>
             )}
             {product.availability > LOW_STOCK_THRESHOLD && (
               <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
-                Omborda mavjud
+                Омборда мавжуд
               </span>
             )}
             {isExpired(product) && (
               <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
-                Muddati o'tgan
+                Муддати ўтган
               </span>
             )}
           </div>
@@ -172,7 +172,7 @@ export default function ProductDetailsModal({
             onClick={onClose}
             className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
           >
-            Yopish
+            Ёпиш
           </button>
           {(permissions.includes("UPDATE_PRODUCT") || isSuperUser) && (
             <button
@@ -183,7 +183,7 @@ export default function ProductDetailsModal({
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
             >
               <Edit fontSize="small" />
-              Tahrirlash
+              Таҳрирлаш
             </button>
           )}
           {(permissions.includes("DELETE_PRODUCT") || isSuperUser) && (
@@ -197,7 +197,7 @@ export default function ProductDetailsModal({
               className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2"
             >
               <Delete fontSize="small" />
-              O'chirish
+              Ўчириш
             </button>
           )}
         </div>

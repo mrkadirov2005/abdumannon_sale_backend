@@ -211,12 +211,12 @@ export default function Sales() {
   async function handleConfirmPayment() {
     const method = paymentMethod === "boshqa" ? customPaymentMethod : paymentMethod;
     if (!user || !shop_id || !token) {
-      alert("Missing user information. Please login again.");
+      alert("Миссинг усер информатион. Плеасе логин агаин.");
       return;
     }
 
     if (cart.length === 0) {
-      alert("Cart is empty. Please add products before checkout.");
+      alert("Царт ис емптй. Плеасе адд продуцц бефоре чецкоут.");
       return;
     }
 
@@ -238,17 +238,17 @@ export default function Sales() {
     }
 
     if (!adminName || adminName.trim() === "") {
-      alert("Klient nomi mavjud emas. Iltimos, foydalanuvchi profilingizni tekshiring.");
+      alert("Клиент номи мавжуд емас. Илтимос, фойдаланувчи профилингизни текширинг.");
       return;
     }
 
     if (!adminNumber || adminNumber.trim() === "") {
-      alert("Admin telefon raqami mavjud emas. Iltimos, foydalanuvchi profilingizni tekshiring.");
+      alert("Админ телефон рақами мавжуд емас. Илтимос, фойдаланувчи профилингизни текширинг.");
       return;
     }
 
     if (!method) {
-      alert("Iltimos, to'lov usulini tanlang.");
+      alert("Илтимос, тўлов усулини танланг.");
       return;
     }
 
@@ -281,7 +281,7 @@ export default function Sales() {
       if (errorMessage && errorMessage !== "Checkout failed") {
         alert(`To'lov amalga oshmadi: ${errorMessage}`);
       } else {
-        alert("To'lov amalga oshmadi. Iltimos, qayta urinib ko'ring.");
+        alert("Тўлов амалга ошмади. Илтимос, қайта уриниб кўринг.");
       }
     }
   }
@@ -317,11 +317,11 @@ export default function Sales() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-2">
-              <FiShoppingCart className="text-blue-600" /> To'lov
+              <FiShoppingCart className="text-blue-600" /> Тўлов
             </h1>
-            <p className="text-gray-600 mt-1">Tez kassir ko'rinishi — mahsulotlarni qidirish, filtrlash va to'lov qilish</p>
+            <p className="text-gray-600 mt-1">Тез кассир кўриниши — маҳсулотларни қидириш, филтрлаш ва тўлов қилиш</p>
           </div>
-          <Tooltip title="Ma'lumotlarni yangilash">
+          <Tooltip title="Ма'лумотларни янгилаш">
             <Button
               onClick={() => {
                 // @ts-ignore
@@ -331,7 +331,7 @@ export default function Sales() {
               variant="outlined"
               startIcon={<Refresh />}
             >
-              Yangilash
+              Янгилаш
             </Button>
           </Tooltip>
         </div>
@@ -387,7 +387,7 @@ export default function Sales() {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Mahsulotlarni qidirish..."
+                placeholder="Маҳсулотларни қидириш..."
                 className="w-full px-4 py-2 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <FiSearch className="absolute right-3 top-2.5 text-gray-400" />
@@ -407,7 +407,7 @@ export default function Sales() {
                 ))}
               </select>
 
-              <Tooltip title="Sort/Filter">
+              <Tooltip title="Сорт/Филтер">
                 <IconButton
                   size="small"
                   onClick={(e) => setSortAnchorEl(e.currentTarget)}
@@ -425,7 +425,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Default
+                  Дефаулт
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "low_stock"}
@@ -434,7 +434,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Kam zaxirada (≤ {LOW_STOCK_THRESHOLD})
+                  Кам захирада (≤ {LOW_STOCK_THRESHOLD})
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "high_stock"}
@@ -443,7 +443,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Ko'p zaxirada (&gt; {LOW_STOCK_THRESHOLD})
+                  Кўп захирада (&гт; {LOW_STOCK_THRESHOLD})
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "not_available"}
@@ -452,7 +452,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Zaxirada yo'q
+                  Захирада йўқ
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "expired"}
@@ -461,7 +461,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Muddati o'tgan
+                  Муддати ўтган
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "price_asc"}
@@ -470,7 +470,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Narx: Pastdan Yuqoriga
+                  Нарх: Пастдан Юқорига
                 </MenuItem>
                 <MenuItem
                   selected={sortType === "price_desc"}
@@ -479,7 +479,7 @@ export default function Sales() {
                     setSortAnchorEl(null);
                   }}
                 >
-                  Narx: Yuqoridan Pastga
+                  Нарх: Юқоридан Пастга
                 </MenuItem>
               </Menu>
 
@@ -491,12 +491,12 @@ export default function Sales() {
                 }}
                 className="px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm font-medium hover:bg-gray-50 transition-colors"
               >
-                Qayta o'rnatish
+                Қайта ўрнатиш
               </button>
             </div>
 
             <div className="text-xs text-gray-500 font-medium">
-              Topildi: <span className="font-bold text-gray-900">{filtered.length}</span> mahsulot
+              Топилди: <span className="font-bold text-gray-900">{filtered.length}</span> маҳсулот
             </div>
           </div>
 
@@ -528,7 +528,7 @@ export default function Sales() {
                           : "bg-green-100 text-green-700"
                       }`}
                     >
-                      Zaxira: {p.availability} {p.unit || "pcs"}
+                      Захира: {p.availability} {p.unit || "pcs"}
                     </div>
                     <button
                       onClick={() => handleAddToCart(p)}
@@ -539,7 +539,7 @@ export default function Sales() {
                           : "bg-blue-600 text-white hover:bg-blue-700"
                       }`}
                     >
-                      Qo'shish
+                      Қўшиш
                     </button>
                   </div>
                 </div>
@@ -549,7 +549,7 @@ export default function Sales() {
             {filtered.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <FiSearch size={32} className="mb-2 opacity-50" />
-                <p className="text-sm">Mahsulot topilmadi</p>
+                <p className="text-sm">Маҳсулот топилмади</p>
               </div>
             )}
           </div>
@@ -562,7 +562,7 @@ export default function Sales() {
               <Badge badgeContent={cart.length} color="primary">
                 <FiShoppingCart className="text-gray-700" />
               </Badge>
-              Savat
+              Сават
             </h2>
           </div>
 
@@ -570,7 +570,7 @@ export default function Sales() {
             {cart.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <FiShoppingCart size={32} className="mb-2 opacity-50" />
-                <p className="text-xs md:text-sm">Savat bo'sh</p>
+                <p className="text-xs md:text-sm">Сават бўш</p>
               </div>
             )}
 
@@ -580,7 +580,7 @@ export default function Sales() {
                   <div className="flex-1">
                     <div className="font-medium text-xs md:text-sm text-gray-900 mb-1 md:mb-2">{product.name}</div>
                     <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <span>Narx:</span>
+                      <span>Нарх:</span>
                     <input
                       type="number"
                       value={priceInputs[product.productid] ?? String(product.price ?? "")}
@@ -615,7 +615,7 @@ export default function Sales() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-600">Miqdor:</span>
+                    <span className="text-xs text-gray-600">Миқдор:</span>
                     <input
                       type="number"
                       value={quantityInputs[product.productid] ?? String(product.quantity ?? "")}
@@ -654,7 +654,7 @@ export default function Sales() {
               disabled={cart.length === 0}
               className="w-full px-4 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Savatni tozalash
+              Саватни тозалаш
             </button>
           </div>
         </div>
@@ -664,21 +664,21 @@ export default function Sales() {
           <div className="sticky top-6 bg-white rounded-xl shadow-sm border border-gray-100 p-3 md:p-6 space-y-3 md:space-y-4">
             <div className="flex items-center gap-2">
               <Receipt className="text-blue-600 text-lg md:text-xl" />
-              <h3 className="font-bold text-base md:text-lg">Buyurtma Tafsilotlari</h3>
+              <h3 className="font-bold text-base md:text-lg">Буюртма Тафсилотлари</h3>
             </div>
 
             {/* ITEMS BREAKDOWN */}
             <div className="space-y-1 md:space-y-2 py-3 md:py-4 border-y border-gray-200">
               <div className="flex justify-between text-xs md:text-sm">
-                <span className="text-gray-600">Mahsulotlar:</span>
+                <span className="text-gray-600">Маҳсулотлар:</span>
                 <span className="font-semibold">{cart.length}</span>
               </div>
               <div className="flex justify-between text-xs md:text-sm">
-                <span className="text-gray-600">Jami narxi:</span>
+                <span className="text-gray-600">Жами нархи:</span>
                 <span className="font-semibold">{totals.total}</span>
               </div>
               <div className="flex justify-between text-xs md:text-sm">
-                <span className="text-gray-600">To'langan:</span>
+                <span className="text-gray-600">Тўланган:</span>
                 <input
                   type="number"
                   value={paidAmount}
@@ -688,7 +688,7 @@ export default function Sales() {
                 />
               </div>
               <div className="flex justify-between text-xs md:text-sm">
-                <span className="text-gray-600">Qoldiq:</span>
+                <span className="text-gray-600">Қолдиқ:</span>
                 <span className={`font-semibold ${totals.remaining > 0 ? 'text-red-600' : 'text-green-600'}`}>
                   {formatter.format(Math.abs(totals.remaining))}
                 </span>
@@ -698,7 +698,7 @@ export default function Sales() {
             {/* TOTAL */}
             <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-3 md:p-4 rounded-lg border border-blue-200">
               <div className="flex justify-between items-center">
-                <span className="font-semibold text-xs md:text-sm text-gray-900">Umumiy</span>
+                <span className="font-semibold text-xs md:text-sm text-gray-900">Умумий</span>
                 <span className="text-md  font-bold text-blue-600">{formatter.format(totals.finalTotal)}</span>
               </div>
             </div>
@@ -706,7 +706,7 @@ export default function Sales() {
             {/* PAYMENT SECTION */}
             {showPayment && (
               <div className="space-y-2 md:space-y-3 p-3 md:p-4 bg-gray-50 rounded-lg border border-gray-200">
-                <h4 className="font-semibold text-xs md:text-sm text-gray-900">To'lov usuli</h4>
+                <h4 className="font-semibold text-xs md:text-sm text-gray-900">Тўлов усули</h4>
                 <select
                   value={paymentMethod}
                   onChange={(e) => {
@@ -717,9 +717,9 @@ export default function Sales() {
                   }}
                   className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="Naqd">💵 Naqd</option>
-                  <option value="Nasiya">💳 Nasiya</option>
-                  <option value="boshqa">📝 Boshqa</option>
+                  <option value="Naqd">💵 Нақд</option>
+                  <option value="Nasiya">💳 Насия</option>
+                  <option value="boshqa">📝 Бошқа</option>
                 </select>
 
                 {paymentMethod === "boshqa" && (
@@ -727,18 +727,18 @@ export default function Sales() {
                     type="text"
                     value={customPaymentMethod}
                     onChange={(e) => setCustomPaymentMethod(e.target.value)}
-                    placeholder="To'lov usulini kiriting..."
+                    placeholder="Тўлов усулини киритинг..."
                     className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Klient Nomi (ixtiyoriy)</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Клиент Номи (ихтиёрий)</label>
                   <input
                     type="text"
                     value={customAdminName}
                     onChange={(e) => setCustomAdminName(e.target.value)}
-                    placeholder="Klient nomini kiriting (bo'sh qoldiring, agar standart bo'lsa)..."
+                    placeholder="Клиент номини киритинг (бўш қолдиринг, агар стандарт бўлса)..."
                     className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -754,7 +754,7 @@ export default function Sales() {
                     }}
                     className="flex-1 px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm font-medium hover:bg-gray-100 transition-colors"
                   >
-                    Bekor qilish
+                    Бекор қилиш
                   </button>
                   <button
                     onClick={handleConfirmPayment}

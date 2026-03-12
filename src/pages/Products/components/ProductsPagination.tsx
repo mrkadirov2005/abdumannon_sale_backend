@@ -19,7 +19,7 @@ export default function ProductsPagination({
   return (
     <div className="mt-4 flex items-center justify-between text-sm">
       <div className="text-gray-600">
-        Ko'rsatilmoqda {startItem}–{endItem} jami {total}
+        Кўрсатилмоқда {startItem}–{endItem} жами {total}
       </div>
       <div className="flex items-center gap-2">
         <button
@@ -27,7 +27,7 @@ export default function ProductsPagination({
           disabled={page === 1}
           className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          Oldingi
+          Олдинги
         </button>
 
         <div className="px-3 py-1 bg-blue-50 rounded-lg border border-blue-200 font-semibold text-blue-900">
@@ -39,7 +39,7 @@ export default function ProductsPagination({
           disabled={page === pages}
           className="px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          Keyingi
+          Кейинги
         </button>
       </div>
     </div>

@@ -40,7 +40,7 @@ export const FolderView: React.FC<FolderViewProps> = ({
             </div>
           </div>
           <div className="text-xs text-gray-500">
-            Ma'lumotlar ko'rish uchun bosing
+            Ма'лумотлар кўриш учун босинг
           </div>
         </div>
       ))}

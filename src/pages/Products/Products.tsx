@@ -146,7 +146,7 @@ export default function Products() {
               : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
           }`}
         >
-          📊 Jadval
+          📊 Жадвал
         </button>
         <button
           onClick={() => setViewMode("statistics")}
@@ -156,7 +156,7 @@ export default function Products() {
               : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-300"
           }`}
         >
-          📈 Statistika
+          📈 Статистика
         </button>
       </div>
 

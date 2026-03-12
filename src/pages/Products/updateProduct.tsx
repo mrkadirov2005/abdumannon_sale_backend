@@ -361,10 +361,10 @@ export default function UpdateProductForm({ type }: Props) {
             },
           }}
         >
-          <Tab label="Asosiy ma'lumot" />
-          <Tab label="Narxlar" />
-          <Tab label="Ombor & Sanalar" />
-          <Tab label="Qo'shimcha" />
+          <Tab label="Асосий ма'лумот" />
+          <Tab label="Нархлар" />
+          <Tab label="Омбор & Саналар" />
+          <Tab label="Қўшимча" />
         </Tabs>
       </Box>
 
@@ -376,13 +376,13 @@ export default function UpdateProductForm({ type }: Props) {
             sx={{ mb: 2 }}
             icon={<FiAlertCircle />}
           >
-            Bu mahsulot faol emas deb belgilangan
+            Бу маҳсулот фаол емас деб белгиланган
           </Alert>
         )}
 
         {Object.keys(errors).length > 0 && (
           <Alert severity="error" sx={{ mb: 2 }}>
-            Iltimos {Object.keys(errors).length} ta xatolarni tuzatib aring
+            Илтимос {Object.keys(errors).length} та хатоларни тузатиб аринг
           </Alert>
         )}
 
@@ -391,7 +391,7 @@ export default function UpdateProductForm({ type }: Props) {
           {tabValue === 0 && (
             <div className="space-y-4">
               <FormField
-                label="Mahsulot nomi"
+                label="Маҳсулот номи"
                 name="name"
                 value={form.name}
                 onChange={handleChange}
@@ -405,7 +405,7 @@ export default function UpdateProductForm({ type }: Props) {
           {tabValue === 1 && (
             <div className="space-y-4">
               <FormField
-                label="Xarajat narxi"
+                label="Харажат нархи"
                 name="cost_price"
                 type="number"
                 step="0.01"
@@ -414,7 +414,7 @@ export default function UpdateProductForm({ type }: Props) {
               />
 
               <FormField
-                label="Sotish narxi (Chakana)"
+                label="Сотиш нархи (Чакана)"
                 name="sell_price"
                 type="number"
                 step="0.01"
@@ -427,12 +427,12 @@ export default function UpdateProductForm({ type }: Props) {
               {/* PROFIT CALCULATOR */}
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4 space-y-3">
                 <h4 className="font-semibold text-green-900 flex items-center gap-2">
-                  <FiCheckCircle /> Foyda xisoboti
+                  <FiCheckCircle /> Фойда хисоботи
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-green-700 font-medium">
-                      Birlik foydasi
+                      Бирлик фойдаси
                     </p>
                     <p className="text-lg font-bold text-green-900">
                       {profit.toFixed(2)}
@@ -440,7 +440,7 @@ export default function UpdateProductForm({ type }: Props) {
                   </div>
                   <div>
                     <p className="text-xs text-green-700 font-medium">
-                      Foyda foizi
+                      Фойда фоизи
                     </p>
                     <p className="text-lg font-bold text-green-900">
                       {profitMargin}%
@@ -455,7 +455,7 @@ export default function UpdateProductForm({ type }: Props) {
           {tabValue === 2 && (
             <div className="space-y-4">
               <SelectField
-                label="O'lchov birligi"
+                label="Ўлчов бирлиги"
                 name="unit"
                 value={form.unit ?? "pcs"}
                 onChange={handleSelectChange}
@@ -463,7 +463,7 @@ export default function UpdateProductForm({ type }: Props) {
               />
 
               <FormField
-                label="Hozirgi ombor"
+                label="Ҳозирги омбор"
                 name="availability"
                 type="number"
                 value={form.availability ?? ""}
@@ -472,7 +472,7 @@ export default function UpdateProductForm({ type }: Props) {
               />
 
               <FormField
-                label="Jami miqdori"
+                label="Жами миқдори"
                 name="total"
                 type="number"
                 value={form.total ?? ""}
@@ -490,14 +490,14 @@ export default function UpdateProductForm({ type }: Props) {
               )}
 
               <FormField
-                label="Qabul qilish sanasi"
+                label="Қабул қилиш санаси"
                 name="receival_date"
                 type="datetime-local"
                 value={form.receival_date as string}
                 onChange={handleChange}
               />
               <FormField
-                label="Oxirgi to'ldirish"
+                label="Охирги тўлдириш"
                 name="last_restocked"
                 type="datetime-local"
                 value={form.last_restocked as string}
@@ -510,14 +510,14 @@ export default function UpdateProductForm({ type }: Props) {
           {tabValue === 3 && (
             <div className="space-y-4">
               <FormField
-                label="Taklif qiluvchi"
+                label="Таклиф қилувчи"
                 name="supplier"
                 value={form.supplier ?? ""}
                 onChange={handleChange}
               />
 
               <FormField
-                label="Joylashuvi/Sklad"
+                label="Жойлашуви/Склад"
                 name="location"
                 value={form.location ?? ""}
                 onChange={handleChange}
@@ -526,13 +526,13 @@ export default function UpdateProductForm({ type }: Props) {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
-                  Ta'rif
+                  Та'риф
                 </label>
                 <textarea
                   name="description"
                   value={form.description ?? ""}
                   onChange={handleChange}
-                  placeholder="Mahsulot tafsilotlari, xususiyatlari, foydalanish ko'rsatmalari..."
+                  placeholder="Маҳсулот тафсилотлари, хусусиятлари, фойдаланиш кўрсатмалари..."
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-24"
                 />
               </div>
@@ -549,26 +549,26 @@ export default function UpdateProductForm({ type }: Props) {
                   htmlFor="is_active"
                   className="text-sm font-medium text-blue-900"
                 >
-                  Mahsulot faol
+                  Маҳсулот фаол
                 </label>
               </div>
 
               {type === "edit" && (
                 <div className="space-y-2 text-xs text-gray-500 p-2 bg-gray-50 rounded-lg border border-gray-200">
                   <p>
-                    <strong>Yaratilgan:</strong>{" "}
+                    <strong>Яратилган:</strong>{" "}
                     {form.createdat
                       ? new Date(form.createdat).toLocaleString()
                       : "Yo'q"}
                   </p>
                   <p>
-                    <strong>Yangilangan:</strong>{" "}
+                    <strong>Янгиланган:</strong>{" "}
                     {form.updatedat
                       ? new Date(form.updatedat).toLocaleString()
                       : "Yo'q"}
                   </p>
                   <p>
-                    <strong>ID:</strong> {form.id}
+                    <strong>ИД:</strong> {form.id}
                   </p>
                 </div>
               )}
@@ -588,14 +588,14 @@ export default function UpdateProductForm({ type }: Props) {
         <div className="w-full flex items-center justify-between">
           <div className="flex gap-2">
             {type === "edit" && (
-              <Tooltip title="Bu mahsulotni takrorlash">
+              <Tooltip title="Бу маҳсулотни такрорлаш">
                 <Button
                   onClick={handleDuplicate}
                   startIcon={<Copy />}
                   variant="outlined"
                   size="small"
                 >
-                  Takrorlash
+                  Такрорлаш
                 </Button>
               </Tooltip>
             )}
@@ -608,7 +608,7 @@ export default function UpdateProductForm({ type }: Props) {
               variant="outlined"
               size="small"
             >
-              Tozalash
+              Тозалаш
             </Button>
 
             <Button
@@ -616,7 +616,7 @@ export default function UpdateProductForm({ type }: Props) {
               variant="outlined"
               size="small"
             >
-              Bekor qilish
+              Бекор қилиш
             </Button>
 
             <Button
@@ -690,7 +690,7 @@ const SelectField = ({ label, options, error, ...props }: SelectFieldProps) => (
           : "border-gray-300 focus:ring-blue-500"
       }`}
     >
-      <option value="">Tanlang {label.toLowerCase()}</option>
+      <option value="">Танланг {label.toLowerCase()}</option>
       {options.map((opt) => (
         <option key={opt.id} value={opt.id}>
           {opt.name}

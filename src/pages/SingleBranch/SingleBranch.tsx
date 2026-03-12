@@ -32,13 +32,13 @@ export default function SingleBranch() {
   }, [branch?.id]);
 
   if (!branch) {
-    toast.error("Branch data not found");
-    return <p>Branch data not found</p>;
+    toast.error("Бранч дата нот фоунд");
+    return <p>Бранч дата нот фоунд</p>;
   }
   
   if (!sales) {
-    toast.info("Loading sales data...");
-    return <p>Loading sales...</p>;
+    toast.info("Лоадинг салес дата...");
+    return <p>Лоадинг салес...</p>;
   }
 
   const branchSales = sales.filter((item) => item.branch === branch.id);
@@ -132,7 +132,7 @@ export default function SingleBranch() {
   const handleResetFilters = () => {
     setSearch("");
     setPaymentFilter("all");
-    toast.info("Filters cleared");
+    toast.info("Филтерс цлеаред");
   };
 
   // Table headers
@@ -155,15 +155,15 @@ export default function SingleBranch() {
         sx={{ maxWidth: "100%", margin: "auto", borderRadius: 2, boxShadow: 3, mt: 3 }}
       >
         <Typography variant="h6" sx={{ padding: 2 }}>
-          Branch Details
+          Бранч Детаилс
         </Typography>
         <Table>
           <TableHead sx={{ backgroundColor: "#1976d2" }}>
             <TableRow>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Nomi</TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Joylashuvi</TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Dokon ID</TableCell>
-              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Sotuvchilar</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Номи</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Жойлашуви</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Докон ИД</TableCell>
+              <TableCell sx={{ color: "white", fontWeight: "bold" }}>Сотувчилар</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -180,27 +180,27 @@ export default function SingleBranch() {
       {/* Sales Summary with Statistics Cards */}
       <div style={{ marginTop: 30, maxWidth: "100%", marginLeft: "auto", marginRight: "auto" }}>
         <Typography variant="h6" gutterBottom textAlign="center">
-          Savdo ko'rsatgichlari
+          Савдо кўрсатгичлари
         </Typography>
         
         {/* Statistics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Total Sales Count */}
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 shadow-lg text-white">
-            <p className="text-sm font-semibold opacity-90">Savdo soni</p>
+            <p className="text-sm font-semibold opacity-90">Савдо сони</p>
             <p className="text-3xl font-bold mt-2">{branchSales.length}</p>
           </div>
 
           {/* Total Sales Amount */}
           <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 shadow-lg text-white">
-            <p className="text-sm font-semibold opacity-90">Jami savdo</p>
+            <p className="text-sm font-semibold opacity-90">Жами савдо</p>
             <p className="text-3xl font-bold mt-2">{savdo.toLocaleString("en-US")}</p>
             <p className="text-xs opacity-75 mt-1">?</p>
           </div>
 
           {/* Peak Sales Day */}
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 shadow-lg text-white">
-            <p className="text-sm font-semibold opacity-90">Eng yaxshi kun</p>
+            <p className="text-sm font-semibold opacity-90">Енг яхши кун</p>
             <p className="text-3xl font-bold mt-2">
               {peakDay ? `${peakDay.day}-kun` : "N/A"}
             </p>
@@ -211,9 +211,9 @@ export default function SingleBranch() {
 
           {/* Average Daily Sales */}
           <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-4 shadow-lg text-white">
-            <p className="text-sm font-semibold opacity-90">O'rtacha kunlik</p>
+            <p className="text-sm font-semibold opacity-90">Ўртача кунлик</p>
             <p className="text-3xl font-bold mt-2">{Math.round(avgDailySales).toLocaleString("en-US")}</p>
-            <p className="text-xs opacity-75 mt-1">?/kun</p>
+            <p className="text-xs opacity-75 mt-1">?/кун</p>
           </div>
         </div>
 
@@ -232,32 +232,32 @@ export default function SingleBranch() {
         >
           <thead style={{ backgroundColor: "#1976d2", color: "white" }}>
             <tr>
-              <th style={thStyle}>O'lchov</th>
-              <th style={thStyle}>Qiymat</th>
+              <th style={thStyle}>Ўлчов</th>
+              <th style={thStyle}>Қиймат</th>
             </tr>
           </thead>
           <tbody>
             <tr style={trStyle}>
-              <td style={tdStyle}>Savdo soni</td>
+              <td style={tdStyle}>Савдо сони</td>
               <td style={tdStyle}>{branchSales.length}</td>
             </tr>
             <tr style={trStyle}>
-              <td style={tdStyle}>Jami savdo</td>
+              <td style={tdStyle}>Жами савдо</td>
               <td style={tdStyle}>{savdo.toLocaleString("en-US")} ?</td>
             </tr>
             <tr style={trStyle}>
-              <td style={tdStyle}>Eng yaxshi kun</td>
+              <td style={tdStyle}>Енг яхши кун</td>
               <td style={tdStyle}>
                 {peakDay ? `${peakDay.day}-kun (${peakDay.total.toLocaleString("en-US")} ?)` : "N/A"}
               </td>
             </tr>
             <tr style={trStyle}>
-              <td style={tdStyle}>O'rtacha kunlik savdo</td>
+              <td style={tdStyle}>Ўртача кунлик савдо</td>
               <td style={tdStyle}>{Math.round(avgDailySales).toLocaleString("en-US")} ?</td>
             </tr>
             <tr style={trStyle}>
-              <td style={tdStyle}>Faol kunlar</td>
-              <td style={tdStyle}>{dailyStats.length} kun</td>
+              <td style={tdStyle}>Фаол кунлар</td>
+              <td style={tdStyle}>{dailyStats.length} кун</td>
             </tr>
           </tbody>
         </table>
@@ -266,14 +266,14 @@ export default function SingleBranch() {
       {/* Filters and Sales Table */}
       <div className="p-4 bg-white rounded-xl shadow mt-10">
         <Typography variant="h6" gutterBottom>
-          Savdo tarixi
+          Савдо тарихи
         </Typography>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-4 items-center">
           <input
             type="text"
-            placeholder="Search sale ID..."
+            placeholder="Сеарч сале ИД..."
             className="border px-3 py-2 rounded-md text-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -288,11 +288,11 @@ export default function SingleBranch() {
               )
             }
           >
-            <option value="all">All payments</option>
-            <option value="cash">Cash</option>
-            <option value="card">Card</option>
-            <option value="mobile">Mobile</option>
-            <option value="">Unknown</option>
+            <option value="all">Алл пайменц</option>
+            <option value="cash">Цаш</option>
+            <option value="card">Цард</option>
+            <option value="mobile">Мобиле</option>
+            <option value="">Ункновн</option>
           </select>
 
           {isFilterActive && (
@@ -300,17 +300,17 @@ export default function SingleBranch() {
               onClick={handleResetFilters}
               className="px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-md border border-red-200 transition"
             >
-              Clear Filters
+              Цлеар Филтерс
             </button>
           )}
         </div>
 
         {/* Totals */}
         <div className="flex gap-6 mb-4 text-sm font-medium">
-          <div>Total Sales: {filteredData.length}</div>
-          <div>Total Amount: {totals.totalPrice.toLocaleString("en-US")}</div>
+          <div>Тотал Салес: {filteredData.length}</div>
+          <div>Тотал Амоунт: {totals.totalPrice.toLocaleString("en-US")}</div>
           <div className="text-green-600">
-            Total Profit: {totals.totalProfit.toLocaleString("en-US")}
+            Тотал Профит: {totals.totalProfit.toLocaleString("en-US")}
           </div>
         </div>
 
@@ -339,7 +339,7 @@ export default function SingleBranch() {
               {filteredData.length === 0 && (
                 <tr>
                   <td colSpan={6} className="text-center py-4 text-gray-500">
-                    No data found
+                    Но дата фоунд
                   </td>
                 </tr>
               )}
@@ -360,7 +360,7 @@ export default function SingleBranch() {
 
         {/* Footer */}
         <div className="mt-3 text-xs text-gray-500">
-          Showing {filteredData.length} of {branchSales.length} sales
+          Шовинг {filteredData.length} оф {branchSales.length} салес
         </div>
       </div>
     </section>

@@ -50,7 +50,7 @@ export const DebtListView: React.FC<Props> = ({
       {/* Table */}
       {debts.length === 0 ? (
         <div className="p-8 text-center text-gray-500">
-          <p>Qarzlar topilmadi</p>
+          <p>Қарзлар топилмади</p>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -60,23 +60,23 @@ export const DebtListView: React.FC<Props> = ({
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200"
                   onClick={() => onSort("name")}
                 >
-                  Qarz beruvchi {sortKey === "name" && <SortIcon field="name" />}
+                  Қарз берувчи {sortKey === "name" && <SortIcon field="name" />}
                 </th>
                 <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200"
                   onClick={() => onSort("amount")}
                 >
-                  Summa {sortKey === "amount" && <SortIcon field="amount" />}
+                  Сумма {sortKey === "amount" && <SortIcon field="amount" />}
                 </th>
                 <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
-                  Holat
+                  Ҳолат
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200"
                   onClick={() => onSort("created_at")}
                 >
-                  Sana {sortKey === "created_at" && <SortIcon field="created_at" />}
+                  Сана {sortKey === "created_at" && <SortIcon field="created_at" />}
                 </th>
                 <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">
-                  Amallar
+                  Амаллар
                 </th>
               </tr>
             </thead>
@@ -110,7 +110,7 @@ export const DebtListView: React.FC<Props> = ({
                           <button
                             onClick={() => onPayment(debt)}
                             className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
-                            title="To'lash"
+                            title="Тўлаш"
                           >
                             <DollarSign className="h-4 w-4" />
                           </button>
@@ -118,14 +118,14 @@ export const DebtListView: React.FC<Props> = ({
                         <button
                           onClick={() => onEdit(debt)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                          title="Tahrirlash"
+                          title="Таҳрирлаш"
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => onDelete(debt)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                          title="O'chirish"
+                          title="Ўчириш"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

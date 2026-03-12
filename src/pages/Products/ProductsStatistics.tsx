@@ -80,9 +80,9 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold text-gray-800">Mahsulotlar Statistikasi</h2>
+        <h2 className="text-3xl font-bold text-gray-800">Маҳсулотлар Статистикаси</h2>
         <div className="text-sm text-gray-500">
-          Jami mahsulotlar: <span className="font-semibold text-gray-900">{statistics.totalProducts}</span>
+          Жами маҳсулотлар: <span className="font-semibold text-gray-900">{statistics.totalProducts}</span>
         </div>
       </div>
 
@@ -92,40 +92,40 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <DollarSign className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">Jami Qiymat</span>
+            <span className="text-sm font-medium opacity-90">Жами Қиймат</span>
           </div>
           <div className="text-2xl font-bold mb-1">{formatter.format(statistics.totalInventoryValue)}</div>
-          <div className="text-sm opacity-80">{statistics.totalQuantity} dona mahsulot</div>
+          <div className="text-sm opacity-80">{statistics.totalQuantity} дона маҳсулот</div>
         </div>
 
         {/* Total Quantity */}
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <Inventory className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">Jami Miqdor</span>
+            <span className="text-sm font-medium opacity-90">Жами Миқдор</span>
           </div>
           <div className="text-3xl font-bold mb-1">{statistics.totalQuantity}</div>
-          <div className="text-sm opacity-80">O'rtacha: {statistics.avgQuantityPerProduct.toFixed(1)} dona</div>
+          <div className="text-sm opacity-80">Ўртача: {statistics.avgQuantityPerProduct.toFixed(1)} дона</div>
         </div>
 
         {/* Total Profit */}
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <TrendingUp className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">Foyda</span>
+            <span className="text-sm font-medium opacity-90">Фойда</span>
           </div>
           <div className="text-2xl font-bold mb-1">{formatter.format(statistics.totalProfit)}</div>
-          <div className="text-sm opacity-80">Foyda: {statistics.profitMargin.toFixed(1)}%</div>
+          <div className="text-sm opacity-80">Фойда: {statistics.profitMargin.toFixed(1)}%</div>
         </div>
 
         {/* Average Price */}
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <BarChart className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">O'rtacha Narx</span>
+            <span className="text-sm font-medium opacity-90">Ўртача Нарх</span>
           </div>
           <div className="text-2xl font-bold mb-1">{formatter.format(statistics.avgPrice)}</div>
-          <div className="text-sm opacity-80">Hisoblangan narx</div>
+          <div className="text-sm opacity-80">Ҳисобланган нарх</div>
         </div>
       </div>
 
@@ -133,33 +133,33 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
           <AlertTriangle className="text-orange-600" />
-          Zaxira Holatini Ko'rikovi
+          Захира Ҳолатини Кўрикови
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Healthy Stock */}
           <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border-l-4 border-green-500">
-            <div className="text-sm text-gray-600 mb-1">Yaxshi Zaxira</div>
+            <div className="text-sm text-gray-600 mb-1">Яхши Захира</div>
             <div className="text-3xl font-bold text-green-600">{statistics.healthyStockCount}</div>
             <div className="text-xs text-gray-600 mt-1">{(statistics.totalProducts > 0 ? (statistics.healthyStockCount / statistics.totalProducts) * 100 : 0).toFixed(1)}%</div>
           </div>
 
           {/* Low Stock */}
           <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 border-l-4 border-yellow-500">
-            <div className="text-sm text-gray-600 mb-1">Kam Zaxira</div>
+            <div className="text-sm text-gray-600 mb-1">Кам Захира</div>
             <div className="text-3xl font-bold text-yellow-600">{statistics.lowStockCount}</div>
             <div className="text-xs text-gray-600 mt-1">{statistics.lowStockPercentage.toFixed(1)}%</div>
           </div>
 
           {/* Out of Stock */}
           <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border-l-4 border-red-500">
-            <div className="text-sm text-gray-600 mb-1">Tugab Ketgan</div>
+            <div className="text-sm text-gray-600 mb-1">Тугаб Кетган</div>
             <div className="text-3xl font-bold text-red-600">{statistics.outOfStockCount}</div>
             <div className="text-xs text-gray-600 mt-1">{statistics.outOfStockPercentage.toFixed(1)}%</div>
           </div>
 
           {/* Expired */}
           <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border-l-4 border-orange-500">
-            <div className="text-sm text-gray-600 mb-1">Eskirgan</div>
+            <div className="text-sm text-gray-600 mb-1">Ескирган</div>
             <div className="text-3xl font-bold text-orange-600">{statistics.expiredCount}</div>
             <div className="text-xs text-gray-600 mt-1">{statistics.expiredPercentage.toFixed(1)}%</div>
           </div>
@@ -170,13 +170,13 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
           <Percent className="text-blue-600" />
-          Zaxira Taqsimoti
+          Захира Тақсимоти
         </h3>
         <div className="space-y-5">
           {/* Healthy Stock Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">✅ Yaxshi Zaxira</span>
+              <span className="text-sm font-medium text-gray-700">✅ Яхши Захира</span>
               <span className="text-sm font-semibold text-gray-900">
                 {(statistics.totalProducts > 0 ? (statistics.healthyStockCount / statistics.totalProducts) * 100 : 0).toFixed(1)}%
               </span>
@@ -192,7 +192,7 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
           {/* Low Stock Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">⚠️ Kam Zaxira</span>
+              <span className="text-sm font-medium text-gray-700">⚠️ Кам Захира</span>
               <span className="text-sm font-semibold text-gray-900">{statistics.lowStockPercentage.toFixed(1)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
@@ -206,7 +206,7 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
           {/* Out of Stock Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">❌ Tugab Ketgan</span>
+              <span className="text-sm font-medium text-gray-700">❌ Тугаб Кетган</span>
               <span className="text-sm font-semibold text-gray-900">{statistics.outOfStockPercentage.toFixed(1)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
@@ -220,7 +220,7 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
           {/* Expired Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">🗓️ Eskirgan</span>
+              <span className="text-sm font-medium text-gray-700">🗓️ Ескирган</span>
               <span className="text-sm font-semibold text-gray-900">{statistics.expiredPercentage.toFixed(1)}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
@@ -237,17 +237,17 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
           <BarChart className="text-blue-600" />
-          Eng Qimmatbaho Kategoriyalar
+          Енг Қимматбаҳо Категориялар
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">#</th>
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Kategoriya</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Mahsulot Soni</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Jami Miqdor</th>
-                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Jami Qiymat</th>
+                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Категория</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Маҳсулот Сони</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Жами Миқдор</th>
+                <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Жами Қиймат</th>
               </tr>
             </thead>
             <tbody>
@@ -276,19 +276,19 @@ export default function ProductsStatistics({ products }: ProductsStatisticsProps
       {/* Summary Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-5 border-l-4 border-blue-500">
-          <div className="text-sm text-gray-600 mb-1">Jami Net Qiymat</div>
+          <div className="text-sm text-gray-600 mb-1">Жами Нет Қиймат</div>
           <div className="text-2xl font-bold text-gray-900">
             {formatter.format(statistics.totalNetValue)}
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-5 border-l-4 border-green-500">
-          <div className="text-sm text-gray-600 mb-1">Mahsulot Soni</div>
+          <div className="text-sm text-gray-600 mb-1">Маҳсулот Сони</div>
           <div className="text-2xl font-bold text-gray-900">{statistics.totalProducts}</div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-5 border-l-4 border-purple-500">
-          <div className="text-sm text-gray-600 mb-1">Zaxiraning Sog'lig'i</div>
+          <div className="text-sm text-gray-600 mb-1">Захиранинг Соғлиғи</div>
           <div className="text-2xl font-bold text-gray-900">
             {(statistics.totalProducts > 0 ? (statistics.healthyStockCount / statistics.totalProducts) * 100 : 0).toFixed(1)}%
           </div>

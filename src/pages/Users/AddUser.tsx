@@ -103,7 +103,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
   return (
     <div className="p-6 bg-white rounded shadow max-w-xl mx-auto">
       <div className="flex justify-between pb-3 items-center">
-        <h1 className="font-bold text-2xl">Create Admin</h1>
+        <h1 className="font-bold text-2xl">Цреате Админ</h1>
         <button
           onClick={() => dispatch(CloseAdminModal(ModalCodes.admin.add_admin))}
           className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-blue-700"
@@ -118,7 +118,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
       {/* FIRST NAME */}
       <input
         name="first_name"
-        placeholder="First name"
+        placeholder="Фирст наме"
         value={form.first_name}
         onChange={handleChange}
         className="border p-2 rounded w-full mb-3"
@@ -127,7 +127,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
       {/* LAST NAME */}
       <input
         name="last_name"
-        placeholder="Last name"
+        placeholder="Ласт наме"
         value={form.last_name}
         onChange={handleChange}
         className="border p-2 rounded w-full mb-3"
@@ -136,7 +136,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
       {/* PHONE NUMBER */}
       <input
         name="phone_number"
-        placeholder="Phone number"
+        placeholder="Пҳоне нумбер"
         value={form.phone_number}
         onChange={handleChange}
         className="border p-2 rounded w-full mb-3"
@@ -146,7 +146,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
       <input
         name="password"
         type="password"
-        placeholder="Password"
+        placeholder="Пассворд"
         value={form.password}
         onChange={handleChange}
         className="border p-2 rounded w-full mb-3"
@@ -155,7 +155,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
       {/* WORK START */}
       <input
         name="work_start"
-        placeholder="Work start (optional)"
+        placeholder="Ворк старт (оптионал)"
         value={form.work_start ?? ""}
         onChange={handleChange}
         className="border p-2 rounded w-full mb-3"
@@ -164,7 +164,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
       {/* WORK END */}
       <input
         name="work_end"
-        placeholder="Work end (optional)"
+        placeholder="Ворк енд (оптионал)"
         value={form.work_end ?? ""}
         onChange={handleChange}
         className="border p-2 rounded w-full mb-3"
@@ -174,7 +174,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
       <input
         name="salary"
         type="number"
-        placeholder="Salary"
+        placeholder="Саларй"
         value={form.salary ?? ""}
         onChange={handleChange}
         className="border p-2 rounded w-full mb-3"
@@ -183,7 +183,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
       {/* SHOP ID */}
       <input
         name="shop_id"
-        placeholder="Shop ID"
+        placeholder="Шоп ИД"
         value={form.shop_id}
         readOnly
         onChange={handleChange}
@@ -192,14 +192,14 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
 
       {/* BRANCH SELECT */}
       <div className="mb-3">
-        <label className="block mb-1 font-semibold">Branch</label>
+        <label className="block mb-1 font-semibold">Бранч</label>
         <select
           name="branch"
           value={form.branch}
           onChange={handleChange}
           className="border p-2 rounded w-full"
         >
-          <option value="">Select a branch</option>
+          <option value="">Селецт а бранч</option>
           {branches.map((branch) => (
             <option key={branch.id} value={branch.id}>
               {branch.name} — {branch.location}
@@ -209,14 +209,14 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
       </div>
 
       {/* PERMISSIONS */}
-      <h2 className="text-lg font-semibold mt-4 mb-2">Permissions</h2>
+      <h2 className="text-lg font-semibold mt-4 mb-2">Пермиссионс</h2>
 
       <select
         className="border p-2 rounded w-full mb-3"
         onChange={(e) => handleAddPermission(e.target.value)}
         value="" // Reset to default option after selection
       >
-        <option value="">Select a permission</option>
+        <option value="">Селецт а пермиссион</option>
 
         {Array.isArray(permissionsList) &&
           permissionsList.map((p, i) => (
@@ -252,7 +252,7 @@ export default function CreateAdminForm({ permissionsList, token }: Props) {
         onClick={handleSubmit}
         className="mt-4"
       >
-        Create Admin
+        Цреате Админ
       </Button>
     </div>
   );

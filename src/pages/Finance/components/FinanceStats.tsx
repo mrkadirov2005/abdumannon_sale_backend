@@ -40,7 +40,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
       >
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">
-            Jami Summa
+            Жами Сумма
           </p>
           <DollarSign size={20} className="opacity-50" />
         </div>
@@ -48,7 +48,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           {formatCurrency(totalAmount, source === "wagons" ? "USD" : "RUB")}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">
-          {uniquePersons.length} ta shaxs
+          {uniquePersons.length} та шахс
         </p>
       </div>
 
@@ -58,14 +58,14 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
       >
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">
-            To'langan
+            Тўланган
           </p>
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
           {formatCurrency(totalPaid, source === "wagons" ? "USD" : "RUB")}
         </p>
-        <p className="text-xs sm:text-sm opacity-75 mt-1">Berilgan pul</p>
+        <p className="text-xs sm:text-sm opacity-75 mt-1">Берилган пул</p>
       </div>
 
       <div
@@ -74,14 +74,14 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
       >
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">
-            Qoldiq
+            Қолдиқ
           </p>
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
           {formatCurrency(totalRemaining, source === "wagons" ? "USD" : "RUB")}
         </p>
-        <p className="text-xs sm:text-sm opacity-75 mt-1">To'lanmagan</p>
+        <p className="text-xs sm:text-sm opacity-75 mt-1">Тўланмаган</p>
       </div>
     </div>
   );

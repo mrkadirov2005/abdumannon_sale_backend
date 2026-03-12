@@ -35,10 +35,10 @@ export default function DatabaseBackup(): JSX.Element {
             const text = await res.text();
             const json: BackupData = JSON.parse(text);
             setBackupData(json);
-            toast.success("✅ Backup data loaded successfully");
+            toast.success("✅ Бацкуп превиев юкланди");
         } catch (err) {
             console.error(err);
-            toast.error("❌ Failed to load backup preview");
+            toast.error("❌ Бацкуп превиев юкланмади");
         } finally {
             setLoading(false);
         }
@@ -50,7 +50,7 @@ export default function DatabaseBackup(): JSX.Element {
 
     // Download backup JSON file
     const downloadBackup = async (): Promise<void> => {
-        const toastId = toast.loading("⏳ Preparing backup download...");
+        const toastId = toast.loading("⏳Downloading backup...");
         try {
             const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.backup}`,{
                 method: "POST",
@@ -81,7 +81,7 @@ export default function DatabaseBackup(): JSX.Element {
     // Backup to Google Sheets via Apps Script
     const backupToGoogleSheets = async (): Promise<void> => {
         if (!backupData) {
-            toast.warning("⚠️ No backup data available");
+            toast.warning("⚠️ No backup data available to send to Google Sheets");
             return;
         }
 
@@ -134,27 +134,27 @@ export default function DatabaseBackup(): JSX.Element {
                 body: JSON.stringify(json)
             });
 
-            alert("Database restored successfully");
+            alert("Датабасе ресторед суццессфуллй");
             fetchBackupPreview();
         } catch (err) {
             console.error(err);
-            alert("Restore failed");
+            alert("Ресторе фаилед");
         }
     };
 
     if (loading) {
-        return <p className="text-center text-gray-500">Loading backup data...</p>;
+        return <p className="text-center text-gray-500">Нусха юкланмоқда</p>;
     }
 
     if (!backupData) {
-        return <p className="text-center text-red-500">No backup data</p>;
+        return <p className="text-center text-red-500">Нусха ёқ</p>;
     }
 
     const tables = backupData.data;
 
     // Restore from Google Sheets
     const restoreFromGoogleSheets = async (): Promise<void> => {
-        const toastId = toast.loading("⏳ Downloading backup from Google Sheets...");
+        const toastId = toast.loading("⏳ Downloading backup from  Google sheets...");
         setLoading(true);
         try {
             const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.restoreFromSheets}`, {
@@ -208,8 +208,8 @@ export default function DatabaseBackup(): JSX.Element {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gray-900 mb-2">📦 Database Backup Manager</h1>
-                    <p className="text-gray-600">Manage your database backups and sync with Google Sheets</p>
+                    <h1 className="text-4xl font-bold text-gray-900 mb-2">📦 Датабасе Бацкуп Манагер</h1>
+                    <p className="text-gray-600">Манаге ёур датабасе бацкупс анд сйнц витҳ Гоогле Шеец</p>
                 </div>
 
                 {/* Action Buttons */}
@@ -220,12 +220,12 @@ export default function DatabaseBackup(): JSX.Element {
                         className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
                     >
                         {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Download size={20} />}
-                        Download Backup
+                        Довнлоад Бацкуп
                     </button>
 
                     <label className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl cursor-pointer">
                         <Upload size={20} />
-                        Restore Backup
+                        Ресторе Бацкуп
                         <input
                             type="file"
                             accept="application/json"
@@ -240,7 +240,7 @@ export default function DatabaseBackup(): JSX.Element {
                         className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
                     >
                         {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Share2 size={20} />}
-                        Backup to Google Sheets
+                        Бацкуп то Гоогле Шеец
                     </button>
 
                     <button
@@ -249,7 +249,7 @@ export default function DatabaseBackup(): JSX.Element {
                         className="flex items-center justify-center gap-2 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
                     >
                         {loading ? <Loader className="w-5 h-5 animate-spin" /> : <RefreshCw size={20} />}
-                        Restore from Sheets
+                        Ресторе фром Шеец
                     </button>
                 </div>
 
@@ -264,7 +264,7 @@ export default function DatabaseBackup(): JSX.Element {
                                 <div>
                                     <h2 className="font-semibold text-lg text-gray-900">{table}</h2>
                                     <p className="text-sm text-gray-500 mt-1">
-                                        📊 {tables[table].length} rows
+                                        📊 {tables[table].length} ровс
                                     </p>
                                 </div>
 
@@ -322,7 +322,7 @@ export default function DatabaseBackup(): JSX.Element {
 
                                     {tables[table].length > 5 && (
                                         <p className="text-xs text-gray-500 mt-3 text-center">
-                                            📌 Showing first 5 rows of {tables[table].length} total
+                                            📌 Шовинг фирст 5 ровс оф {tables[table].length} тотал
                                         </p>
                                     )}
                                 </div>
@@ -330,7 +330,7 @@ export default function DatabaseBackup(): JSX.Element {
 
                             {expandedTable === table && tables[table].length === 0 && (
                                 <div className="text-center py-6 border-t">
-                                    <p className="text-gray-500">No data in this table</p>
+                                    <p className="text-gray-500">Но дата ин тҳис табле</p>
                                 </div>
                             )}
                         </div>

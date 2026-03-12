@@ -27,7 +27,7 @@ export const DebtStats: React.FC<Props> = ({
             : "bg-white border border-gray-200 shadow"
         }`}
       >
-        <p className="text-gray-600 text-sm">Barcha Qarzlar</p>
+        <p className="text-gray-600 text-sm">Барча Қарзлар</p>
         <p className="text-3xl font-bold text-gray-900">{allDebts}</p>
       </div>
 
@@ -39,7 +39,7 @@ export const DebtStats: React.FC<Props> = ({
             : "bg-white border border-gray-200 shadow"
         }`}
       >
-        <p className="text-gray-600 text-sm">Berilgan Nasiya</p>
+        <p className="text-gray-600 text-sm">Берилган Насия</p>
         <p className="text-3xl font-bold text-blue-600">{givenDebts}</p>
       </div>
 
@@ -51,7 +51,7 @@ export const DebtStats: React.FC<Props> = ({
             : "bg-white border border-gray-200 shadow"
         }`}
       >
-        <p className="text-gray-600 text-sm">Nasiyam</p>
+        <p className="text-gray-600 text-sm">Насиям</p>
         <p className="text-3xl font-bold text-red-600">{takenDebts}</p>
       </div>
     </div>

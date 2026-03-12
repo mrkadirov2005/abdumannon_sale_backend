@@ -36,7 +36,7 @@ export const PaymentModal: React.FC<Props> = ({
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b">
-          <h2 className="text-2xl font-bold text-gray-900">To'lov Qilish</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Тўлов Қилиш</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition"
@@ -49,13 +49,13 @@ export const PaymentModal: React.FC<Props> = ({
         <div className="p-6 space-y-6">
           {/* Debtor Info */}
           <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Qarz beruvchi</p>
+            <p className="text-sm text-gray-600 mb-1">Қарз берувчи</p>
             <p className="text-lg font-semibold text-gray-900">{debt.name}</p>
           </div>
 
           {/* Amount Info */}
           <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600 mb-1">Jami summa</p>
+            <p className="text-sm text-gray-600 mb-1">Жами сумма</p>
             <p className="text-xl font-bold text-blue-600">
               {debt.amount.toLocaleString("en-US")}
             </p>
@@ -64,7 +64,7 @@ export const PaymentModal: React.FC<Props> = ({
           {/* Payment Amount Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              To'lash summa
+              Тўлаш сумма
             </label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-3 text-gray-400 h-5 w-5" />
@@ -82,7 +82,7 @@ export const PaymentModal: React.FC<Props> = ({
           {/* Summary */}
           {amount > 0 && (
             <div className="space-y-2 p-4 bg-green-50 rounded-lg border border-green-200">
-              <p className="text-sm text-gray-700">Bu qarzni to'liq qaytarilgan deb belgilaysizmi?</p>
+              <p className="text-sm text-gray-700">Бу қарзни тўлиқ қайтарилган деб белгилайсизми?</p>
             </div>
           )}
 
@@ -94,7 +94,7 @@ export const PaymentModal: React.FC<Props> = ({
             onClick={onClose}
             className="flex-1 px-4 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition font-medium"
           >
-            Bekor qilish
+            Бекор қилиш
           </button>
           <button
             onClick={handleSubmit}

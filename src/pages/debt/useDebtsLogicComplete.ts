@@ -383,7 +383,7 @@ export const useDebtsLogic = (
           product_names: productNamesString,
           branch_id: typeof formData.branch_id === 'string' ? parseInt(formData.branch_id) : formData.branch_id,
           shop_id,
-          admin_id: "admin-uuid",
+          admin_id: "qarzdorlar",
         }),
       });
 
