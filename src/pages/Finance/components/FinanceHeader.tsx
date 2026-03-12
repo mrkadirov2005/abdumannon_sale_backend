@@ -72,7 +72,7 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
               : "text-gray-700 hover:bg-gray-100"
           }`}
         >
-          Valyutchik $
+          Валютчик $
         </button>
         </div>
       </div>
