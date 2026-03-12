@@ -258,7 +258,7 @@ export default function Navbar() {
 
   return (
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
-      <h3 className="text-lg font-medium">привет, {getUserDisplayName()}</h3>
+      <h3 className="text-lg font-medium">привет, Мухаммаджон - Абдуманнон </h3>
       <div className="flex items-center gap-4" >
 
         <Button
