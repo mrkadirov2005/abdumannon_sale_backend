@@ -1436,7 +1436,7 @@ export default function DebtManagement() {
 
             {/* Net Position */}
             <div className="mt-4 md:mt-6 border-2 border-gray-300 rounded-lg p-4 sm:p-5 md:p-6 bg-gradient-to-br from-gray-50 to-gray-100">
-              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-4"> š–ï¸ Соф Позиция</h3>
+              <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-900 mb-4"> Соф Позиция</h3>
               <div className="space-y-3">
                 <div className="flex justify-between py-2">
                   <span className="text-gray-700">Мен Олишим Керак:</span>

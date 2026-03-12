@@ -85,7 +85,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
             <ShoppingCart className="text-white opacity-80" />
             <span className="text-sm font-medium opacity-90">Жами Сотувлар</span>
           </div>
-          <div className="text-3xl font-bold mb-1">{statistics.totalSales}</div>
+          <div className="text-2xl font-bold mb-1">{statistics.totalSales}</div>
           <div className="text-sm opacity-80">{formatter.format(statistics.totalAmount)}</div>
         </div>
 
@@ -95,7 +95,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
             <TrendingUp className="text-white opacity-80" />
             <span className="text-sm font-medium opacity-90">Жами Фойда</span>
           </div>
-          <div className="text-3xl font-bold mb-1">{formatter.format(statistics.totalAmount)}</div>
+          <div className="text-2xl font-bold mb-1">{formatter.format(statistics.totalAmount)}</div>
           <div className="text-sm opacity-80">Фойда даражаси: {statistics.profitMargin.toFixed(1)}%</div>
         </div>
 
@@ -105,7 +105,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
             <AttachMoney className="text-white opacity-80" />
             <span className="text-sm font-medium opacity-90">Нақд Тўланган</span>
           </div>
-          <div className="text-3xl font-bold mb-1">{formatter.format(statistics.paidCash)}</div>
+          <div className="text-2xl font-bold mb-1">{formatter.format(statistics.paidCash)}</div>
           <div className="text-sm opacity-80">
             {statistics.paidPercentage.toFixed(1)}%
           </div>
@@ -117,7 +117,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
             <CreditCard className="text-white opacity-80" />
             <span className="text-sm font-medium opacity-90">Насия</span>
           </div>
-          <div className="text-3xl font-bold mb-1">{formatter.format(statistics.onCredit)}</div>
+          <div className="text-2xl font-bold mb-1">{formatter.format(statistics.onCredit)}</div>
           <div className="text-sm opacity-80">
             {statistics.creditPercentage.toFixed(1)}%
           </div>
