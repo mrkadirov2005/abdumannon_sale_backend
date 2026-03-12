@@ -157,6 +157,11 @@ export default function DebtManagement() {
   const token = useSelector(accessTokenFromStore);
   const shop_id = useSelector(getshopidfromstrore);
   const branches = useSelector(getBranchesFromStore);
+  const EXCLUDED_ADMIN_ID = "qarzlarim";
+
+  const filterVisibleDebts = (items: Debt[]) => {
+    return items.filter((d) => d.admin_id !== EXCLUDED_ADMIN_ID);
+  };
 
   /* ================= FETCH DEBTS ================= */
 
@@ -177,8 +182,9 @@ export default function DebtManagement() {
       }
 
       const json = await res.json();
-      setDebts(json.data || []);
-      toast.success(`${json.data?.length || 0} ta qarz yuklandi`);
+      const filtered = filterVisibleDebts(json.data || []);
+      setDebts(filtered);
+      toast.success(`${filtered.length || 0} ta qarz yuklandi`);
     } catch (err) {
       console.error(err);
       toast.error("Қарзларни юклашда хатолик");
@@ -227,10 +233,11 @@ export default function DebtManagement() {
       }
 
       const json = await res.json();
-      setDebts(json.data || []);
-      setUnreturnedDebts(json.data || []);
+      const filtered = filterVisibleDebts(json.data || []);
+      setDebts(filtered);
+      setUnreturnedDebts(filtered);
       toast.update(toastId, {
-        render: ` ${json.data?.length || 0} ta qaytarilmagan qarz yuklandi`,
+        render: ` ${filtered.length || 0} ta qaytarilmagan qarz yuklandi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -257,7 +264,7 @@ export default function DebtManagement() {
       }
 
       const json = await res.json();
-      setUnreturnedDebts(json.data || []);
+      setUnreturnedDebts(filterVisibleDebts(json.data || []));
     } catch (err) {
       console.error(err);
     }
@@ -302,9 +309,10 @@ export default function DebtManagement() {
       }
 
       const json = await res.json();
-      setDebts(json.data || []);
+      const filtered = filterVisibleDebts(json.data || []);
+      setDebts(filtered);
       toast.update(toastId, {
-        render: `Ushbu filial uchun ${json.data?.length || 0} ta qarz yuklandi`,
+        render: `Ushbu filial uchun ${filtered.length || 0} ta qarz yuklandi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -337,9 +345,10 @@ export default function DebtManagement() {
       }
 
       const json = await res.json();
-      setDebts(json.data || []);
+      const filtered = filterVisibleDebts(json.data || []);
+      setDebts(filtered);
       toast.update(toastId, {
-        render: ` "${customerName}" uchun ${json.data?.length || 0} ta qarz topildi`,
+        render: ` "${customerName}" учун ${filtered.length || 0} ta qarz topildi`,
         type: "success",
         isLoading: false,
         autoClose: 3000,
@@ -1032,6 +1041,15 @@ export default function DebtManagement() {
     return { total, unreturned, returned };
   }, [filteredAndSorted, paymentsByName]);
 
+  const debtorCount = useMemo(() => {
+    const uniqueNames = new Set(
+      filteredAndSorted
+        .map((d) => d.name?.trim().toLowerCase())
+        .filter((name) => Boolean(name))
+    );
+    return uniqueNames.size;
+  }, [filteredAndSorted]);
+
   const moliyaStats = useMemo(() => {
     const sumAmount = (list: Debt[]) => list.reduce((sum, d) => sum + d.amount, 0);
 
@@ -1308,23 +1326,11 @@ export default function DebtManagement() {
           </div>
         )}
 
-        {/* Filtered Totals */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-sm">
+        {/* Debtor Count */}
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 text-sm">
           <div className="p-3 md:p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Ёзувлар</p>
-            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900">{filteredAndSorted.length}</p>
-          </div>
-          <div className="p-3 md:p-4 bg-purple-50 rounded-lg border border-purple-200">
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Жами Сумма</p>
-            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-900">{totals.total.toLocaleString("en-US")}</p>
-          </div>
-          <div className="p-3 md:p-4 bg-red-50 rounded-lg border border-red-200">
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Қайтарилмаган</p>
-            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-red-900">{totals.unreturned.toLocaleString("en-US")}</p>
-          </div>
-          <div className="p-3 md:p-4 bg-green-50 rounded-lg border border-green-200">
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Қайтарилган</p>
-            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-green-900">{totals.returned.toLocaleString("en-US")}</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 font-medium">Қарздорлар</p>
+            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-900">{debtorCount}</p>
           </div>
         </div>
       </div>
