@@ -354,6 +354,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                       {formatCurrency(debt.amount, currency)}
                     </td>
                     <td>
+                      
                       {debt.product_names}
                     </td>
                     <td className="px-4 py-3 text-center space-x-2">

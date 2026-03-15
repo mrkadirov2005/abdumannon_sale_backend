@@ -25,6 +25,7 @@ export interface Wagon {
 }
 
 export interface Debt {
+  product_names: string;
   id: string;
   name: string;
   amount: number;
