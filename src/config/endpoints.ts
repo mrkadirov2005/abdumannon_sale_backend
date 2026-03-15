@@ -1,7 +1,24 @@
 // export const DEFAULT_ENDPOINT="http://52.206.53.151:3000"
-//  export const DEFAULT_ENDPOINT="https://shoppos.m-kadirov.uz"
-// export const DEFAULT_ENDPOINT="http://localhost:3000"
-export const DEFAULT_ENDPOINT="https://unipos.m-kadirov.uz"
+// export const DEFAULT_ENDPOINT="https://shoppos.m-kadirov.uz"
+// export const DEFAULT_ENDPOINT="https://unipos.m-kadirov.uz"
+
+const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
+
+const resolveDefaultEndpoint = (): string => {
+    const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+
+    if (configuredBaseUrl) {
+        return trimTrailingSlash(configuredBaseUrl);
+    }
+
+    if (typeof window !== "undefined") {
+        return trimTrailingSlash(window.location.origin);
+    }
+
+    return "http://localhost:3000";
+};
+
+export const DEFAULT_ENDPOINT = resolveDefaultEndpoint();
 
 
 
@@ -93,6 +110,7 @@ export const ENDPOINTS={
         restoreSql:"/backup/restore-sql",
         backuptoGoogleSheets:"/backup/backup-to-sheets",
         restoreFromSheets:"/backup/restore-from-sheets",
+        manualBackupDrive:"/backup/manual-backup-drive",
     },
     shop:{
         update:"/shop/update_shop"

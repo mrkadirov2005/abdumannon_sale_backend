@@ -148,7 +148,7 @@ export default function DatabaseBackup(): JSX.Element {
     const backupToGoogleDrive = async (): Promise<void> => {
         const toastId = toast.loading("⏳ Sending backup to Google Drive...");
         try {
-            const res = await fetch(`${DEFAULT_ENDPOINT}/api/backup/manual-backup-drive`, {
+            const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.manualBackupDrive}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
