@@ -1,24 +1,24 @@
 // export const DEFAULT_ENDPOINT="http://52.206.53.151:3000"
 // export const DEFAULT_ENDPOINT="https://shoppos.m-kadirov.uz"
-// export const DEFAULT_ENDPOINT="https://unipos.m-kadirov.uz"
+export const DEFAULT_ENDPOINT="https://unipos.m-kadirov.uz"
 
-const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
+// const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
 
-const resolveDefaultEndpoint = (): string => {
-    const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+// const resolveDefaultEndpoint = (): string => {
+//     const configuredBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
 
-    if (configuredBaseUrl) {
-        return trimTrailingSlash(configuredBaseUrl);
-    }
+//     if (configuredBaseUrl) {
+//         return trimTrailingSlash(configuredBaseUrl);
+//     }
 
-    if (typeof window !== "undefined") {
-        return trimTrailingSlash(window.location.origin);
-    }
+//     if (typeof window !== "undefined") {
+//         return trimTrailingSlash(window.location.origin);
+//     }
 
-    return "http://localhost:3000";
-};
+//     return "http://localhost:3000";
+// };
 
-export const DEFAULT_ENDPOINT = resolveDefaultEndpoint();
+// export const DEFAULT_ENDPOINT = resolveDefaultEndpoint();
 
 
 
