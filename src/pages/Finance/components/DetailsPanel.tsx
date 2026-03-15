@@ -336,6 +336,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">
                     Сумма
                   </th>
+                  <th className="px-4 py-3 text-right font-semibold text-gray-700">
+                    комментарий
+                  </th>
                   <th className="px-4 py-3 text-center font-semibold text-gray-700">
                     Амаллар
                   </th>
@@ -349,6 +352,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">
                       {formatCurrency(debt.amount, currency)}
+                    </td>
+                    <td>
+                      {debt.product_names}
                     </td>
                     <td className="px-4 py-3 text-center space-x-2">
                       <button

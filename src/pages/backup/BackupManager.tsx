@@ -3,7 +3,7 @@ import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { useSelector } from "react-redux";
 import { getAuthFromStore } from "../../redux/selectors";
 import { toast } from "react-toastify";
-import { Download, Upload, Share2, RefreshCw, ChevronDown, ChevronUp, Loader } from "lucide-react";
+import { Download, Upload, Share2, RefreshCw, ChevronDown, ChevronUp, Loader, Cloud } from "lucide-react";
 
 type BackupTableRow = Record<string, unknown>;
 
@@ -78,6 +78,39 @@ export default function DatabaseBackup(): JSX.Element {
         }
     };
 
+    const downloadSqlBackup = async (): Promise<void> => {
+        const toastId = toast.loading("⏳ Downloading SQL dump...");
+        try {
+            const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.backupSql}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `${authData.accessToken}`,
+                },
+            });
+
+            if (!res.ok) {
+                const error = await res.json().catch(() => null);
+                throw new Error(error?.message || "Failed to download SQL dump");
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+
+            a.href = url;
+            a.download = `db-backup-${Date.now()}.sql`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+            toast.update(toastId, { render: "✅ SQL dump downloaded successfully", type: "success", isLoading: false, autoClose: 3000 });
+        } catch (error: any) {
+            console.error(error);
+            toast.update(toastId, { render: `❌ Failed to download SQL dump: ${error.message}`, type: "error", isLoading: false, autoClose: 3000 });
+        }
+    };
+
     // Backup to Google Sheets via Apps Script
     const backupToGoogleSheets = async (): Promise<void> => {
         if (!backupData) {
@@ -111,6 +144,36 @@ export default function DatabaseBackup(): JSX.Element {
         }
     };
 
+    // Backup to Google Drive
+    const backupToGoogleDrive = async (): Promise<void> => {
+        const toastId = toast.loading("⏳ Sending backup to Google Drive...");
+        try {
+            const res = await fetch(`${DEFAULT_ENDPOINT}/api/backup/manual-backup-drive`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `${authData.accessToken}`,
+                },
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                throw new Error(result?.message || "Google Drive backup failed");
+            }
+
+            toast.update(toastId, { 
+                render: `✅ Backup successfully sent to Google Drive!\n📁 File: ${result.data?.timestamp}`, 
+                type: "success", 
+                isLoading: false, 
+                autoClose: 3000 
+            });
+        } catch (err: any) {
+            console.error(err);
+            toast.update(toastId, { render: `❌ Failed to backup to Google Drive: ${err.message}`, type: "error", isLoading: false, autoClose: 3000 });
+        }
+    };
+
 
     // Restore backup from file
     const restoreBackup = async (file: File | null): Promise<void> => {
@@ -139,6 +202,39 @@ export default function DatabaseBackup(): JSX.Element {
         } catch (err) {
             console.error(err);
             alert("Ресторе фаилед");
+        }
+    };
+
+    const restoreSqlBackup = async (file: File | null): Promise<void> => {
+        if (!file) return;
+
+        try {
+            const confirmRestore = window.confirm(
+                "This will DELETE existing data according to the SQL dump and restore the database. Continue?"
+            );
+            if (!confirmRestore) return;
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.restoreSql}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `${authData.accessToken}`,
+                },
+                body: formData,
+            });
+
+            if (!res.ok) {
+                const error = await res.json().catch(() => null);
+                throw new Error(error?.message || "SQL restore failed");
+            }
+
+            alert("SQL dump restored successfully");
+            fetchBackupPreview();
+        } catch (err) {
+            console.error(err);
+            alert("SQL restore failed");
         }
     };
 
@@ -213,7 +309,7 @@ export default function DatabaseBackup(): JSX.Element {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
                     <button
                         onClick={downloadBackup}
                         disabled={loading}
@@ -221,6 +317,15 @@ export default function DatabaseBackup(): JSX.Element {
                     >
                         {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Download size={20} />}
                         Довнлоад Бацкуп
+                    </button>
+
+                    <button
+                        onClick={downloadSqlBackup}
+                        disabled={loading}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-800 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
+                    >
+                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Download size={20} />}
+                        SQL Думп
                     </button>
 
                     <label className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl cursor-pointer">
@@ -231,6 +336,17 @@ export default function DatabaseBackup(): JSX.Element {
                             accept="application/json"
                             hidden
                             onChange={(e) => restoreBackup(e.target.files?.[0] ?? null)}
+                        />
+                    </label>
+
+                    <label className="flex items-center justify-center gap-2 px-6 py-3 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl cursor-pointer">
+                        <Upload size={20} />
+                        Ресторе SQL
+                        <input
+                            type="file"
+                            accept=".sql,text/plain"
+                            hidden
+                            onChange={(e) => restoreSqlBackup(e.target.files?.[0] ?? null)}
                         />
                     </label>
 
@@ -250,6 +366,15 @@ export default function DatabaseBackup(): JSX.Element {
                     >
                         {loading ? <Loader className="w-5 h-5 animate-spin" /> : <RefreshCw size={20} />}
                         Ресторе фром Шеец
+                    </button>
+
+                    <button
+                        onClick={backupToGoogleDrive}
+                        disabled={loading}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
+                    >
+                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Cloud size={20} />}
+                        Гоогле Драйв
                     </button>
                 </div>
 
