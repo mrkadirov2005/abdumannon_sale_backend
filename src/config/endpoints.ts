@@ -1,6 +1,7 @@
 // export const DEFAULT_ENDPOINT="http://52.206.53.151:3000"
 // export const DEFAULT_ENDPOINT="https://shoppos.m-kadirov.uz"
-export const DEFAULT_ENDPOINT="https://unipos.m-kadirov.uz"
+// export const DEFAULT_ENDPOINT="https://unipos.m-kadirov.uz"
+export const DEFAULT_ENDPOINT="https://api.unipos.systems"
 
 // const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
 
