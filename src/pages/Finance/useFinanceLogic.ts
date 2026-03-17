@@ -25,6 +25,9 @@ const getHeaders = () => {
 const MY_DEBTS_ADMIN_ID = "qarzlarim";
 const VALYUTCHIK_ADMIN_ID = "valyutchik";
 
+const normalizePersonName = (value: string) =>
+  value.trim().toLowerCase().replace(/\s+/g, " ");
+
 export const useFinanceLogic = (source: FinanceSource) => {
   const [wagons, setWagons] = useState<Wagon[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -104,7 +107,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
       wagons.forEach((wagon) => {
         const parts = wagon.wagon_number.split(",");
         const rawPersonName = (parts[0] || wagon.wagon_number).trim();
-        const personNameKey = rawPersonName.toLowerCase();
+        const personNameKey = normalizePersonName(rawPersonName);
 
         if (!personsMap.has(personNameKey)) {
           personsMap.set(personNameKey, {
@@ -129,7 +132,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
     } else {
       visibleDebts.forEach((debt) => {
         const rawPersonName = debt.name.trim();
-        const personNameKey = rawPersonName.toLowerCase();
+        const personNameKey = normalizePersonName(rawPersonName);
 
         if (!personsMap.has(personNameKey)) {
           personsMap.set(personNameKey, {
@@ -157,7 +160,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
     financeRecords.forEach((record) => {
       const descriptionParts = record.description?.split(": ") || [];
       const rawPersonName = (descriptionParts[0] || "").trim();
-      const personNameKey = rawPersonName.toLowerCase();
+      const personNameKey = normalizePersonName(rawPersonName);
 
       if (personNameKey && personsMap.has(personNameKey)) {
         const person = personsMap.get(personNameKey)!;

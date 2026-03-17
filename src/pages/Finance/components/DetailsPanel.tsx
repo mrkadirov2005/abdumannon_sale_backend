@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Plus, Trash2, Printer } from "lucide-react";
 import type { Person, FinanceRecord, Debt, Wagon } from "../types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
+import { DebtProductsModal } from "./DebtProductsModal";
 
 interface DetailsPanelProps {
   person: Person;
@@ -22,14 +23,26 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   onDeleteDebt,
   source,
 }) => {
+  const [showDebtProducts, setShowDebtProducts] = useState(false);
+  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+
+  const normalizePersonName = (value: string) =>
+    value.trim().toLowerCase().replace(/\s+/g, " ");
+
+  const getRecordPersonKey = (record: FinanceRecord) => {
+    const rawName = record.description?.split(":")[0] || "";
+    return normalizePersonName(rawName);
+  };
+
   const formatCurrency = (value: number, currency: "USD" | "RUB") => {
     const suffix = currency === "USD" ? "$" : "₽";
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
   const currency = source === "wagons" || source === "valyutchik" ? "USD" : "RUB";
 
-  const personFinanceRecords = financeRecords.filter((record) =>
-    record.description?.startsWith(person.name)
+  const personKey = normalizePersonName(person.name);
+  const personFinanceRecords = financeRecords.filter(
+    (record) => getRecordPersonKey(record) === personKey
   );
 
   const debts: Debt[] = person.debts || [];
@@ -181,6 +194,16 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
+  };
+
+  const handleOpenDebtProducts = (debt: Debt) => {
+    setSelectedDebt(debt);
+    setShowDebtProducts(true);
+  };
+
+  const handleCloseDebtProducts = () => {
+    setShowDebtProducts(false);
+    setSelectedDebt(null);
   };
 
   return (
@@ -353,9 +376,18 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                     <td className="px-4 py-3 text-right font-semibold text-gray-900">
                       {formatCurrency(debt.amount, currency)}
                     </td>
-                    <td>
-                      
-                      {debt.product_names}
+                    <td className="px-4 py-3 text-gray-600">
+                      {debt.product_names ? (
+                        <button
+                          onClick={() => handleOpenDebtProducts(debt)}
+                          className="text-blue-600 hover:text-blue-800 transition font-semibold"
+                          title="Маҳсулотларни кўриш"
+                        >
+                          ...
+                        </button>
+                      ) : (
+                        "-"
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center space-x-2">
                       <button
@@ -433,6 +465,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           ))
         )}
       </div>
+
+      <DebtProductsModal
+        isOpen={showDebtProducts}
+        debt={selectedDebt}
+        currency={currency}
+        onClose={handleCloseDebtProducts}
+      />
     </div>
   );
 };
