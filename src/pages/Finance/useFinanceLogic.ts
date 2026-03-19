@@ -102,6 +102,11 @@ export const useFinanceLogic = (source: FinanceSource) => {
 
   const uniquePersons = useMemo(() => {
     const personsMap = new Map<string, Person>();
+    const isMyDebtSource = source === "myDebts" || source === "valyutchik";
+    const isRecordRelevantForSource = (record: FinanceRecord) => {
+      if (isMyDebtSource) return record.category === "my_debt";
+      return record.category !== "my_debt";
+    };
 
     if (source === "wagons") {
       wagons.forEach((wagon) => {
@@ -157,18 +162,33 @@ export const useFinanceLogic = (source: FinanceSource) => {
     }
 
     // Apply finance records to persons
-    financeRecords.forEach((record) => {
+    financeRecords.filter(isRecordRelevantForSource).forEach((record) => {
       const descriptionParts = record.description?.split(": ") || [];
       const rawPersonName = (descriptionParts[0] || "").trim();
       const personNameKey = normalizePersonName(rawPersonName);
 
       if (personNameKey && personsMap.has(personNameKey)) {
         const person = personsMap.get(personNameKey)!;
-        if (record.type === "income") {
-          const amount = parseFloat(record.amount);
-          person.paidAmount += amount;
-          person.remainingAmount -= amount;
+        const amount = parseFloat(record.amount);
+        if (!Number.isNaN(amount)) {
+          if (record.type === "income") {
+            person.paidAmount += amount;
+            person.remainingAmount -= amount;
+          } else {
+            person.paidAmount -= amount;
+            person.remainingAmount += amount;
+          }
         }
+      }
+    });
+
+    personsMap.forEach((person) => {
+      if (person.paidAmount < 0) person.paidAmount = 0;
+      if (person.paidAmount > person.totalAmount) {
+        person.paidAmount = person.totalAmount;
+      }
+      if (person.remainingAmount < 0 || person.remainingAmount > person.totalAmount) {
+        person.remainingAmount = Math.max(0, person.totalAmount - person.paidAmount);
       }
     });
 

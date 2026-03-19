@@ -29,6 +29,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   const normalizePersonName = (value: string) =>
     value.trim().toLowerCase().replace(/\s+/g, " ");
 
+  const isMyDebtSource = source === "myDebts" || source === "valyutchik";
+
   const getRecordPersonKey = (record: FinanceRecord) => {
     const rawName = record.description?.split(":")[0] || "";
     return normalizePersonName(rawName);
@@ -41,9 +43,11 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   const currency = source === "wagons" || source === "valyutchik" ? "USD" : "RUB";
 
   const personKey = normalizePersonName(person.name);
-  const personFinanceRecords = financeRecords.filter(
-    (record) => getRecordPersonKey(record) === personKey
-  );
+  const personFinanceRecords = financeRecords.filter((record) => {
+    if (isMyDebtSource && record.category !== "my_debt") return false;
+    if (!isMyDebtSource && record.category === "my_debt") return false;
+    return getRecordPersonKey(record) === personKey;
+  });
 
   const debts: Debt[] = person.debts || [];
 
