@@ -21,6 +21,12 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
     const suffix = currency === "USD" ? "$" : "₽";
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
+  const formatBalance = (value: number, currency: "USD" | "RUB") => {
+    if (value < 0) {
+      return `+${formatCurrency(Math.abs(value), currency)}`;
+    }
+    return formatCurrency(value, currency);
+  };
 
   const totalAmount = uniquePersons.reduce((sum, p) => sum + p.totalAmount, 0);
   const totalPaid = uniquePersons.reduce((sum, p) => sum + p.paidAmount, 0);
@@ -80,7 +86,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {formatCurrency(totalRemaining, currency)}
+          {formatBalance(totalRemaining, currency)}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">Тўланмаган</p>
       </div>

@@ -28,6 +28,13 @@ const VALYUTCHIK_ADMIN_ID = "valyutchik";
 const normalizePersonName = (value: string) =>
   value.trim().toLowerCase().replace(/\s+/g, " ");
 
+const extractPersonNameFromDescription = (description?: string) => {
+  if (!description) return "";
+  const parts = description.split(":");
+  const rawName = (parts[0] || "").trim();
+  return rawName;
+};
+
 export const useFinanceLogic = (source: FinanceSource) => {
   const [wagons, setWagons] = useState<Wagon[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -155,16 +162,13 @@ export const useFinanceLogic = (source: FinanceSource) => {
         person.totalAmount += debt.amount;
         if (debt.isreturned) {
           person.paidAmount += debt.amount;
-        } else {
-          person.remainingAmount += debt.amount;
         }
       });
     }
 
     // Apply finance records to persons
     financeRecords.filter(isRecordRelevantForSource).forEach((record) => {
-      const descriptionParts = record.description?.split(": ") || [];
-      const rawPersonName = (descriptionParts[0] || "").trim();
+      const rawPersonName = extractPersonNameFromDescription(record.description);
       const personNameKey = normalizePersonName(rawPersonName);
 
       if (personNameKey && personsMap.has(personNameKey)) {
@@ -184,12 +188,8 @@ export const useFinanceLogic = (source: FinanceSource) => {
 
     personsMap.forEach((person) => {
       if (person.paidAmount < 0) person.paidAmount = 0;
-      if (person.paidAmount > person.totalAmount) {
-        person.paidAmount = person.totalAmount;
-      }
-      if (person.remainingAmount < 0 || person.remainingAmount > person.totalAmount) {
-        person.remainingAmount = Math.max(0, person.totalAmount - person.paidAmount);
-      }
+      const remaining = person.totalAmount - person.paidAmount;
+      person.remainingAmount = remaining;
     });
 
     return Array.from(personsMap.values()).sort(

@@ -40,6 +40,12 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     const suffix = currency === "USD" ? "$" : "₽";
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
+  const formatBalance = (value: number, currency: "USD" | "RUB") => {
+    if (value < 0) {
+      return `+${formatCurrency(Math.abs(value), currency)}`;
+    }
+    return formatCurrency(value, currency);
+  };
   const currency = source === "wagons" || source === "valyutchik" ? "USD" : "RUB";
 
   const personKey = normalizePersonName(person.name);
@@ -194,7 +200,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       buyer: person.name,
       products,
       totalAmount: person.totalAmount,
-      status: `To'langan: ${person.paidAmount.toLocaleString("en-US")} | Qoldiq: ${person.remainingAmount.toLocaleString("en-US")}`,
+      status: `To'langan: ${person.paidAmount.toLocaleString("en-US")} | Qoldiq: ${formatBalance(person.remainingAmount, currency)}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -240,7 +246,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
           <p className="text-gray-600 text-sm mb-1">Қолдиқ Сумма</p>
           <p className="text-3xl font-bold text-orange-600">
-            {formatCurrency(person.remainingAmount, currency)}
+            {formatBalance(person.remainingAmount, currency)}
           </p>
         </div>
       </div>
