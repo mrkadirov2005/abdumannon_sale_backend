@@ -22,10 +22,13 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
   const formatBalance = (value: number, currency: "USD" | "RUB") => {
-    if (value < 0) {
-      return `+${formatCurrency(Math.abs(value), currency)}`;
+    if (value > 0) {
+      return `+${formatCurrency(value, currency)}`;
     }
-    return formatCurrency(value, currency);
+    if (value < 0) {
+      return `-${formatCurrency(Math.abs(value), currency)}`;
+    }
+    return formatCurrency(0, currency);
   };
 
   const totalAmount = uniquePersons.reduce((sum, p) => sum + p.totalAmount, 0);
@@ -47,7 +50,11 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
       >
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">
-            Жами Сумма
+            {source === "debts"
+              ? "Абдуманнон (берган)"
+              : source === "myDebts" || source === "valyutchik"
+              ? "Абдуманнон (олган)"
+              : "Жами Сумма"}
           </p>
           <DollarSign size={20} className="opacity-50" />
         </div>
@@ -65,7 +72,11 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
       >
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">
-            Тўланган
+            {source === "debts"
+              ? "Клиент (берган)"
+              : source === "myDebts" || source === "valyutchik"
+              ? "Клиентга берган"
+              : "Тўланган"}
           </p>
           <DollarSign size={20} className="opacity-50" />
         </div>

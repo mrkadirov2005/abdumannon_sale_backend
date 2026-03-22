@@ -41,10 +41,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
   const formatBalance = (value: number, currency: "USD" | "RUB") => {
-    if (value < 0) {
-      return `+${formatCurrency(Math.abs(value), currency)}`;
+    if (value > 0) {
+      return `+${formatCurrency(value, currency)}`;
     }
-    return formatCurrency(value, currency);
+    if (value < 0) {
+      return `-${formatCurrency(Math.abs(value), currency)}`;
+    }
+    return formatCurrency(0, currency);
   };
   const currency = source === "wagons" || source === "valyutchik" ? "USD" : "RUB";
 
@@ -232,13 +235,25 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <p className="text-gray-600 text-sm mb-1">Жами Сумма</p>
+          <p className="text-gray-600 text-sm mb-1">
+            {source === "debts"
+              ? "Абдуманнон (берган)"
+              : source === "myDebts" || source === "valyutchik"
+              ? "Абдуманнон (олган)"
+              : "Жами Сумма"}
+          </p>
           <p className="text-3xl font-bold text-blue-600">
             {formatCurrency(person.totalAmount, currency)}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <p className="text-gray-600 text-sm mb-1">Тўланган</p>
+          <p className="text-gray-600 text-sm mb-1">
+            {source === "debts"
+              ? "Клиент (берган)"
+              : source === "myDebts" || source === "valyutchik"
+              ? "Клиентга берган"
+              : "Тўланган"}
+          </p>
           <p className="text-3xl font-bold text-green-600">
             {formatCurrency(person.paidAmount, currency)}
           </p>
