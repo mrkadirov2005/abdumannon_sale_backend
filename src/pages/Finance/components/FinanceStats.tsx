@@ -65,7 +65,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
         className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
       >
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">
+          <p className="text-[11px] sm:text-xs md:text-sm font-semibold opacity-90">
             {source === "debts"
               ? "Абдуманнон (берган)"
               : source === "wagons"
@@ -76,10 +76,10 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           </p>
           <DollarSign size={20} className="opacity-50" />
         </div>
-        <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
+        <p className="text-xl sm:text-2xl md:text-3xl font-bold">
           {formatCurrency(totalAmount, currency)}
         </p>
-        <p className="text-xs sm:text-sm opacity-75 mt-1">
+        <p className="text-[11px] sm:text-xs opacity-75 mt-1">
           {uniquePersons.length} та шахс
         </p>
       </div>
@@ -89,7 +89,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
         className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
       >
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">
+          <p className="text-[11px] sm:text-xs md:text-sm font-semibold opacity-90">
             {source === "debts"
               ? "Клиент (берган)"
               : source === "myDebts" || source === "valyutchik"
@@ -98,10 +98,10 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           </p>
           <DollarSign size={20} className="opacity-50" />
         </div>
-        <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
+        <p className="text-xl sm:text-2xl md:text-3xl font-bold">
           {formatCurrency(totalPaid, currency)}
         </p>
-        <p className="text-xs sm:text-sm opacity-75 mt-1">Берилган пул</p>
+        <p className="text-[11px] sm:text-xs opacity-75 mt-1">Берилган пул</p>
       </div>
 
       <div
@@ -109,12 +109,12 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
         className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-3 sm:p-4 md:p-5 shadow-lg text-white cursor-pointer hover:shadow-xl transition"
       >
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">
+          <p className="text-[11px] sm:text-xs md:text-sm font-semibold opacity-90">
             Қолдиқ
           </p>
           <DollarSign size={20} className="opacity-50" />
         </div>
-        <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
+        <p className="text-xl sm:text-2xl md:text-3xl font-bold">
           {formatBalance(
             totalRemaining,
             currency,
@@ -125,7 +125,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
               : "default"
           )}
         </p>
-        <p className="text-xs sm:text-sm opacity-75 mt-1">Тўланмаган</p>
+        <p className="text-[11px] sm:text-xs opacity-75 mt-1">Тўланмаган</p>
       </div>
     </div>
   );
