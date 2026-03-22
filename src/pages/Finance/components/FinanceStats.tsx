@@ -21,7 +21,23 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
     const suffix = currency === "USD" ? "$" : "₽";
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
-  const formatBalance = (value: number, currency: "USD" | "RUB") => {
+  const formatBalance = (
+    value: number,
+    currency: "USD" | "RUB",
+    mode: "default" | "alwaysNegative" | "invert"
+  ) => {
+    if (mode === "alwaysNegative") {
+      return `-${formatCurrency(Math.abs(value), currency)}`;
+    }
+    if (mode === "invert") {
+      if (value > 0) {
+        return `-${formatCurrency(value, currency)}`;
+      }
+      if (value < 0) {
+        return `+${formatCurrency(Math.abs(value), currency)}`;
+      }
+      return formatCurrency(0, currency);
+    }
     if (value > 0) {
       return `+${formatCurrency(value, currency)}`;
     }
@@ -52,6 +68,8 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <p className="text-xs sm:text-sm md:text-base font-semibold opacity-90">
             {source === "debts"
               ? "Абдуманнон (берган)"
+              : source === "wagons"
+              ? "Келган юк"
               : source === "myDebts" || source === "valyutchik"
               ? "Абдуманнон (олган)"
               : "Жами Сумма"}
@@ -75,7 +93,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
             {source === "debts"
               ? "Клиент (берган)"
               : source === "myDebts" || source === "valyutchik"
-              ? "Клиентга берган"
+              ? "Тўланган"
               : "Тўланган"}
           </p>
           <DollarSign size={20} className="opacity-50" />
@@ -97,7 +115,15 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-2xl sm:text-3xl md:text-4xl font-bold">
-          {formatBalance(totalRemaining, currency)}
+          {formatBalance(
+            totalRemaining,
+            currency,
+            source === "wagons"
+              ? "alwaysNegative"
+              : source === "myDebts" || source === "valyutchik"
+              ? "invert"
+              : "default"
+          )}
         </p>
         <p className="text-xs sm:text-sm opacity-75 mt-1">Тўланмаган</p>
       </div>

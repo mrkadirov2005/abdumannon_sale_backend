@@ -40,7 +40,23 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     const suffix = currency === "USD" ? "$" : "₽";
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
-  const formatBalance = (value: number, currency: "USD" | "RUB") => {
+  const formatBalance = (
+    value: number,
+    currency: "USD" | "RUB",
+    mode: "default" | "alwaysNegative" | "invert"
+  ) => {
+    if (mode === "alwaysNegative") {
+      return `-${formatCurrency(Math.abs(value), currency)}`;
+    }
+    if (mode === "invert") {
+      if (value > 0) {
+        return `-${formatCurrency(value, currency)}`;
+      }
+      if (value < 0) {
+        return `+${formatCurrency(Math.abs(value), currency)}`;
+      }
+      return formatCurrency(0, currency);
+    }
     if (value > 0) {
       return `+${formatCurrency(value, currency)}`;
     }
@@ -203,7 +219,15 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       buyer: person.name,
       products,
       totalAmount: person.totalAmount,
-      status: `To'langan: ${person.paidAmount.toLocaleString("en-US")} | Qoldiq: ${formatBalance(person.remainingAmount, currency)}`,
+      status: `To'langan: ${person.paidAmount.toLocaleString("en-US")} | Qoldiq: ${formatBalance(
+        person.remainingAmount,
+        currency,
+        source === "wagons"
+          ? "alwaysNegative"
+          : source === "myDebts" || source === "valyutchik"
+          ? "invert"
+          : "default"
+      )}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -238,6 +262,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           <p className="text-gray-600 text-sm mb-1">
             {source === "debts"
               ? "Абдуманнон (берган)"
+              : source === "wagons"
+              ? "Келган юк"
               : source === "myDebts" || source === "valyutchik"
               ? "Абдуманнон (олган)"
               : "Жами Сумма"}
@@ -251,7 +277,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
             {source === "debts"
               ? "Клиент (берган)"
               : source === "myDebts" || source === "valyutchik"
-              ? "Клиентга берган"
+              ? "Тўланган"
               : "Тўланган"}
           </p>
           <p className="text-3xl font-bold text-green-600">
@@ -261,7 +287,15 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
           <p className="text-gray-600 text-sm mb-1">Қолдиқ Сумма</p>
           <p className="text-3xl font-bold text-orange-600">
-            {formatBalance(person.remainingAmount, currency)}
+            {formatBalance(
+              person.remainingAmount,
+              currency,
+              source === "wagons"
+                ? "alwaysNegative"
+                : source === "myDebts" || source === "valyutchik"
+                ? "invert"
+                : "default"
+            )}
           </p>
         </div>
       </div>

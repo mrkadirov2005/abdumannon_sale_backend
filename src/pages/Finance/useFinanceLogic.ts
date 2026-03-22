@@ -160,7 +160,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
         person.debts!.push(debt);
 
         person.totalAmount += debt.amount;
-        if (debt.isreturned) {
+        if (!isMyDebtSource && debt.isreturned) {
           person.paidAmount += debt.amount;
         }
       });
