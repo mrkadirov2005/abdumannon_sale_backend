@@ -3,8 +3,10 @@ import React from "react";
 interface FinanceHeaderProps {
   onSearchChange: (query: string) => void;
   searchQuery: string;
-  source: "wagons" | "debts" | "myDebts" | "valyutchik";
-  onSourceChange: (source: "wagons" | "debts" | "myDebts" | "valyutchik") => void;
+  source: "wagons" | "debts" | "minusDebts" | "myDebts" | "valyutchik";
+  onSourceChange: (
+    source: "wagons" | "debts" | "minusDebts" | "myDebts" | "valyutchik"
+  ) => void;
   onAddMyDebt: () => void;
 }
 
@@ -53,6 +55,16 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
           }`}
         >
           Қарздорлар
+        </button>
+        <button
+          onClick={() => onSourceChange("minusDebts")}
+          className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+            source === "minusDebts"
+              ? "bg-blue-600 text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          -Қарзлар
         </button>
         <button
           onClick={() => onSourceChange("myDebts")}

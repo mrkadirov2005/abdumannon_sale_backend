@@ -92,14 +92,14 @@ export const useFinanceLogic = (source: FinanceSource) => {
     }
   }, [shop_id]);
 
-  const visibleDebts = useMemo(() => {
+  const baseDebts = useMemo(() => {
     if (source === "myDebts") {
       return debts.filter((d) => d.admin_id === MY_DEBTS_ADMIN_ID);
     }
     if (source === "valyutchik") {
       return debts.filter((d) => d.admin_id === VALYUTCHIK_ADMIN_ID);
     }
-    if (source === "debts") {
+    if (source === "debts" || source === "minusDebts") {
       return debts.filter(
         (d) => d.admin_id !== MY_DEBTS_ADMIN_ID && d.admin_id !== VALYUTCHIK_ADMIN_ID
       );
@@ -142,7 +142,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
         person.remainingAmount += wagonTotal - paidAmount;
       });
     } else {
-      visibleDebts.forEach((debt) => {
+      baseDebts.forEach((debt) => {
         const rawPersonName = debt.name.trim();
         const personNameKey = normalizePersonName(rawPersonName);
 
@@ -192,10 +192,32 @@ export const useFinanceLogic = (source: FinanceSource) => {
       person.remainingAmount = remaining;
     });
 
-    return Array.from(personsMap.values()).sort(
+    let persons = Array.from(personsMap.values()).sort(
       (a, b) => b.totalAmount - a.totalAmount
     );
-  }, [source, wagons, visibleDebts, financeRecords]);
+
+    if (source === "minusDebts") {
+      persons = persons.filter((person) => person.remainingAmount < 0);
+    }
+
+    if (source === "debts") {
+      persons = persons.filter((person) => person.remainingAmount >= 0);
+    }
+
+    return persons;
+  }, [source, wagons, baseDebts, financeRecords]);
+
+  const visibleDebts = useMemo(() => {
+    if (source === "debts" || source === "minusDebts") {
+      const allowed = new Set(
+        uniquePersons.map((person) => normalizePersonName(person.name))
+      );
+      return baseDebts.filter((debt) =>
+        allowed.has(normalizePersonName(debt.name))
+      );
+    }
+    return baseDebts;
+  }, [baseDebts, uniquePersons, source]);
 
   // Filter persons by search
   const filteredPersons = useMemo(() => {

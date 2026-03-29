@@ -11,7 +11,7 @@ interface DetailsPanelProps {
   onDeleteWagon: (wagonId: string) => void;
   onDeleteFinanceRecord: (recordId: number) => void;
   onDeleteDebt: (debtId: string) => void;
-  source: "wagons" | "debts" | "myDebts" | "valyutchik";
+  source: "wagons" | "debts" | "minusDebts" | "myDebts" | "valyutchik";
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
@@ -262,6 +262,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           <p className="text-gray-600 text-sm mb-1">
             {source === "debts"
               ? "Абдуманнон (берган)"
+              : source === "minusDebts"
+              ? "Қарздан ортиқ"
               : source === "wagons"
               ? "Келган юк"
               : source === "myDebts" || source === "valyutchik"
@@ -276,6 +278,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           <p className="text-gray-600 text-sm mb-1">
             {source === "debts"
               ? "Клиент (берган)"
+              : source === "minusDebts"
+              ? "Ортиқча тўланган"
               : source === "myDebts" || source === "valyutchik"
               ? "Тўланган"
               : "Тўланган"}

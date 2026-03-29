@@ -65,4 +65,9 @@ export interface FormData {
 }
 
 export type ViewMode = "folders" | "list";
-export type FinanceSource = "wagons" | "debts" | "myDebts" | "valyutchik";
+export type FinanceSource =
+  | "wagons"
+  | "debts"
+  | "minusDebts"
+  | "myDebts"
+  | "valyutchik";
