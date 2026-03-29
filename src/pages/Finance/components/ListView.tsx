@@ -6,7 +6,7 @@ import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../
 interface ListViewProps {
   wagons: Wagon[];
   debts: Debt[];
-  source: "wagons" | "debts" | "minusDebts" | "myDebts" | "valyutchik";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik";
   onDeleteWagon: (wagonId: string) => void;
   onDeleteDebt: (debtId: string) => void;
 }

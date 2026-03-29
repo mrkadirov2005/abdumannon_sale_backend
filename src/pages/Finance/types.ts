@@ -68,6 +68,5 @@ export type ViewMode = "folders" | "list";
 export type FinanceSource =
   | "wagons"
   | "debts"
-  | "minusDebts"
   | "myDebts"
   | "valyutchik";

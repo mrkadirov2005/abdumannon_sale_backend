@@ -5,7 +5,7 @@ import type { ViewMode } from "../types";
 
 interface FinanceStatsProps {
   uniquePersons: Person[];
-  source: "wagons" | "debts" | "minusDebts" | "myDebts" | "valyutchik";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik";
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onPersonSelect: (person: string | null) => void;
@@ -68,8 +68,6 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <p className="text-[11px] sm:text-xs md:text-sm font-semibold opacity-90">
             {source === "debts"
               ? "Абдуманнон (берган)"
-              : source === "minusDebts"
-              ? "Қарздан ортиқ"
               : source === "wagons"
               ? "Келган юк"
               : source === "myDebts" || source === "valyutchik"
@@ -94,8 +92,6 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <p className="text-[11px] sm:text-xs md:text-sm font-semibold opacity-90">
             {source === "debts"
               ? "Клиент (берган)"
-              : source === "minusDebts"
-              ? "Ортиқча тўланган"
               : source === "myDebts" || source === "valyutchik"
               ? "Тўланган"
               : "Тўланган"}

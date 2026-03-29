@@ -92,30 +92,124 @@ export const useFinanceLogic = (source: FinanceSource) => {
     }
   }, [shop_id]);
 
-  const baseDebts = useMemo(() => {
-    if (source === "myDebts") {
-      return debts.filter((d) => d.admin_id === MY_DEBTS_ADMIN_ID);
-    }
-    if (source === "valyutchik") {
-      return debts.filter((d) => d.admin_id === VALYUTCHIK_ADMIN_ID);
-    }
-    if (source === "debts" || source === "minusDebts") {
-      return debts.filter(
+  const baseDebtsDefault = useMemo(
+    () =>
+      debts.filter(
         (d) => d.admin_id !== MY_DEBTS_ADMIN_ID && d.admin_id !== VALYUTCHIK_ADMIN_ID
-      );
-    }
+      ),
+    [debts]
+  );
+  const baseDebtsMy = useMemo(
+    () => debts.filter((d) => d.admin_id === MY_DEBTS_ADMIN_ID),
+    [debts]
+  );
+  const baseDebtsValyutchik = useMemo(
+    () => debts.filter((d) => d.admin_id === VALYUTCHIK_ADMIN_ID),
+    [debts]
+  );
+
+  const baseDebts = useMemo(() => {
+    if (source === "myDebts") return baseDebtsMy;
+    if (source === "valyutchik") return baseDebtsValyutchik;
+    if (source === "debts") return baseDebtsDefault;
     return debts;
-  }, [debts, source]);
+  }, [baseDebtsDefault, baseDebtsMy, baseDebtsValyutchik, debts, source]);
+
+  const buildPersonsFromDebts = useCallback(
+    (debtsList: Debt[], isMyDebtSource: boolean) => {
+      const personsMap = new Map<string, Person>();
+      const isRecordRelevantForSource = (record: FinanceRecord) => {
+        if (isMyDebtSource) return record.category === "my_debt";
+        return record.category !== "my_debt";
+      };
+
+      debtsList.forEach((debt) => {
+        const rawPersonName = debt.name.trim();
+        const personNameKey = normalizePersonName(rawPersonName);
+
+        if (!personsMap.has(personNameKey)) {
+          personsMap.set(personNameKey, {
+            name: rawPersonName,
+            totalAmount: 0,
+            paidAmount: 0,
+            remainingAmount: 0,
+            debts: [],
+          });
+        }
+
+        const person = personsMap.get(personNameKey)!;
+        person.debts!.push(debt);
+
+        person.totalAmount += debt.amount;
+        if (!isMyDebtSource && debt.isreturned) {
+          person.paidAmount += debt.amount;
+        }
+      });
+
+      financeRecords.filter(isRecordRelevantForSource).forEach((record) => {
+        const rawPersonName = extractPersonNameFromDescription(record.description);
+        const personNameKey = normalizePersonName(rawPersonName);
+
+        if (personNameKey && personsMap.has(personNameKey)) {
+          const person = personsMap.get(personNameKey)!;
+          const amount = parseFloat(record.amount);
+          if (!Number.isNaN(amount)) {
+            if (record.type === "income") {
+              person.paidAmount += amount;
+              person.remainingAmount -= amount;
+            } else {
+              person.paidAmount -= amount;
+              person.remainingAmount += amount;
+            }
+          }
+        }
+      });
+
+      personsMap.forEach((person) => {
+        if (person.paidAmount < 0) person.paidAmount = 0;
+        const remaining = person.totalAmount - person.paidAmount;
+        person.remainingAmount = remaining;
+      });
+
+      return Array.from(personsMap.values()).sort(
+        (a, b) => b.totalAmount - a.totalAmount
+      );
+    },
+    [financeRecords]
+  );
+
+  const mergePersonsByName = useCallback((persons: Person[]) => {
+    const merged = new Map<string, Person>();
+    persons.forEach((person) => {
+      const key = normalizePersonName(person.name);
+      if (!merged.has(key)) {
+        merged.set(key, {
+          ...person,
+          debts: person.debts ? [...person.debts] : undefined,
+          wagons: person.wagons ? [...person.wagons] : undefined,
+        });
+        return;
+      }
+      const existing = merged.get(key)!;
+      existing.totalAmount += person.totalAmount;
+      existing.paidAmount += person.paidAmount;
+      existing.remainingAmount += person.remainingAmount;
+      if (person.debts?.length) {
+        existing.debts = [...(existing.debts || []), ...person.debts];
+      }
+      if (person.wagons?.length) {
+        existing.wagons = [...(existing.wagons || []), ...person.wagons];
+      }
+    });
+    return Array.from(merged.values()).sort(
+      (a, b) => b.totalAmount - a.totalAmount
+    );
+  }, []);
 
   const uniquePersons = useMemo(() => {
-    const personsMap = new Map<string, Person>();
-    const isMyDebtSource = source === "myDebts" || source === "valyutchik";
-    const isRecordRelevantForSource = (record: FinanceRecord) => {
-      if (isMyDebtSource) return record.category === "my_debt";
-      return record.category !== "my_debt";
-    };
-
     if (source === "wagons") {
+      const personsMap = new Map<string, Person>();
+
       wagons.forEach((wagon) => {
         const parts = wagon.wagon_number.split(",");
         const rawPersonName = (parts[0] || wagon.wagon_number).trim();
@@ -141,83 +235,94 @@ export const useFinanceLogic = (source: FinanceSource) => {
         person.paidAmount += paidAmount;
         person.remainingAmount += wagonTotal - paidAmount;
       });
-    } else {
-      baseDebts.forEach((debt) => {
-        const rawPersonName = debt.name.trim();
-        const personNameKey = normalizePersonName(rawPersonName);
 
-        if (!personsMap.has(personNameKey)) {
-          personsMap.set(personNameKey, {
-            name: rawPersonName,
-            totalAmount: 0,
-            paidAmount: 0,
-            remainingAmount: 0,
-            debts: [],
-          });
-        }
+      // Apply finance records (non my_debt) to wagons persons
+      financeRecords
+        .filter((record) => record.category !== "my_debt")
+        .forEach((record) => {
+          const rawPersonName = extractPersonNameFromDescription(record.description);
+          const personNameKey = normalizePersonName(rawPersonName);
+          if (personNameKey && personsMap.has(personNameKey)) {
+            const person = personsMap.get(personNameKey)!;
+            const amount = parseFloat(record.amount);
+            if (!Number.isNaN(amount)) {
+              if (record.type === "income") {
+                person.paidAmount += amount;
+                person.remainingAmount -= amount;
+              } else {
+                person.paidAmount -= amount;
+                person.remainingAmount += amount;
+              }
+            }
+          }
+        });
 
-        const person = personsMap.get(personNameKey)!;
-        person.debts!.push(debt);
-
-        person.totalAmount += debt.amount;
-        if (!isMyDebtSource && debt.isreturned) {
-          person.paidAmount += debt.amount;
-        }
+      personsMap.forEach((person) => {
+        if (person.paidAmount < 0) person.paidAmount = 0;
+        person.remainingAmount = person.totalAmount - person.paidAmount;
       });
+
+      return Array.from(personsMap.values()).sort(
+        (a, b) => b.totalAmount - a.totalAmount
+      );
     }
 
-    // Apply finance records to persons
-    financeRecords.filter(isRecordRelevantForSource).forEach((record) => {
-      const rawPersonName = extractPersonNameFromDescription(record.description);
-      const personNameKey = normalizePersonName(rawPersonName);
+    if (source === "myDebts") {
+      const myDebtsPersons = buildPersonsFromDebts(baseDebtsMy, true);
+      const overpaidPersons = buildPersonsFromDebts(baseDebtsDefault, false).filter(
+        (person) => person.remainingAmount < 0
+      );
+      return mergePersonsByName([...myDebtsPersons, ...overpaidPersons]);
+    }
 
-      if (personNameKey && personsMap.has(personNameKey)) {
-        const person = personsMap.get(personNameKey)!;
-        const amount = parseFloat(record.amount);
-        if (!Number.isNaN(amount)) {
-          if (record.type === "income") {
-            person.paidAmount += amount;
-            person.remainingAmount -= amount;
-          } else {
-            person.paidAmount -= amount;
-            person.remainingAmount += amount;
-          }
-        }
-      }
-    });
+    if (source === "valyutchik") {
+      return buildPersonsFromDebts(baseDebtsValyutchik, true);
+    }
 
-    personsMap.forEach((person) => {
-      if (person.paidAmount < 0) person.paidAmount = 0;
-      const remaining = person.totalAmount - person.paidAmount;
-      person.remainingAmount = remaining;
-    });
+    return buildPersonsFromDebts(baseDebtsDefault, false);
+  }, [
+    source,
+    wagons,
+    baseDebtsDefault,
+    baseDebtsMy,
+    baseDebtsValyutchik,
+    buildPersonsFromDebts,
+    mergePersonsByName,
+  ]);
 
-    let persons = Array.from(personsMap.values()).sort(
-      (a, b) => b.totalAmount - a.totalAmount
-    );
-
-    if (source === "minusDebts") {
-      persons = persons.filter((person) => person.remainingAmount < 0);
+  const visibleDebts = useMemo(() => {
+    if (source === "myDebts") {
+      const overpaidAllowed = new Set(
+        buildPersonsFromDebts(baseDebtsDefault, false)
+          .filter((person) => person.remainingAmount < 0)
+          .map((person) => normalizePersonName(person.name))
+      );
+      return [
+        ...baseDebtsMy,
+        ...baseDebtsDefault.filter((debt) =>
+          overpaidAllowed.has(normalizePersonName(debt.name))
+        ),
+      ];
     }
 
     if (source === "debts") {
-      persons = persons.filter((person) => person.remainingAmount >= 0);
-    }
-
-    return persons;
-  }, [source, wagons, baseDebts, financeRecords]);
-
-  const visibleDebts = useMemo(() => {
-    if (source === "debts" || source === "minusDebts") {
       const allowed = new Set(
         uniquePersons.map((person) => normalizePersonName(person.name))
       );
-      return baseDebts.filter((debt) =>
+      return baseDebtsDefault.filter((debt) =>
         allowed.has(normalizePersonName(debt.name))
       );
     }
+
     return baseDebts;
-  }, [baseDebts, uniquePersons, source]);
+  }, [
+    baseDebts,
+    baseDebtsDefault,
+    baseDebtsMy,
+    buildPersonsFromDebts,
+    source,
+    uniquePersons,
+  ]);
 
   // Filter persons by search
   const filteredPersons = useMemo(() => {
