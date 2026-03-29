@@ -30,6 +30,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     value.trim().toLowerCase().replace(/\s+/g, " ");
 
   const isMyDebtSource = source === "myDebts" || source === "valyutchik";
+  const MY_DEBTS_ADMIN_ID = "qarzlarim";
+  const VALYUTCHIK_ADMIN_ID = "valyutchik";
 
   const getRecordPersonKey = (record: FinanceRecord) => {
     const rawName = record.description?.split(":")[0] || "";
@@ -75,6 +77,87 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   });
 
   const debts: Debt[] = person.debts || [];
+
+  const computeTotalsForDebts = (
+    debtsList: Debt[],
+    records: FinanceRecord[],
+    isMyDebt: boolean
+  ) => {
+    let totalAmount = 0;
+    let paidAmount = 0;
+
+    debtsList.forEach((debt) => {
+      totalAmount += debt.amount;
+      if (!isMyDebt && debt.isreturned) {
+        paidAmount += debt.amount;
+      }
+    });
+
+    records.forEach((record) => {
+      const amount = parseFloat(record.amount);
+      if (Number.isNaN(amount)) return;
+      if (record.type === "income") {
+        paidAmount += amount;
+      } else {
+        paidAmount -= amount;
+      }
+    });
+
+    if (paidAmount < 0) paidAmount = 0;
+    const remainingAmount = totalAmount - paidAmount;
+
+    return { totalAmount, paidAmount, remainingAmount };
+  };
+
+  const personRecordsMyDebt = financeRecords.filter((record) => {
+    if (record.category !== "my_debt") return false;
+    return getRecordPersonKey(record) === personKey;
+  });
+
+  const personRecordsOther = financeRecords.filter((record) => {
+    if (record.category === "my_debt") return false;
+    return getRecordPersonKey(record) === personKey;
+  });
+
+  const myDebtsForPerson = debts.filter(
+    (debt) => debt.admin_id === MY_DEBTS_ADMIN_ID
+  );
+
+  const transferredDebtsForPerson = debts.filter(
+    (debt) =>
+      debt.admin_id !== MY_DEBTS_ADMIN_ID &&
+      debt.admin_id !== VALYUTCHIK_ADMIN_ID
+  );
+
+  const myTotals = computeTotalsForDebts(
+    myDebtsForPerson,
+    personRecordsMyDebt,
+    true
+  );
+
+  const transferredTotals = computeTotalsForDebts(
+    transferredDebtsForPerson,
+    personRecordsOther,
+    false
+  );
+
+  const mergedDisplayTotals = {
+    totalAmount: myTotals.totalAmount + transferredTotals.paidAmount,
+    paidAmount: myTotals.paidAmount + transferredTotals.totalAmount,
+    remainingAmount:
+      myTotals.totalAmount +
+      transferredTotals.paidAmount -
+      (myTotals.paidAmount + transferredTotals.totalAmount),
+  };
+
+  const displayTotals =
+    source === "myDebts"
+      ? mergedDisplayTotals
+      : {
+          totalAmount: person.totalAmount,
+          paidAmount: person.paidAmount,
+          remainingAmount: person.remainingAmount,
+        };
 
   const printWagon = (wagon: Wagon) => {
     printCheque({
@@ -269,7 +352,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
               : "Жами Сумма"}
           </p>
           <p className="text-3xl font-bold text-blue-600">
-            {formatCurrency(person.totalAmount, currency)}
+            {formatCurrency(displayTotals.totalAmount, currency)}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -281,14 +364,14 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
               : "Тўланган"}
           </p>
           <p className="text-3xl font-bold text-green-600">
-            {formatCurrency(person.paidAmount, currency)}
+            {formatCurrency(displayTotals.paidAmount, currency)}
           </p>
         </div>
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
           <p className="text-gray-600 text-sm mb-1">Қолдиқ Сумма</p>
           <p className="text-3xl font-bold text-orange-600">
             {formatBalance(
-              person.remainingAmount,
+              displayTotals.remainingAmount,
               currency,
               source === "wagons"
                 ? "alwaysNegative"

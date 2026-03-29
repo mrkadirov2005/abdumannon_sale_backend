@@ -45,6 +45,7 @@ const Finance: React.FC = () => {
     handleAddPayment,
     handleAddMyDebt,
     markDebtsReturned,
+    myDebtsCardTotals,
   } = useFinanceLogic(source);
 
   useEffect(() => {
@@ -82,6 +83,7 @@ const Finance: React.FC = () => {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onPersonSelect={setSelectedPerson}
+        myDebtsCardTotals={myDebtsCardTotals}
       />
 
       <ViewModeToggle

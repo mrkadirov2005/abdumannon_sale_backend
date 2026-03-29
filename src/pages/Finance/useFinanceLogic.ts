@@ -290,6 +290,37 @@ export const useFinanceLogic = (source: FinanceSource) => {
     mergePersonsByName,
   ]);
 
+  const myDebtsCardTotals = useMemo(() => {
+    const myDebtsPersons = buildPersonsFromDebts(baseDebtsMy, true);
+    const transferredPersons = buildPersonsFromDebts(baseDebtsDefault, false).filter(
+      (person) => person.remainingAmount < 0
+    );
+
+    const sumTotals = (list: Person[]) =>
+      list.reduce(
+        (acc, p) => {
+          acc.totalAmount += p.totalAmount;
+          acc.paidAmount += p.paidAmount;
+          acc.remainingAmount += p.remainingAmount;
+          return acc;
+        },
+        { totalAmount: 0, paidAmount: 0, remainingAmount: 0 }
+      );
+
+    const myTotals = sumTotals(myDebtsPersons);
+    const transferredTotals = sumTotals(transferredPersons);
+
+    const totalAmount = myTotals.totalAmount + transferredTotals.paidAmount;
+    const paidAmount = myTotals.paidAmount + transferredTotals.totalAmount;
+    const remainingAmount = totalAmount - paidAmount;
+
+    return {
+      totalAmount,
+      paidAmount,
+      remainingAmount,
+    };
+  }, [baseDebtsDefault, baseDebtsMy, buildPersonsFromDebts]);
+
   const visibleDebts = useMemo(() => {
     if (source === "myDebts") {
       const overpaidAllowed = new Set(
@@ -577,5 +608,6 @@ export const useFinanceLogic = (source: FinanceSource) => {
     handleAddPayment,
     handleAddMyDebt,
     markDebtsReturned,
+    myDebtsCardTotals,
   };
 };

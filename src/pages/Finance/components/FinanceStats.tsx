@@ -9,6 +9,11 @@ interface FinanceStatsProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onPersonSelect: (person: string | null) => void;
+  myDebtsCardTotals?: {
+    totalAmount: number;
+    paidAmount: number;
+    remainingAmount: number;
+  };
 }
 
 export const FinanceStats: React.FC<FinanceStatsProps> = ({
@@ -16,6 +21,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
   source,
   onViewModeChange,
   onPersonSelect,
+  myDebtsCardTotals,
 }) => {
   const formatCurrency = (value: number, currency: "USD" | "RUB") => {
     const suffix = currency === "USD" ? "$" : "₽";
@@ -47,12 +53,15 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
     return formatCurrency(0, currency);
   };
 
-  const totalAmount = uniquePersons.reduce((sum, p) => sum + p.totalAmount, 0);
-  const totalPaid = uniquePersons.reduce((sum, p) => sum + p.paidAmount, 0);
-  const totalRemaining = uniquePersons.reduce(
-    (sum, p) => sum + p.remainingAmount,
-    0
-  );
+  const fallbackTotals = {
+    totalAmount: uniquePersons.reduce((sum, p) => sum + p.totalAmount, 0),
+    paidAmount: uniquePersons.reduce((sum, p) => sum + p.paidAmount, 0),
+    remainingAmount: uniquePersons.reduce((sum, p) => sum + p.remainingAmount, 0),
+  };
+  const totals =
+    source === "myDebts" && myDebtsCardTotals
+      ? myDebtsCardTotals
+      : fallbackTotals;
   const currency = source === "wagons" || source === "valyutchik" ? "USD" : "RUB";
 
   return (
@@ -77,7 +86,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-xl sm:text-2xl md:text-3xl font-bold">
-          {formatCurrency(totalAmount, currency)}
+          {formatCurrency(totals.totalAmount, currency)}
         </p>
         <p className="text-[11px] sm:text-xs opacity-75 mt-1">
           {uniquePersons.length} та шахс
@@ -99,7 +108,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
           <DollarSign size={20} className="opacity-50" />
         </div>
         <p className="text-xl sm:text-2xl md:text-3xl font-bold">
-          {formatCurrency(totalPaid, currency)}
+          {formatCurrency(totals.paidAmount, currency)}
         </p>
         <p className="text-[11px] sm:text-xs opacity-75 mt-1">Берилган пул</p>
       </div>
@@ -116,7 +125,7 @@ export const FinanceStats: React.FC<FinanceStatsProps> = ({
         </div>
         <p className="text-xl sm:text-2xl md:text-3xl font-bold">
           {formatBalance(
-            totalRemaining,
+            totals.remainingAmount,
             currency,
             source === "wagons"
               ? "alwaysNegative"
