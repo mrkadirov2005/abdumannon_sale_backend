@@ -144,11 +144,11 @@ export default function DatabaseBackup(): JSX.Element {
         }
     };
 
-    // Backup to Google Drive
-    const backupToGoogleDrive = async (): Promise<void> => {
-        const toastId = toast.loading("⏳ Sending backup to Google Drive...");
+    // Backup to Telegram
+    const backupToTelegram = async (): Promise<void> => {
+        const toastId = toast.loading("⏳ Sending backup to Telegram...");
         try {
-            const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.manualBackupDrive}`, {
+            const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.manualBackupTelegram}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -159,18 +159,18 @@ export default function DatabaseBackup(): JSX.Element {
             const result = await res.json();
 
             if (!res.ok) {
-                throw new Error(result?.message || "Google Drive backup failed");
+                throw new Error(result?.message || "Telegram backup failed");
             }
 
             toast.update(toastId, { 
-                render: `✅ Backup successfully sent to Google Drive!\n📁 File: ${result.data?.timestamp}`, 
+                render: `✅ Backup successfully sent to Telegram!\n🧾 Chats: ${result.data?.telegramChatIds?.length || 1}`, 
                 type: "success", 
                 isLoading: false, 
                 autoClose: 3000 
             });
         } catch (err: any) {
             console.error(err);
-            toast.update(toastId, { render: `❌ Failed to backup to Google Drive: ${err.message}`, type: "error", isLoading: false, autoClose: 3000 });
+            toast.update(toastId, { render: `❌ Failed to backup to Telegram: ${err.message}`, type: "error", isLoading: false, autoClose: 3000 });
         }
     };
 
@@ -369,12 +369,12 @@ export default function DatabaseBackup(): JSX.Element {
                     </button>
 
                     <button
-                        onClick={backupToGoogleDrive}
+                        onClick={backupToTelegram}
                         disabled={loading}
                         className="flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
                     >
                         {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Cloud size={20} />}
-                        Гоогле Драйв
+                        Телеграм
                     </button>
                 </div>
 

@@ -1,7 +1,8 @@
 // export const DEFAULT_ENDPOINT="http://52.206.53.151:3000"
- export const DEFAULT_ENDPOINT="https://shoppos.m-kadirov.uz"
+//  export const DEFAULT_ENDPOINT="https://shoppos.m-kadirov.uz"
 // export const DEFAULT_ENDPOINT="https://unipos.m-kadirov.uz"
 //export const DEFAULT_ENDPOINT="https://api.unipos.systems"
+export const DEFAULT_ENDPOINT="https://husniddinapi.m-kadirov.uz"
 
 // const trimTrailingSlash = (value: string): string => value.replace(/\/+$/, "");
 
@@ -111,7 +112,7 @@ export const ENDPOINTS={
         restoreSql:"/backup/restore-sql",
         backuptoGoogleSheets:"/backup/backup-to-sheets",
         restoreFromSheets:"/backup/restore-from-sheets",
-        manualBackupDrive:"/backup/manual-backup-drive",
+        manualBackupTelegram:"/backup/manual-backup-telegram",
     },
     shop:{
         update:"/shop/update_shop"
