@@ -109,7 +109,6 @@ const WagonsPage: React.FC = () => {
 
   ///selecctors
       const token = useSelector(accessTokenFromStore)
-      console.log("token in wagon page:", token);
 
   // Form State
   const [formData, setFormData] = useState({

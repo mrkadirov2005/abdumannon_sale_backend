@@ -1,1 +1,0 @@
-# husniddin_frontend

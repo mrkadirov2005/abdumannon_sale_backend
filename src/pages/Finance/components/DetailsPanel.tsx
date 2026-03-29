@@ -29,6 +29,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   const normalizePersonName = (value: string) =>
     value.trim().toLowerCase().replace(/\s+/g, " ");
 
+  const isMyDebtSource = source === "myDebts" || source === "valyutchik";
+
   const getRecordPersonKey = (record: FinanceRecord) => {
     const rawName = record.description?.split(":")[0] || "";
     return normalizePersonName(rawName);
@@ -38,12 +40,39 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     const suffix = currency === "USD" ? "$" : "₽";
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
+  const formatBalance = (
+    value: number,
+    currency: "USD" | "RUB",
+    mode: "default" | "alwaysNegative" | "invert"
+  ) => {
+    if (mode === "alwaysNegative") {
+      return `-${formatCurrency(Math.abs(value), currency)}`;
+    }
+    if (mode === "invert") {
+      if (value > 0) {
+        return `-${formatCurrency(value, currency)}`;
+      }
+      if (value < 0) {
+        return `+${formatCurrency(Math.abs(value), currency)}`;
+      }
+      return formatCurrency(0, currency);
+    }
+    if (value > 0) {
+      return `+${formatCurrency(value, currency)}`;
+    }
+    if (value < 0) {
+      return `-${formatCurrency(Math.abs(value), currency)}`;
+    }
+    return formatCurrency(0, currency);
+  };
   const currency = source === "wagons" || source === "valyutchik" ? "USD" : "RUB";
 
   const personKey = normalizePersonName(person.name);
-  const personFinanceRecords = financeRecords.filter(
-    (record) => getRecordPersonKey(record) === personKey
-  );
+  const personFinanceRecords = financeRecords.filter((record) => {
+    if (isMyDebtSource && record.category !== "my_debt") return false;
+    if (!isMyDebtSource && record.category === "my_debt") return false;
+    return getRecordPersonKey(record) === personKey;
+  });
 
   const debts: Debt[] = person.debts || [];
 
@@ -190,7 +219,15 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       buyer: person.name,
       products,
       totalAmount: person.totalAmount,
-      status: `To'langan: ${person.paidAmount.toLocaleString("en-US")} | Qoldiq: ${person.remainingAmount.toLocaleString("en-US")}`,
+      status: `To'langan: ${person.paidAmount.toLocaleString("en-US")} | Qoldiq: ${formatBalance(
+        person.remainingAmount,
+        currency,
+        source === "wagons"
+          ? "alwaysNegative"
+          : source === "myDebts" || source === "valyutchik"
+          ? "invert"
+          : "default"
+      )}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -222,13 +259,27 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <p className="text-gray-600 text-sm mb-1">Жами Сумма</p>
+          <p className="text-gray-600 text-sm mb-1">
+            {source === "debts"
+              ? "Абдуманнон (берган)"
+              : source === "wagons"
+              ? "Келган юк"
+              : source === "myDebts" || source === "valyutchik"
+              ? "Абдуманнон (олган)"
+              : "Жами Сумма"}
+          </p>
           <p className="text-3xl font-bold text-blue-600">
             {formatCurrency(person.totalAmount, currency)}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <p className="text-gray-600 text-sm mb-1">Тўланган</p>
+          <p className="text-gray-600 text-sm mb-1">
+            {source === "debts"
+              ? "Клиент (берган)"
+              : source === "myDebts" || source === "valyutchik"
+              ? "Тўланган"
+              : "Тўланган"}
+          </p>
           <p className="text-3xl font-bold text-green-600">
             {formatCurrency(person.paidAmount, currency)}
           </p>
@@ -236,7 +287,15 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
           <p className="text-gray-600 text-sm mb-1">Қолдиқ Сумма</p>
           <p className="text-3xl font-bold text-orange-600">
-            {formatCurrency(person.remainingAmount, currency)}
+            {formatBalance(
+              person.remainingAmount,
+              currency,
+              source === "wagons"
+                ? "alwaysNegative"
+                : source === "myDebts" || source === "valyutchik"
+                ? "invert"
+                : "default"
+            )}
           </p>
         </div>
       </div>

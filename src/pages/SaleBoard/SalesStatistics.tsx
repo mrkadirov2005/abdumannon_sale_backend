@@ -85,7 +85,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
             <ShoppingCart className="text-white opacity-80" />
             <span className="text-sm font-medium opacity-90">Жами Сотувлар</span>
           </div>
-          <div className="text-2xl font-bold mb-1">{statistics.totalSales}</div>
+          <div className="text-xl font-bold mb-1">{statistics.totalSales}</div>
           <div className="text-sm opacity-80">{formatter.format(statistics.totalAmount)}</div>
         </div>
 
@@ -95,7 +95,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
             <TrendingUp className="text-white opacity-80" />
             <span className="text-sm font-medium opacity-90">Жами Фойда</span>
           </div>
-          <div className="text-2xl font-bold mb-1">{formatter.format(statistics.totalAmount)}</div>
+          <div className="text-xl font-bold mb-1">{formatter.format(statistics.totalAmount)}</div>
           <div className="text-sm opacity-80">Фойда даражаси: {statistics.profitMargin.toFixed(1)}%</div>
         </div>
 
@@ -105,7 +105,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
             <AttachMoney className="text-white opacity-80" />
             <span className="text-sm font-medium opacity-90">Нақд Тўланган</span>
           </div>
-          <div className="text-2xl font-bold mb-1">{formatter.format(statistics.paidCash)}</div>
+          <div className="text-xl font-bold mb-1">{formatter.format(statistics.paidCash)}</div>
           <div className="text-sm opacity-80">
             {statistics.paidPercentage.toFixed(1)}%
           </div>
@@ -117,7 +117,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
             <CreditCard className="text-white opacity-80" />
             <span className="text-sm font-medium opacity-90">Насия</span>
           </div>
-          <div className="text-2xl font-bold mb-1">{formatter.format(statistics.onCredit)}</div>
+          <div className="text-xl font-bold mb-1">{formatter.format(statistics.onCredit)}</div>
           <div className="text-sm opacity-80">
             {statistics.creditPercentage.toFixed(1)}%
           </div>
@@ -211,21 +211,21 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-5 border-l-4 border-blue-500">
           <div className="text-sm text-gray-600 mb-1">Ўртача Сотув</div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-xl font-bold text-gray-900">
             {formatter.format(statistics.totalSales > 0 ? statistics.totalAmount / statistics.totalSales : 0)}
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-5 border-l-4 border-green-500">
           <div className="text-sm text-gray-600 mb-1">Ўртача Фойда</div>
-          <div className="text-2xl font-bold text-gray-900">
+          <div className="text-xl font-bold text-gray-900">
             {formatter.format(statistics.totalSales > 0 ? statistics.totalProfit / statistics.totalSales : 0)}
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-5 border-l-4 border-purple-500">
           <div className="text-sm text-gray-600 mb-1">Фойда Фоизи</div>
-          <div className="text-2xl font-bold text-gray-900">{statistics.profitMargin.toFixed(2)}%</div>
+          <div className="text-xl font-bold text-gray-900">{statistics.profitMargin.toFixed(2)}%</div>
         </div>
       </div>
     </div>

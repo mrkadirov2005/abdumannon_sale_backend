@@ -28,6 +28,13 @@ const VALYUTCHIK_ADMIN_ID = "valyutchik";
 const normalizePersonName = (value: string) =>
   value.trim().toLowerCase().replace(/\s+/g, " ");
 
+const extractPersonNameFromDescription = (description?: string) => {
+  if (!description) return "";
+  const parts = description.split(":");
+  const rawName = (parts[0] || "").trim();
+  return rawName;
+};
+
 export const useFinanceLogic = (source: FinanceSource) => {
   const [wagons, setWagons] = useState<Wagon[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -102,6 +109,11 @@ export const useFinanceLogic = (source: FinanceSource) => {
 
   const uniquePersons = useMemo(() => {
     const personsMap = new Map<string, Person>();
+    const isMyDebtSource = source === "myDebts" || source === "valyutchik";
+    const isRecordRelevantForSource = (record: FinanceRecord) => {
+      if (isMyDebtSource) return record.category === "my_debt";
+      return record.category !== "my_debt";
+    };
 
     if (source === "wagons") {
       wagons.forEach((wagon) => {
@@ -148,28 +160,36 @@ export const useFinanceLogic = (source: FinanceSource) => {
         person.debts!.push(debt);
 
         person.totalAmount += debt.amount;
-        if (debt.isreturned) {
+        if (!isMyDebtSource && debt.isreturned) {
           person.paidAmount += debt.amount;
-        } else {
-          person.remainingAmount += debt.amount;
         }
       });
     }
 
     // Apply finance records to persons
-    financeRecords.forEach((record) => {
-      const descriptionParts = record.description?.split(": ") || [];
-      const rawPersonName = (descriptionParts[0] || "").trim();
+    financeRecords.filter(isRecordRelevantForSource).forEach((record) => {
+      const rawPersonName = extractPersonNameFromDescription(record.description);
       const personNameKey = normalizePersonName(rawPersonName);
 
       if (personNameKey && personsMap.has(personNameKey)) {
         const person = personsMap.get(personNameKey)!;
-        if (record.type === "income") {
-          const amount = parseFloat(record.amount);
-          person.paidAmount += amount;
-          person.remainingAmount -= amount;
+        const amount = parseFloat(record.amount);
+        if (!Number.isNaN(amount)) {
+          if (record.type === "income") {
+            person.paidAmount += amount;
+            person.remainingAmount -= amount;
+          } else {
+            person.paidAmount -= amount;
+            person.remainingAmount += amount;
+          }
         }
       }
+    });
+
+    personsMap.forEach((person) => {
+      if (person.paidAmount < 0) person.paidAmount = 0;
+      const remaining = person.totalAmount - person.paidAmount;
+      person.remainingAmount = remaining;
     });
 
     return Array.from(personsMap.values()).sort(
