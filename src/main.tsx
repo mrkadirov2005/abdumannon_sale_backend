@@ -16,6 +16,8 @@ if (!rootElement) {
 
 // Global fetch wrapper to handle revoked/expired tokens immediately
 const originalFetch = window.fetch.bind(window);
+const loginHash = "#/auth/login";
+
 window.fetch = async (...args) => {
   const response = await originalFetch(...args);
   if (response.status === 401 || response.status === 403) {
@@ -23,8 +25,8 @@ window.fetch = async (...args) => {
     store.dispatch(logout());
     localStorage.removeItem("Token");
     localStorage.removeItem("uuid");
-    if (window.location.pathname !== "/auth/login") {
-      window.location.assign("/auth/login");
+    if (window.location.hash !== loginHash) {
+      window.location.hash = loginHash;
     }
   }
   return response;
