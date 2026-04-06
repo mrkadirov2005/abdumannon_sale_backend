@@ -141,9 +141,6 @@ export const useFinanceLogic = (source: FinanceSource) => {
         person.debts!.push(debt);
 
         person.totalAmount += debt.amount;
-        if (!isMyDebtSource && debt.isreturned) {
-          person.paidAmount += debt.amount;
-        }
       });
 
       financeRecords.filter(isRecordRelevantForSource).forEach((record) => {
@@ -279,7 +276,9 @@ export const useFinanceLogic = (source: FinanceSource) => {
       return buildPersonsFromDebts(baseDebtsValyutchik, true);
     }
 
-    return buildPersonsFromDebts(baseDebtsDefault, false);
+    return buildPersonsFromDebts(baseDebtsDefault, false).filter(
+      (person) => person.remainingAmount >= 0
+    );
   }, [
     source,
     wagons,

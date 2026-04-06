@@ -71,6 +71,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   const personKey = normalizePersonName(person.name);
   const personFinanceRecords = financeRecords.filter((record) => {
+    if (source === "myDebts") {
+      return getRecordPersonKey(record) === personKey;
+    }
     if (isMyDebtSource && record.category !== "my_debt") return false;
     if (!isMyDebtSource && record.category === "my_debt") return false;
     return getRecordPersonKey(record) === personKey;
@@ -80,17 +83,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   const computeTotalsForDebts = (
     debtsList: Debt[],
-    records: FinanceRecord[],
-    isMyDebt: boolean
+    records: FinanceRecord[]
   ) => {
     let totalAmount = 0;
     let paidAmount = 0;
 
     debtsList.forEach((debt) => {
       totalAmount += debt.amount;
-      if (!isMyDebt && debt.isreturned) {
-        paidAmount += debt.amount;
-      }
     });
 
     records.forEach((record) => {
@@ -131,14 +130,12 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   const myTotals = computeTotalsForDebts(
     myDebtsForPerson,
-    personRecordsMyDebt,
-    true
+    personRecordsMyDebt
   );
 
   const transferredTotals = computeTotalsForDebts(
     transferredDebtsForPerson,
-    personRecordsOther,
-    false
+    personRecordsOther
   );
 
   const mergedDisplayTotals = {
