@@ -3,9 +3,9 @@ import React from "react";
 interface FinanceHeaderProps {
   onSearchChange: (query: string) => void;
   searchQuery: string;
-  source: "wagons" | "debts" | "myDebts" | "valyutchik";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik" | "overpaid";
   onSourceChange: (
-    source: "wagons" | "debts" | "myDebts" | "valyutchik"
+    source: "wagons" | "debts" | "myDebts" | "valyutchik" | "overpaid"
   ) => void;
   onAddMyDebt: () => void;
 }
@@ -55,6 +55,16 @@ export const FinanceHeader: React.FC<FinanceHeaderProps> = ({
           }`}
         >
           Қарздорлар
+        </button>
+        <button
+          onClick={() => onSourceChange("overpaid")}
+          className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+            source === "overpaid"
+              ? "bg-blue-600 text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          Overpaid
         </button>
         <button
           onClick={() => onSourceChange("myDebts")}

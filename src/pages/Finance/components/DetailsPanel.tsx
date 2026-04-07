@@ -11,7 +11,7 @@ interface DetailsPanelProps {
   onDeleteWagon: (wagonId: string) => void;
   onDeleteFinanceRecord: (recordId: number) => void;
   onDeleteDebt: (debtId: string) => void;
-  source: "wagons" | "debts" | "myDebts" | "valyutchik";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik" | "overpaid";
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({

@@ -149,7 +149,7 @@ const Finance: React.FC = () => {
             const nextPaid = selectedPersonData.paidAmount + delta;
             const total = selectedPersonData.totalAmount;
 
-            await handleAddPayment(selectedPerson || "");
+            await handleAddPayment(selectedPerson || "", selectedPersonData?.debts);
 
             if (nextPaid >= total) {
               await markDebtsReturned(selectedPersonData.debts || []);
@@ -157,7 +157,7 @@ const Finance: React.FC = () => {
             return;
           }
 
-          await handleAddPayment(selectedPerson || "");
+          await handleAddPayment(selectedPerson || "", selectedPersonData?.debts);
         }}
         onClose={() => {
           setShowPaymentModal(false);
