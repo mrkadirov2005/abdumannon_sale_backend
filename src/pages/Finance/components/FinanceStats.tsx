@@ -5,7 +5,7 @@ import type { ViewMode } from "../types";
 
 interface FinanceStatsProps {
   uniquePersons: Person[];
-  source: "wagons" | "debts" | "myDebts" | "valyutchik" | "overpaid";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik";
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onPersonSelect: (person: string | null) => void;

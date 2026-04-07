@@ -8,16 +8,20 @@ interface DetailsPanelProps {
   person: Person;
   financeRecords: FinanceRecord[];
   onAddPayment: () => void;
+  onAddMyDebtFromDebts: () => void;
+  showPulQoshish: boolean;
   onDeleteWagon: (wagonId: string) => void;
   onDeleteFinanceRecord: (recordId: number) => void;
   onDeleteDebt: (debtId: string) => void;
-  source: "wagons" | "debts" | "myDebts" | "valyutchik" | "overpaid";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik";
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   person,
   financeRecords,
   onAddPayment,
+  onAddMyDebtFromDebts,
+  showPulQoshish,
   onDeleteWagon,
   onDeleteFinanceRecord,
   onDeleteDebt,
@@ -329,12 +333,22 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
           {person.name}
         </h2>
-        <button
-          onClick={printPerson}
-          className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          <Printer size={16} /> Чоп Етиш
-        </button>
+        <div className="flex items-center gap-2">
+          {showPulQoshish && (
+            <button
+              onClick={onAddMyDebtFromDebts}
+              className="flex items-center gap-2 px-3 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+              Pul qoshish
+            </button>
+          )}
+          <button
+            onClick={printPerson}
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            <Printer size={16} /> Чоп Етиш
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -543,7 +557,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                       >
                         <Plus size={18} />
                       </button>
-                      {(source === "myDebts" || source === "valyutchik") && (
+                      {(source === "debts" || source === "myDebts" || source === "valyutchik") && (
                         <button
                           onClick={() => onDeleteDebt(debt.id)}
                           className="text-red-600 hover:text-red-800 transition"

@@ -5,7 +5,7 @@ interface FolderViewProps {
   persons: Person[];
   selectedPerson: string | null;
   onPersonSelect: (person: string) => void;
-  source: "wagons" | "debts" | "myDebts" | "valyutchik" | "overpaid";
+  source: "wagons" | "debts" | "myDebts" | "valyutchik";
 }
 
 export const FolderView: React.FC<FolderViewProps> = ({

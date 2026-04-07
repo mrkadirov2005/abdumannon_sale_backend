@@ -111,12 +111,16 @@ export const useFinanceLogic = (source: FinanceSource) => {
   const baseDebts = useMemo(() => {
     if (source === "myDebts") return baseDebtsMy;
     if (source === "valyutchik") return baseDebtsValyutchik;
-    if (source === "debts" || source === "overpaid") return baseDebtsDefault;
+    if (source === "debts") return baseDebtsDefault;
     return debts;
   }, [baseDebtsDefault, baseDebtsMy, baseDebtsValyutchik, debts, source]);
 
   const buildPersonsFromDebts = useCallback(
-    (debtsList: Debt[], isMyDebtSource: boolean) => {
+    (
+      debtsList: Debt[],
+      isMyDebtSource: boolean,
+      overpaidNames?: Set<string>
+    ) => {
       const personsMap = new Map<string, Person>();
       const isRecordRelevantForSource = (record: FinanceRecord) => {
         if (isMyDebtSource) return record.category === "my_debt";
@@ -140,7 +144,11 @@ export const useFinanceLogic = (source: FinanceSource) => {
         const person = personsMap.get(personNameKey)!;
         person.debts!.push(debt);
 
-        person.totalAmount += debt.amount;
+        if (isMyDebtSource && overpaidNames?.has(personNameKey)) {
+          person.paidAmount += debt.amount;
+        } else {
+          person.totalAmount += debt.amount;
+        }
       });
 
       financeRecords.filter(isRecordRelevantForSource).forEach((record) => {
@@ -203,9 +211,11 @@ export const useFinanceLogic = (source: FinanceSource) => {
     );
   }, []);
 
-  const overpaidPersons = useMemo(() => {
-    return buildPersonsFromDebts(baseDebtsDefault, false).filter(
-      (person) => person.remainingAmount < 0
+  const overpaidNameSet = useMemo(() => {
+    return new Set(
+      buildPersonsFromDebts(baseDebtsDefault, false)
+        .filter((person) => person.remainingAmount < 0)
+        .map((person) => normalizePersonName(person.name))
     );
   }, [baseDebtsDefault, buildPersonsFromDebts]);
 
@@ -271,15 +281,19 @@ export const useFinanceLogic = (source: FinanceSource) => {
     }
 
     if (source === "myDebts") {
-      return buildPersonsFromDebts(baseDebtsMy, true);
+      const myDebtsPersons = buildPersonsFromDebts(
+        baseDebtsMy,
+        true,
+        overpaidNameSet
+      );
+      const overpaidPersons = buildPersonsFromDebts(baseDebtsDefault, false).filter(
+        (person) => person.remainingAmount < 0
+      );
+      return mergePersonsByName([...myDebtsPersons, ...overpaidPersons]);
     }
 
     if (source === "valyutchik") {
       return buildPersonsFromDebts(baseDebtsValyutchik, true);
-    }
-
-    if (source === "overpaid") {
-      return overpaidPersons;
     }
 
     return buildPersonsFromDebts(baseDebtsDefault, false).filter(
@@ -293,26 +307,57 @@ export const useFinanceLogic = (source: FinanceSource) => {
     baseDebtsValyutchik,
     buildPersonsFromDebts,
     mergePersonsByName,
-    overpaidPersons,
+    overpaidNameSet,
   ]);
 
   const myDebtsCardTotals = useMemo(() => {
-    const myDebtsPersons = buildPersonsFromDebts(baseDebtsMy, true);
-
-    return myDebtsPersons.reduce(
-      (acc, p) => {
-        acc.totalAmount += p.totalAmount;
-        acc.paidAmount += p.paidAmount;
-        acc.remainingAmount += p.remainingAmount;
-        return acc;
-      },
-      { totalAmount: 0, paidAmount: 0, remainingAmount: 0 }
+    const myDebtsPersons = buildPersonsFromDebts(
+      baseDebtsMy,
+      true,
+      overpaidNameSet
     );
-  }, [baseDebtsMy, buildPersonsFromDebts]);
+    const transferredPersons = buildPersonsFromDebts(baseDebtsDefault, false).filter(
+      (person) => person.remainingAmount < 0
+    );
+
+    const sumTotals = (list: Person[]) =>
+      list.reduce(
+        (acc, p) => {
+          acc.totalAmount += p.totalAmount;
+          acc.paidAmount += p.paidAmount;
+          acc.remainingAmount += p.remainingAmount;
+          return acc;
+        },
+        { totalAmount: 0, paidAmount: 0, remainingAmount: 0 }
+      );
+
+    const myTotals = sumTotals(myDebtsPersons);
+    const transferredTotals = sumTotals(transferredPersons);
+
+    const totalAmount = myTotals.totalAmount + transferredTotals.paidAmount;
+    const paidAmount = myTotals.paidAmount + transferredTotals.totalAmount;
+    const remainingAmount = totalAmount - paidAmount;
+
+    return {
+      totalAmount,
+      paidAmount,
+      remainingAmount,
+    };
+  }, [baseDebtsDefault, baseDebtsMy, buildPersonsFromDebts, overpaidNameSet]);
 
   const visibleDebts = useMemo(() => {
     if (source === "myDebts") {
-      return baseDebtsMy;
+      const overpaidAllowed = new Set(
+        buildPersonsFromDebts(baseDebtsDefault, false)
+          .filter((person) => person.remainingAmount < 0)
+          .map((person) => normalizePersonName(person.name))
+      );
+      return [
+        ...baseDebtsMy,
+        ...baseDebtsDefault.filter((debt) =>
+          overpaidAllowed.has(normalizePersonName(debt.name))
+        ),
+      ];
     }
 
     if (source === "debts") {
@@ -324,21 +369,13 @@ export const useFinanceLogic = (source: FinanceSource) => {
       );
     }
 
-    if (source === "overpaid") {
-      const allowed = new Set(
-        overpaidPersons.map((person) => normalizePersonName(person.name))
-      );
-      return baseDebtsDefault.filter((debt) =>
-        allowed.has(normalizePersonName(debt.name))
-      );
-    }
 
     return baseDebts;
   }, [
     baseDebts,
     baseDebtsDefault,
+    baseDebtsDefault,
     baseDebtsMy,
-    overpaidPersons,
     source,
     uniquePersons,
   ]);
@@ -525,7 +562,8 @@ export const useFinanceLogic = (source: FinanceSource) => {
       amount: number,
       comment: string,
       isReturned: boolean,
-      date: string
+      date: string,
+      adminOverride?: "qarzlarim" | "qarzdorlar"
     ) => {
       if (!lender?.trim() || !amount) {
         toast.error("Iltimos, qarz beruvchi va summani kiriting");
@@ -549,7 +587,12 @@ export const useFinanceLogic = (source: FinanceSource) => {
             product_names: comment ? [comment] : [],
             branch_id: 1,
             shop_id,
-            admin_id: source === "valyutchik" ? VALYUTCHIK_ADMIN_ID : MY_DEBTS_ADMIN_ID,
+            admin_id:
+              adminOverride === "qarzdorlar"
+                ? "qarzdorlar"
+                : source === "valyutchik"
+                ? VALYUTCHIK_ADMIN_ID
+                : MY_DEBTS_ADMIN_ID,
             isreturned: isReturned,
             day,
             month,
@@ -586,7 +629,6 @@ export const useFinanceLogic = (source: FinanceSource) => {
     formData,
     uniquePersons,
     filteredPersons,
-    overpaidPersons,
     selectedPersonData,
 
     // Setters

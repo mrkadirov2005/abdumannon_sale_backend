@@ -69,5 +69,4 @@ export type FinanceSource =
   | "wagons"
   | "debts"
   | "myDebts"
-  | "valyutchik"
-  | "overpaid";
+  | "valyutchik";

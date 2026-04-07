@@ -15,6 +15,9 @@ const Finance: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("folders");
   const [source, setSource] = useState<FinanceSource>("wagons");
   const [showMyDebtModal, setShowMyDebtModal] = useState(false);
+  const [myDebtAdminOverride, setMyDebtAdminOverride] = useState<
+    "qarzlarim" | "qarzdorlar" | null
+  >(null);
   const [myDebtForm, setMyDebtForm] = useState({
     lender: "",
     amount: "",
@@ -47,6 +50,12 @@ const Finance: React.FC = () => {
     markDebtsReturned,
     myDebtsCardTotals,
   } = useFinanceLogic(source);
+
+  const shouldShowPulQoshish =
+    !!selectedPersonData &&
+    ((source === "debts") ||
+      (source === "myDebts" &&
+        !(selectedPersonData.debts || []).some((debt) => debt.admin_id === "qarzlarim")));
 
   useEffect(() => {
     fetchData();
@@ -129,6 +138,23 @@ const Finance: React.FC = () => {
           person={selectedPersonData}
           financeRecords={financeRecords}
           onAddPayment={() => setShowPaymentModal(true)}
+          onAddMyDebtFromDebts={() => {
+            if (source === "debts") {
+              setMyDebtForm((prev) => ({
+                ...prev,
+                lender: selectedPerson || prev.lender,
+              }));
+            }
+            if (source === "myDebts") {
+              setMyDebtForm((prev) => ({
+                ...prev,
+                lender: selectedPerson || prev.lender,
+              }));
+            }
+            setMyDebtAdminOverride("qarzdorlar");
+            setShowMyDebtModal(true);
+          }}
+          showPulQoshish={shouldShowPulQoshish}
           onDeleteWagon={handleDeleteWagon}
           onDeleteFinanceRecord={handleDeleteFinanceRecord}
           onDeleteDebt={handleDeleteDebt}
@@ -182,9 +208,11 @@ const Finance: React.FC = () => {
             Number(myDebtForm.amount),
             myDebtForm.comment,
             myDebtForm.isReturned,
-            myDebtForm.date
+            myDebtForm.date,
+            myDebtAdminOverride || undefined
           );
           setShowMyDebtModal(false);
+          setMyDebtAdminOverride(null);
           setMyDebtForm({
             lender: "",
             amount: "",
@@ -195,6 +223,7 @@ const Finance: React.FC = () => {
         }}
         onClose={() => {
           setShowMyDebtModal(false);
+          setMyDebtAdminOverride(null);
           setMyDebtForm({
             lender: "",
             amount: "",
