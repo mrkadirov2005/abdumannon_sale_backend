@@ -1427,7 +1427,7 @@ export default function SaleBoard() {
                     return;
                   }
                   setPendingPrintSale(sale);
-                  setCustomerName("");
+                  setCustomerName(sale.admin_name || "");
                   setIsCustomerModalOpen(true);
                 }}
                 disabled={loadingProducts || saleProducts.length === 0}
@@ -1478,7 +1478,7 @@ export default function SaleBoard() {
               </button>
               <button
                 onClick={() => {
-                  const name = customerName.trim();
+                  const name = (customerName.trim() || pendingPrintSale?.admin_name || "").trim();
                   if (!name) {
                     toast.error("Мижоз исмини киритинг");
                     return;

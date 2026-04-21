@@ -239,8 +239,8 @@ export function generateChequeHTML(data: ChequeData): string {
 
   <div class="info-block${data.buyerRight ? " info-row" : ""}">
     ${data.buyerRight
-      ? `<span class="left"><span class="label">${data.buyerLabel || RU.buyer}:</span><span class="value">${data.buyer}</span></span><span class="right">${data.buyerRight}</span>`
-      : `<span class="label">${RU.buyer}:</span><span class="value">${data.buyer}</span>`}
+      ? `<span class="left"><span class="label">${data.buyer?data.buyerLabel+":":""}</span><span class="value">${data.buyer}</span></span><span class="right">${data.buyerRight}</span>`
+      : `<span class="label">${RU.buyer}</span><span class="value">${data.buyer?data.buyer:""}</span>`}
   </div>
 
   <table class="products">
@@ -297,6 +297,44 @@ export function printCheque(data: ChequeData): void {
   }
   printWindow.document.write(html);
   printWindow.document.close();
+}
+
+export function printChequeImmediately(data: ChequeData): void {
+  const html = generateChequeHTML(data);
+  const frame = document.createElement("iframe");
+
+  frame.setAttribute("aria-hidden", "true");
+  frame.style.position = "fixed";
+  frame.style.right = "0";
+  frame.style.bottom = "0";
+  frame.style.width = "0";
+  frame.style.height = "0";
+  frame.style.border = "0";
+  frame.style.opacity = "0";
+
+  document.body.appendChild(frame);
+
+  const cleanup = () => {
+    window.setTimeout(() => {
+      frame.remove();
+    }, 1000);
+  };
+
+  frame.onload = () => {
+    const printWindow = frame.contentWindow;
+    if (!printWindow) {
+      cleanup();
+      return;
+    }
+
+    window.setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+      cleanup();
+    }, 200);
+  };
+
+  frame.srcdoc = html;
 }
 
 

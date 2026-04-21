@@ -31,6 +31,7 @@ import { convertIdToBrandName } from "../../middleware/mid_funcs";
 import { getBrandsThunk } from "../../redux/slices/brands/thunk/getAllBrands";
 import { Button, LinearProgress, Menu, MenuItem, IconButton, Tooltip, Chip, Badge } from "@mui/material";
 import { Refresh, FilterList, Receipt, TrendingUp } from "@mui/icons-material";
+import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printChequeImmediately } from "../../components/ui/ChequeProvider";
 
 const LOW_STOCK_THRESHOLD = 5;
 
@@ -210,6 +211,8 @@ export default function Sales() {
 
   async function handleConfirmPayment() {
     const method = paymentMethod === "boshqa" ? customPaymentMethod : paymentMethod;
+    const customerName = customAdminName.trim();
+    const cartSnapshot = cart.map((item) => ({ ...item }));
     if (!user || !shop_id || !token) {
       alert("Миссинг усер информатион. Плеасе логин агаин.");
       return;
@@ -238,12 +241,12 @@ export default function Sales() {
     }
 
     if (!adminName || adminName.trim() === "") {
-      alert("Клиент номи мавжуд емас. Илтимос, фойдаланувчи профилингизни текширинг.");
+      alert("Сатувчи номи мавжуд эмас. Илтимос, фойдаланувчи профилингизни текширинг.");
       return;
     }
 
     if (!adminNumber || adminNumber.trim() === "") {
-      alert("Админ телефон рақами мавжуд емас. Илтимос, фойдаланувчи профилингизни текширинг.");
+      alert("Сатувчи телефон рақами мавжуд эмас. Илтимос, фойдаланувчи профилингизни текширинг.");
       return;
     }
 
@@ -253,25 +256,39 @@ export default function Sales() {
     }
 
     try {
-      // Use custom admin name if provided, otherwise use default logic
-      const finalAdminName = customAdminName.trim() 
-        ? customAdminName.trim() 
-        : (authData.isSuperAdmin ? adminName : authData.user?.uuid);
+      const finalAdminName = customerName || (authData.isSuperAdmin ? adminName : (authData.user?.uuid || adminName));
 
       await dispatch(
         checkoutSale({
-          products: cart,
+          products: cartSnapshot,
           admin_number: adminNumber,
-          // @ts-ignore
           admin_name: finalAdminName,
           shop_id: shop_id,
           payment_method: method,
           token: token,
           branch: authData.isSuperAdmin ? 100 : 0,
           profit: parseFloat(paidAmount) || 0,
-          total_net_price: parseFloat(paidAmount) || 0,
         })
       ).unwrap();
+
+      printChequeImmediately({
+        title: "Накладная",
+        number: generateChequeNumber(),
+        date: new Date(),
+        supplier: DEFAULT_SUPPLIER_HTML,
+        buyer: customerName || "Mijoz",
+        buyerLabel: "Покупатель",
+        buyerRight: `Способ оплаты: ${method}`,
+        products: cartSnapshot.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+          unit: productUnitMap.get(item.productid) || "pcs",
+          price: item.price,
+          total: item.price * item.quantity,
+        })),
+        signatureLeft: "Руководитель",
+        signatureRight: "Бухгалтер",
+      });
 
       setShowPayment(false);
       setPaidAmount("");

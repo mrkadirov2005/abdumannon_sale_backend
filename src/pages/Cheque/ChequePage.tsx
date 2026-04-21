@@ -34,10 +34,10 @@ export default function ChequePage() {
   };
 
   const handlePrint = () => {
-    if (!buyer.trim()) {
-      alert("Мижоз номини киритинг");
-      return;
-    }
+    // if (!buyer.trim()) {
+    //   alert("Мижоз номини киритинг");
+    //   return;
+    // }
 
     const validProducts = products.filter(
       (p) => p.name.trim() && p.quantity.trim() && p.price.trim()
