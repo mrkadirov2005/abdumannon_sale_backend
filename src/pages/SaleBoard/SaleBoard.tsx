@@ -1254,7 +1254,7 @@ export default function SaleBoard() {
                             className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           >
                             <option value="">Нома'лум</option>
-                            <option value="Naqd">Нақд</option>
+                            <option value="Нақд">Нақд</option>
                             <option value="Nasiya">Насия</option>
                             <option value="cash">Нақд (цаш)</option>
                             <option value="card">Карта</option>

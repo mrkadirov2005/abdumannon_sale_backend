@@ -39,7 +39,7 @@ export default function Sales() {
   const [query, setQuery] = useState("");
   const [brand, setBrand] = useState<string>("All");
   const [showPayment, setShowPayment] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<string>("Naqd");
+  const [paymentMethod, setPaymentMethod] = useState<string>("Нақд");
   const [customPaymentMethod, setCustomPaymentMethod] = useState<string>("");
   const [paidAmount, setPaidAmount] = useState<string>("");
   const [customAdminName, setCustomAdminName] = useState<string>("");
@@ -734,9 +734,9 @@ export default function Sales() {
                   }}
                   className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="Naqd">💵 Нақд</option>
-                  <option value="Nasiya">💳 Насия</option>
-                  <option value="boshqa">📝 Бошқа</option>
+                  <option value="Нақд">💵 Нақд</option>
+                  <option value="Насия">💳 Насия</option>
+                  <option value="Бошқа">📝 Бошқа</option>
                 </select>
 
                 {paymentMethod === "boshqa" && (
@@ -764,7 +764,7 @@ export default function Sales() {
                   <button
                     onClick={() => {
                       setShowPayment(false);
-                      setPaymentMethod("Naqd");
+                      setPaymentMethod("Нақд");
                       setCustomPaymentMethod("");
                       setPaidAmount("");
                       setCustomAdminName("");
@@ -775,7 +775,7 @@ export default function Sales() {
                   </button>
                   <button
                     onClick={handleConfirmPayment}
-                    disabled={loading || (paymentMethod === "boshqa" && !customPaymentMethod.trim())}
+                    disabled={loading || (paymentMethod === "Бошқа" && !customPaymentMethod.trim())}
                     className="flex-1 px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
                     {loading ? "To'lov kiritilmoqda..." : "Tasdiqlash"}
