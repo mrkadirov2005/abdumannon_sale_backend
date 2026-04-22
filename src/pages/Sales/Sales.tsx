@@ -276,7 +276,7 @@ export default function Sales() {
         number: generateChequeNumber(),
         date: new Date(),
         supplier: DEFAULT_SUPPLIER_HTML,
-        buyer: customerName || "Mijoz",
+        buyer: customerName ,
         buyerLabel: "Покупатель",
         buyerRight: `Способ оплаты: ${method}`,
         products: cartSnapshot.map((item) => ({
