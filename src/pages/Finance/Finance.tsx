@@ -9,7 +9,7 @@ import { ListView } from "./components/ListView";
 import { DetailsPanel } from "./components/DetailsPanel";
 import { PaymentModal } from "./components/PaymentModal";
 import { MyDebtModal } from "./components/MyDebtModal";
-import type { ViewMode, FinanceSource } from "./types";
+import type { ViewMode, FinanceSource, FinanceRecord } from "./types";
 
 const Finance: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("folders");
@@ -25,6 +25,7 @@ const Finance: React.FC = () => {
     isReturned: false,
     date: new Date().toISOString().split("T")[0],
   });
+  const [editingFinanceRecord, setEditingFinanceRecord] = useState<FinanceRecord | null>(null);
   const {
     loading,
     searchQuery,
@@ -46,10 +47,50 @@ const Finance: React.FC = () => {
     handleDeleteWagon,
     handleDeleteDebt,
     handleAddPayment,
+    handleReplaceFinanceRecord,
     handleAddMyDebt,
     markDebtsReturned,
     myDebtsCardTotals,
   } = useFinanceLogic(source);
+
+  const getDefaultPaymentForm = () => ({
+    amount: "",
+    description: "",
+    type: "income" as const,
+    category: source === "myDebts" || source === "valyutchik" ? "my_debt" : "sales",
+    date: new Date().toISOString().split("T")[0],
+  });
+
+  const extractEditableDescription = (description?: string) => {
+    if (!description) return "";
+    const parts = description.split(": ");
+    if (parts.length <= 1) return description;
+    return parts.slice(1).join(": ");
+  };
+
+  const openCreatePaymentModal = () => {
+    setEditingFinanceRecord(null);
+    setFormData(getDefaultPaymentForm());
+    setShowPaymentModal(true);
+  };
+
+  const openEditPaymentModal = (record: FinanceRecord) => {
+    setEditingFinanceRecord(record);
+    setFormData({
+      amount: record.amount,
+      description: extractEditableDescription(record.description),
+      type: record.type,
+      category: record.category,
+      date: String(record.date).split("T")[0],
+    });
+    setShowPaymentModal(true);
+  };
+
+  const closePaymentModal = () => {
+    setShowPaymentModal(false);
+    setEditingFinanceRecord(null);
+    setFormData(getDefaultPaymentForm());
+  };
 
   const shouldShowPulQoshish =
     !!selectedPersonData &&
@@ -82,6 +123,8 @@ const Finance: React.FC = () => {
           setSource(next);
           setSelectedPerson(null);
           setViewMode("folders");
+          setShowPaymentModal(false);
+          setEditingFinanceRecord(null);
         }}
         onAddMyDebt={() => setShowMyDebtModal(true)}
       />
@@ -98,23 +141,18 @@ const Finance: React.FC = () => {
       <ViewModeToggle
         viewMode={viewMode}
         onViewModeChange={setViewMode}
-        onPersonDeselect={() => setSelectedPerson(null)}
+        onPersonDeselect={() => {
+          setSelectedPerson(null);
+          setShowPaymentModal(false);
+          setEditingFinanceRecord(null);
+        }}
       />
 
       <SearchBar searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       {/* Content */}
       {viewMode === "folders" ? (
-        selectedPerson ? (
-          <div className="mb-4">
-            <button
-              onClick={() => setSelectedPerson(null)}
-              className="px-4 py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 transition text-sm font-medium"
-            >
-              ← Орқага
-            </button>
-          </div>
-        ) : (
+        !selectedPerson && (
           <FolderView
             persons={filteredPersons}
             selectedPerson={selectedPerson}
@@ -137,7 +175,7 @@ const Finance: React.FC = () => {
         <DetailsPanel
           person={selectedPersonData}
           financeRecords={financeRecords}
-          onAddPayment={() => setShowPaymentModal(true)}
+          onAddPayment={openCreatePaymentModal}
           onAddMyDebtFromDebts={() => {
             if (source === "debts") {
               setMyDebtForm((prev) => ({
@@ -159,6 +197,8 @@ const Finance: React.FC = () => {
           onDeleteFinanceRecord={handleDeleteFinanceRecord}
           onDeleteDebt={handleDeleteDebt}
           source={source}
+          onBackToOverview={() => setSelectedPerson(null)}
+          onEditFinanceRecord={openEditPaymentModal}
         />
       )}
 
@@ -169,33 +209,40 @@ const Finance: React.FC = () => {
         formData={formData}
         onFormChange={(data) => setFormData({ ...formData, ...data })}
         onAddPayment={async () => {
+          if (editingFinanceRecord) {
+            const success = await handleReplaceFinanceRecord(
+              editingFinanceRecord.id,
+              selectedPerson || "",
+              formData,
+              selectedPersonData?.debts
+            );
+
+            if (success) {
+              setEditingFinanceRecord(null);
+            }
+            return;
+          }
+
           if ((source === "myDebts" || source === "valyutchik") && selectedPersonData) {
             const amount = parseFloat(formData.amount || "0");
             const delta = formData.type === "income" ? amount : -amount;
             const nextPaid = selectedPersonData.paidAmount + delta;
             const total = selectedPersonData.totalAmount;
 
-            await handleAddPayment(selectedPerson || "", selectedPersonData?.debts);
+            const success = await handleAddPayment(selectedPerson || "", selectedPersonData?.debts, formData);
 
-            if (nextPaid >= total) {
+            if (success && nextPaid >= total) {
               await markDebtsReturned(selectedPersonData.debts || []);
             }
             return;
           }
 
-          await handleAddPayment(selectedPerson || "", selectedPersonData?.debts);
+          await handleAddPayment(selectedPerson || "", selectedPersonData?.debts, formData);
         }}
-        onClose={() => {
-          setShowPaymentModal(false);
-          setFormData({
-            amount: "",
-            description: "",
-            type: "income",
-            category: source === "myDebts" || source === "valyutchik" ? "my_debt" : "sales",
-            date: new Date().toISOString().split("T")[0],
-          });
-        }}
+        onClose={closePaymentModal}
         hideCategory={source === "myDebts" || source === "valyutchik"}
+        title={editingFinanceRecord ? "Moliya yozuvini tahrirlash" : undefined}
+        submitLabel={editingFinanceRecord ? "Yangilash" : undefined}
       />
 
       <MyDebtModal

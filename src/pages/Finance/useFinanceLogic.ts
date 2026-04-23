@@ -52,6 +52,16 @@ export const useFinanceLogic = (source: FinanceSource) => {
     date: new Date().toISOString().split("T")[0],
   });
 
+  const getDefaultFormData = useCallback((): FormData => {
+    return {
+      amount: "",
+      description: "",
+      type: "income",
+      category: source === "myDebts" || source === "valyutchik" ? "my_debt" : "sales",
+      date: new Date().toISOString().split("T")[0],
+    };
+  }, [source]);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -392,9 +402,80 @@ export const useFinanceLogic = (source: FinanceSource) => {
     return uniquePersons.find((p) => p.name === selectedPerson) || null;
   }, [selectedPerson, uniquePersons]);
 
-  const handleDeleteFinanceRecord = useCallback(
-    async (id: number) => {
-      if (!window.confirm("Ushbu yozuvni o'chirishni xohlaysizmi?")) return;
+  const submitFinanceRecord = useCallback(
+    async (
+      selectedPersonName: string,
+      paymentData: FormData,
+      selectedPersonDebts?: Debt[]
+    ) => {
+      if (!selectedPersonName || !paymentData.amount) {
+        toast.error("Iltimos, barcha maydonlarni to'ldiring");
+        return null;
+      }
+
+      try {
+        const amount = parseFloat(paymentData.amount);
+        if (Number.isNaN(amount)) {
+          toast.error("Summa noto'g'ri kiritilgan");
+          return null;
+        }
+
+        let categoryToSend = paymentData.category;
+        if (source === "valyutchik") {
+          categoryToSend = "my_debt";
+        } else if (source === "myDebts") {
+          const hasMyDebts = (selectedPersonDebts || []).some(
+            (debt) => debt.admin_id === MY_DEBTS_ADMIN_ID
+          );
+          categoryToSend = hasMyDebts ? "my_debt" : "sales";
+        }
+
+        const response = await fetch(`${DEFAULT_ENDPOINT}/finance`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            amount,
+            description: `${selectedPersonName}: ${paymentData.description}`,
+            type: paymentData.type,
+            category: categoryToSend,
+            date: paymentData.date,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          return { ok: true as const, data };
+        }
+
+        return {
+          ok: false as const,
+          error: data.error || data.message || "Pul qo'shishda xatolik",
+        };
+      } catch (error) {
+        console.error("Error adding payment:", error);
+        return { ok: false as const, error: "Pul qo'shishda xatolik" };
+      }
+    },
+    [source]
+  );
+
+  const removeFinanceRecord = useCallback(
+    async (
+      id: number,
+      options?: {
+        confirm?: boolean;
+        notify?: boolean;
+        refresh?: boolean;
+      }
+    ) => {
+      const shouldConfirm = options?.confirm ?? true;
+      const shouldNotify = options?.notify ?? true;
+      const shouldRefresh = options?.refresh ?? true;
+
+      if (shouldConfirm && !window.confirm("Ushbu yozuvni o'chirishni xohlaysizmi?")) {
+        return false;
+      }
 
       try {
         const response = await fetch(`${DEFAULT_ENDPOINT}/finance/${id}`, {
@@ -405,17 +486,35 @@ export const useFinanceLogic = (source: FinanceSource) => {
         const data = await response.json();
 
         if (response.ok) {
-          toast.success("Yozuv o'chirildi");
-          fetchData();
-        } else {
+          if (shouldNotify) {
+            toast.success("Yozuv o'chirildi");
+          }
+          if (shouldRefresh) {
+            fetchData();
+          }
+          return true;
+        }
+
+        if (shouldNotify) {
           toast.error(data.error || "O'chirishda xatolik");
         }
+        return false;
       } catch (error) {
         console.error("Error deleting finance record:", error);
-        toast.error("O'chirishda xatolik");
+        if (shouldNotify) {
+          toast.error("O'chirishda xatolik");
+        }
+        return false;
       }
     },
     [fetchData]
+  );
+
+  const handleDeleteFinanceRecord = useCallback(
+    async (id: number) => {
+      await removeFinanceRecord(id);
+    },
+    [removeFinanceRecord]
   );
 
   const handleDeleteWagon = useCallback(
@@ -446,63 +545,72 @@ export const useFinanceLogic = (source: FinanceSource) => {
   );
 
   const handleAddPayment = useCallback(
-    async (selectedPersonName: string, selectedPersonDebts?: Debt[]) => {
-      if (!selectedPersonName || !formData.amount) {
-        toast.error("Iltimos, barcha maydonlarni to'ldiring");
-        return;
+    async (
+      selectedPersonName: string,
+      selectedPersonDebts?: Debt[],
+      paymentData: FormData = formData
+    ) => {
+      const result = await submitFinanceRecord(
+        selectedPersonName,
+        paymentData,
+        selectedPersonDebts
+      );
+
+      if (!result) return false;
+
+      if (result.ok) {
+        toast.success("Pul qo'shildi");
+        setShowPaymentModal(false);
+        setFormData(getDefaultFormData());
+        fetchData();
+        return true;
       }
 
-      try {
-        console.log("Sending finance record:", {
-          ...formData,
-          amount: parseFloat(formData.amount),
-        });
-
-        let categoryToSend = formData.category;
-        if (source === "valyutchik") {
-          categoryToSend = "my_debt";
-        } else if (source === "myDebts") {
-          const hasMyDebts = (selectedPersonDebts || []).some(
-            (debt) => debt.admin_id === MY_DEBTS_ADMIN_ID
-          );
-          categoryToSend = hasMyDebts ? "my_debt" : "sales";
-        }
-
-        const response = await fetch(`${DEFAULT_ENDPOINT}/finance`, {
-          method: "POST",
-          headers: getHeaders(),
-          body: JSON.stringify({
-            amount: parseFloat(formData.amount),
-            description: `${selectedPersonName}: ${formData.description}`,
-            type: formData.type,
-            category: categoryToSend,
-            date: formData.date,
-          }),
-        });
-
-        const data = await response.json();
-        console.log("Finance response:", data);
-
-        if (response.ok) {
-          toast.success("Pul qo'shildi");
-          setShowPaymentModal(false);
-          setFormData({
-            amount: "",
-            description: "",
-            type: "income",
-            category: source === "myDebts" || source === "valyutchik" ? "my_debt" : "sales",
-            date: new Date().toISOString().split("T")[0],
-          });
-          fetchData();
-        } else {
-          toast.error(data.error || "Pul qo'shishda xatolik");
-        }
-      } catch (error) {
-        console.error("Error adding payment:", error);
-        toast.error("Pul qo'shishda xatolik");
-      }
+      toast.error(result.error);
+      return false;
     },
-    [formData, fetchData, source]
+    [fetchData, formData, getDefaultFormData, submitFinanceRecord]
+  );
+
+  const handleReplaceFinanceRecord = useCallback(
+    async (
+      recordId: number,
+      selectedPersonName: string,
+      paymentData: FormData,
+      selectedPersonDebts?: Debt[]
+    ) => {
+      const createResult = await submitFinanceRecord(
+        selectedPersonName,
+        paymentData,
+        selectedPersonDebts
+      );
+
+      if (!createResult) return false;
+
+      if (!createResult.ok) {
+        toast.error(createResult.error);
+        return false;
+      }
+
+      const deleted = await removeFinanceRecord(recordId, {
+        confirm: false,
+        notify: false,
+        refresh: false,
+      });
+
+      if (!deleted) {
+        toast.error("Eski yozuvni o'chirib bo'lmadi");
+        fetchData();
+        return false;
+      }
+
+      toast.success("Yozuv yangilandi");
+      setShowPaymentModal(false);
+      setFormData(getDefaultFormData());
+      fetchData();
+      return true;
+    },
+    [fetchData, getDefaultFormData, removeFinanceRecord, submitFinanceRecord]
   );
 
   const handleDeleteDebt = useCallback(
@@ -640,6 +748,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
     // Handlers
     fetchData,
     handleDeleteFinanceRecord,
+    handleReplaceFinanceRecord,
     handleDeleteWagon,
     handleDeleteDebt,
     handleAddPayment,

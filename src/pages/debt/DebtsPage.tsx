@@ -10,7 +10,7 @@ import {
 } from "../../redux/selectors";
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { toast } from "react-toastify";
-import { Search, Plus, Edit2, Trash2, X, DollarSign, Eye, Printer, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, X, DollarSign, Eye, Printer, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight, ArrowLeft } from "lucide-react";
 import type { Admin } from "../../../types/types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../components/ui/ChequeProvider";
 
@@ -818,6 +818,11 @@ export default function DebtManagement() {
     }
   };
 
+  const handleBackToAllDebts = () => {
+    setSelectedDebtor(null);
+    setViewMode("folders");
+  };
+
   const getSortIcon = (key: SortKey) => {
     if (sortKey !== key) return <ArrowUpDown size={16} className="opacity-30" />;
     return sortDirection === "asc" ? <ChevronUp size={16} /> : <ChevronDown size={16} />;
@@ -1526,7 +1531,14 @@ export default function DebtManagement() {
         <>
           {selectedDebtor && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 md:p-5 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3 md:gap-4">
+              <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto">
+                <button
+                  onClick={handleBackToAllDebts}
+                  className="shrink-0 inline-flex items-center gap-2 px-3 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium text-sm"
+                  title="Барча қарзларга қайтиш"
+                >
+                  <ArrowLeft size={18} /> Қарздорлар
+                </button>
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-base md:text-lg">
                   {selectedDebtor.charAt(0).toUpperCase()}
                 </div>

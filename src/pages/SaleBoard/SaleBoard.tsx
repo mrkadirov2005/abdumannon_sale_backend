@@ -989,7 +989,7 @@ export default function SaleBoard() {
                     <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Сўнгги сотув санаси</th>
                     <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Жами сотувлар</th>
                     <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Жами сумма</th>
-                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Жами фойда</th>
+                    <th className="px-4 md:px-5 py-3 md:py-4 text-left font-semibold text-gray-700">Берилган пул</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1076,7 +1076,7 @@ export default function SaleBoard() {
               <p className="text-xs md:text-sm opacity-75 mt-1">?</p>
             </div>
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 md:p-5 shadow-lg text-white">
-              <p className="text-sm md:text-base font-semibold opacity-90 mb-2">{paymentTab === "debt" ? "Jami To'langan" : "Jami Foyda"}</p>
+              <p className="text-sm md:text-base font-semibold opacity-90 mb-2">{paymentTab === "debt" ? "Jami To'langan" : "Берилган пул"}</p>
               <p className="text-3xl md:text-4xl font-bold">{formatAmount(tabTotals.totalProfit)}</p>
               <p className="text-xs md:text-sm opacity-75 mt-1">?</p>
             </div>

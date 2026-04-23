@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Trash2, Printer } from "lucide-react";
+import { Plus, Trash2, Printer, ArrowLeft, Edit2 } from "lucide-react";
 import type { Person, FinanceRecord, Debt, Wagon } from "../types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
 import { DebtProductsModal } from "./DebtProductsModal";
@@ -14,6 +14,8 @@ interface DetailsPanelProps {
   onDeleteFinanceRecord: (recordId: number) => void;
   onDeleteDebt: (debtId: string) => void;
   source: "wagons" | "debts" | "myDebts" | "valyutchik";
+  onBackToOverview: () => void;
+  onEditFinanceRecord: (record: FinanceRecord) => void;
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
@@ -26,6 +28,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   onDeleteFinanceRecord,
   onDeleteDebt,
   source,
+  onBackToOverview,
+  onEditFinanceRecord,
 }) => {
   const [showDebtProducts, setShowDebtProducts] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
@@ -330,9 +334,18 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   return (
     <div className="mt-6 bg-white rounded-lg shadow-lg p-4 sm:p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-          {person.name}
-        </h2>
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onBackToOverview}
+            className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition shrink-0"
+            title="Барчасига қайтиш"
+          >
+            <ArrowLeft size={16} /> Қайтиш
+          </button>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">
+            {person.name}
+          </h2>
+        </div>
         <div className="flex items-center gap-2">
           {showPulQoshish && (
             <button
@@ -608,6 +621,13 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                   {formatCurrency(parseFloat(record.amount), currency)}
                 </p>
               </div>
+              <button
+                onClick={() => onEditFinanceRecord(record)}
+                className="text-blue-600 hover:text-blue-800 transition ml-3"
+                title="Таҳрирлаш"
+              >
+                <Edit2 size={18} />
+              </button>
               <button
                 onClick={() => onDeleteFinanceRecord(record.id)}
                 className="text-red-600 hover:text-red-800 transition"
