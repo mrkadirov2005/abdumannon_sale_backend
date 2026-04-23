@@ -7,16 +7,26 @@ export interface CartItem {
 }
 
 export interface Sale {
-  id?: string;
+  id: number | string;
+  sale_id: string;
   items: CartItem[];
-  total: number;
+  total?: number;
+  total_price: number;
+  total_net_price: number;
+  profit: number;
+  sale_time: string;
+  sale_day?: number;
+  sales_month?: number;
+  sales_year?: number;
   admin_number?: string;
   admin_name?: string;
   shop_id?: string;
   payment_method?: string;
   createdat?: string;
+  updatedat?: string;
+  deletedat?: string | null;
   [key: string]: any;
-  branch:number
+  branch: number;
 }
 
 export interface SalesState {

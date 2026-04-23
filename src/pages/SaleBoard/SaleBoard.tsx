@@ -17,19 +17,7 @@ import SalesStatistics from "./SalesStatistics";
 import { Search, X } from "lucide-react";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque, verifyChequeNumber } from "../../components/ui/ChequeProvider";
 import { getPaymentMethodLabel, normalizePaymentMethod, paymentMethodMatchesFilter, PAYMENT_METHOD_OPTIONS } from "../../utils/paymentMethod";
-
-type PaymentMethod = string | "" | null;
-
-interface Sale {
-  id: number;
-  sale_id: string;
-  total_price: number;
-  profit: number;
-  total_net_price: number;
-  payment_method: PaymentMethod;
-  sale_time: string;
-  admin_name?: string;
-}
+import type { Sale } from "../../redux/slices/sales/types";
 
 interface SoldProduct {
   id: number;
@@ -99,25 +87,25 @@ export default function SaleBoard() {
   const sortMenuOpen = Boolean(sortMenuAnchor);
 
   // Payment editing states
-  const [editingPaymentId, setEditingPaymentId] = useState<number | null>(null);
+  const [editingPaymentId, setEditingPaymentId] = useState<string | number | null>(null);
   const [editedPaymentMethod, setEditedPaymentMethod] = useState<string>("");
   const [customPaymentMethod, setCustomPaymentMethod] = useState<string>("");
-  const [updatingSale, setUpdatingSale] = useState<number | null>(null);
+  const [updatingSale, setUpdatingSale] = useState<string | number | null>(null);
 
   // Admin name editing states
-  const [editingAdminId, setEditingAdminId] = useState<number | null>(null);
+  const [editingAdminId, setEditingAdminId] = useState<string | number | null>(null);
   const [editedAdminName, setEditedAdminName] = useState<string>("");
 
   // Total price editing states
-  const [editingTotalId, setEditingTotalId] = useState<number | null>(null);
+  const [editingTotalId, setEditingTotalId] = useState<string | number | null>(null);
   const [editedTotalPrice, setEditedTotalPrice] = useState<string>("");
 
   // Profit editing states
-  const [editingProfitId, setEditingProfitId] = useState<number | null>(null);
+  const [editingProfitId, setEditingProfitId] = useState<string | number | null>(null);
   const [editedProfit, setEditedProfit] = useState<string>("");
 
   // Delete sale state
-  const [deletingSaleId, setDeletingSaleId] = useState<number | null>(null);
+  const [deletingSaleId, setDeletingSaleId] = useState<string | number | null>(null);
 
   // Payment status tab: "all" | "paid" | "debt"
   const [paymentTab, setPaymentTab] = useState<"all" | "paid" | "debt">("all");
@@ -396,7 +384,7 @@ export default function SaleBoard() {
   };
 
   // Handle save admin name
-  const handleSaveAdmin = async (saleId: number, sale_id: string) => {
+  const handleSaveAdmin = async (saleId: string | number, sale_id: string) => {
     if (!editedAdminName.trim()) {
       toast.error("Админ номи бўш бўлиши мумкин емас");
       return;
@@ -455,7 +443,7 @@ export default function SaleBoard() {
     setEditedTotalPrice("");
   };
 
-  const handleSaveTotal = async (saleId: number, sale_id: string) => {
+  const handleSaveTotal = async (saleId: string | number, sale_id: string) => {
     const totalPrice = parseFloat(editedTotalPrice);
     if (isNaN(totalPrice) || totalPrice < 0) {
       toast.error("Илтимос, тўғри сумма киритинг");
@@ -514,7 +502,7 @@ export default function SaleBoard() {
     setEditedProfit("");
   };
 
-  const handleSaveProfit = async (saleId: number, sale_id: string) => {
+  const handleSaveProfit = async (saleId: string | number, sale_id: string) => {
     const profit = parseFloat(editedProfit);
     if (isNaN(profit)) {
       toast.error("Илтимос, тўғри сумма киритинг");
@@ -563,7 +551,7 @@ export default function SaleBoard() {
   };
 
   // Handle save payment method
-  const handleSavePayment = async (saleId: number, sale_id: string) => {
+  const handleSavePayment = async (saleId: string | number, sale_id: string) => {
     const finalPaymentMethod = editedPaymentMethod === "other" ? customPaymentMethod.trim() : editedPaymentMethod;
     
     if (editedPaymentMethod === "other" && !customPaymentMethod.trim()) {
@@ -597,7 +585,7 @@ export default function SaleBoard() {
       // Update local state
       setData((prevData) =>
         prevData.map((sale) =>
-          sale.id === saleId ? { ...sale, payment_method: finalPaymentMethod as PaymentMethod } : sale
+          sale.id === saleId ? { ...sale, payment_method: finalPaymentMethod } : sale
         )
       );
 
@@ -615,7 +603,7 @@ export default function SaleBoard() {
   };
 
   // Handle delete sale
-  const handleDeleteSale = async (saleId: number, sale_id: string) => {
+  const handleDeleteSale = async (saleId: string | number, sale_id: string) => {
     if (!window.confirm("Haqiqatan ham bu sotuvni o'chirmoqchimisiz?")) {
       return;
     }

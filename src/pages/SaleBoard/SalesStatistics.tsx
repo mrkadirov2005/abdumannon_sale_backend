@@ -1,18 +1,6 @@
 import { useMemo } from "react";
 import { TrendingUp, AttachMoney, CreditCard, Percent, ShoppingCart } from "@mui/icons-material";
-
-type PaymentMethod = "cash" | "card" | "mobile" | "" | null;
-
-interface Sale {
-  id: number;
-  sale_id: string;
-  total_price: number;
-  profit: number;
-  total_net_price: number;
-  payment_method: PaymentMethod;
-  sale_time: string;
-  admin_name?: string;
-}
+import type { Sale } from "../../redux/slices/sales/types";
 
 interface SalesStatisticsProps {
   sales: Sale[];
