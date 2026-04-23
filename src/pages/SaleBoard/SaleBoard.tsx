@@ -16,8 +16,9 @@ import { toast } from "react-toastify";
 import SalesStatistics from "./SalesStatistics";
 import { Search, X } from "lucide-react";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque, verifyChequeNumber } from "../../components/ui/ChequeProvider";
+import { getPaymentMethodLabel, normalizePaymentMethod, paymentMethodMatchesFilter, PAYMENT_METHOD_OPTIONS } from "../../utils/paymentMethod";
 
-type PaymentMethod = "cash" | "card" | "mobile" | "" | null;
+type PaymentMethod = string | "" | null;
 
 interface Sale {
   id: number;
@@ -226,7 +227,7 @@ export default function SaleBoard() {
     }
 
     if (paymentFilter !== "all") {
-      rows = rows.filter((r) => (r.payment_method ?? "") === paymentFilter);
+      rows = rows.filter((r) => paymentMethodMatchesFilter(r.payment_method, paymentFilter));
     }
 
     if (search) {
@@ -367,8 +368,14 @@ export default function SaleBoard() {
   // Handle payment method edit
   const handleEditPayment = (sale: Sale) => {
     setEditingPaymentId(sale.id);
-    setEditedPaymentMethod(sale.payment_method || "");
-    setCustomPaymentMethod("");
+    const normalized = normalizePaymentMethod(sale.payment_method);
+    if (PAYMENT_METHOD_OPTIONS.some((option) => option.value === normalized)) {
+      setEditedPaymentMethod(normalized);
+      setCustomPaymentMethod("");
+    } else {
+      setEditedPaymentMethod("other");
+      setCustomPaymentMethod(sale.payment_method || "");
+    }
   };
 
   const handleCancelEdit = () => {
@@ -557,9 +564,9 @@ export default function SaleBoard() {
 
   // Handle save payment method
   const handleSavePayment = async (saleId: number, sale_id: string) => {
-    const finalPaymentMethod = editedPaymentMethod === "boshqa" ? customPaymentMethod : editedPaymentMethod;
+    const finalPaymentMethod = editedPaymentMethod === "other" ? customPaymentMethod.trim() : editedPaymentMethod;
     
-    if (editedPaymentMethod === "boshqa" && !customPaymentMethod.trim()) {
+    if (editedPaymentMethod === "other" && !customPaymentMethod.trim()) {
       toast.error("Илтимос, бошқа тўлов усулини киритинг");
       return;
     }
@@ -686,9 +693,7 @@ export default function SaleBoard() {
 
   // Print individual sale as invoice
   const printSaleAsInvoice = (sale: Sale, customer: string) => {
-    const paymentLabel =
-      sale.payment_method === "cash" ? "Наличные" :
-      sale.payment_method === "card" ? "Карта" : "Мобильная";
+    const paymentLabel = getPaymentMethodLabel(sale.payment_method);
 
     const chequeNumber = generateChequeNumber();
     const safeCustomer = escapeHtml(customer);
@@ -893,10 +898,11 @@ export default function SaleBoard() {
                 onChange={(e) => setPaymentFilter(e.target.value)}
               >
                 <option value="all">Барча тўловлар</option>
-                <option value="cash">Нақд</option>
-                <option value="card">Карта</option>
-                <option value="mobile">Мобил</option>
-                <option value="">Нома'лум</option>
+                <option value="cash">наличные</option>
+                <option value="debt">Долг</option>
+                <option value="card">карта</option>
+                <option value="mobile">Мобильный</option>
+                <option value="other">Другое</option>
               </select>
 
               {/* Sorting/filter menu */}
@@ -1247,21 +1253,20 @@ export default function SaleBoard() {
                             value={editedPaymentMethod}
                             onChange={(e) => {
                               setEditedPaymentMethod(e.target.value);
-                              if (e.target.value !== "boshqa") {
+                              if (e.target.value !== "other") {
                                 setCustomPaymentMethod("");
                               }
                             }}
                             className="w-full px-3 py-2 border border-blue-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           >
                             <option value="">Нома'лум</option>
-                            <option value="Нақд">Нақд</option>
-                            <option value="Nasiya">Насия</option>
-                            <option value="cash">Нақд (цаш)</option>
-                            <option value="card">Карта</option>
-                            <option value="mobile">Мобил</option>
-                            <option value="boshqa">Бошқа</option>
+                            <option value="cash">наличные</option>
+                            <option value="debt">Долг</option>
+                            <option value="card">карта</option>
+                            <option value="mobile">Мобильный</option>
+                            <option value="other">Другое</option>
                           </select>
-                          {editedPaymentMethod === "boshqa" && (
+                          {editedPaymentMethod === "other" && (
                             <input
                               type="text"
                               value={customPaymentMethod}
@@ -1272,7 +1277,7 @@ export default function SaleBoard() {
                           )}
                         </div>
                       ) : (
-                        <span className="text-gray-900">{row.payment_method || "—"}</span>
+                        <span className="text-gray-900">{getPaymentMethodLabel(row.payment_method)}</span>
                       )}
                     </td>
                     <td className="px-4 md:px-5 py-3 md:py-4 text-sm">

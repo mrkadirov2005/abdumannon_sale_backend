@@ -103,7 +103,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
         <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <AttachMoney className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">Нақд Тўланган</span>
+            <span className="text-sm font-medium opacity-90">наличные</span>
           </div>
           <div className="text-xl font-bold mb-1">{formatter.format(statistics.paidCash)}</div>
           <div className="text-sm opacity-80">
@@ -115,7 +115,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
         <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between mb-2">
             <CreditCard className="text-white opacity-80" />
-            <span className="text-sm font-medium opacity-90">Насия</span>
+            <span className="text-sm font-medium opacity-90">Долг</span>
           </div>
           <div className="text-xl font-bold mb-1">{formatter.format(statistics.onCredit)}</div>
           <div className="text-sm opacity-80">
@@ -134,7 +134,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
           {/* Cash Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">💵 Нақд</span>
+              <span className="text-sm font-medium text-gray-700">💵 наличные</span>
               <span className="text-sm font-semibold text-gray-900">
                 {statistics.paidPercentage.toFixed(1)}% ({formatter.format(statistics.paidCash)})
               </span>
@@ -150,7 +150,7 @@ export default function SalesStatistics({ sales }: SalesStatisticsProps) {
           {/* Credit Bar */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">💳 Насия</span>
+              <span className="text-sm font-medium text-gray-700">💳 Долг</span>
               <span className="text-sm font-semibold text-gray-900">
                 {statistics.creditPercentage.toFixed(1)}% ({formatter.format(statistics.onCredit)})
               </span>

@@ -32,6 +32,7 @@ import { getBrandsThunk } from "../../redux/slices/brands/thunk/getAllBrands";
 import { Button, LinearProgress, Menu, MenuItem, IconButton, Tooltip, Chip, Badge } from "@mui/material";
 import { Refresh, FilterList, Receipt, TrendingUp } from "@mui/icons-material";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printChequeImmediately } from "../../components/ui/ChequeProvider";
+import { getPaymentMethodLabel, PAYMENT_METHOD_OPTIONS } from "../../utils/paymentMethod";
 
 const LOW_STOCK_THRESHOLD = 5;
 
@@ -39,7 +40,7 @@ export default function Sales() {
   const [query, setQuery] = useState("");
   const [brand, setBrand] = useState<string>("All");
   const [showPayment, setShowPayment] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<string>("Нақд");
+  const [paymentMethod, setPaymentMethod] = useState<string>("cash");
   const [customPaymentMethod, setCustomPaymentMethod] = useState<string>("");
   const [paidAmount, setPaidAmount] = useState<string>("");
   const [customAdminName, setCustomAdminName] = useState<string>("");
@@ -210,7 +211,8 @@ export default function Sales() {
   }
 
   async function handleConfirmPayment() {
-    const method = paymentMethod === "boshqa" ? customPaymentMethod : paymentMethod;
+    const method = paymentMethod === "other" ? customPaymentMethod.trim() : paymentMethod;
+    const paymentLabel = getPaymentMethodLabel(method);
     const customerName = customAdminName.trim();
     const cartSnapshot = cart.map((item) => ({ ...item }));
     if (!user || !shop_id || !token) {
@@ -278,7 +280,7 @@ export default function Sales() {
         supplier: DEFAULT_SUPPLIER_HTML,
         buyer: customerName ,
         buyerLabel: "Покупатель",
-        buyerRight: `Способ оплаты: ${method}`,
+        buyerRight: `Способ оплаты: ${paymentLabel}`,
         products: cartSnapshot.map((item) => ({
           name: item.name,
           quantity: item.quantity,
@@ -728,18 +730,29 @@ export default function Sales() {
                   value={paymentMethod}
                   onChange={(e) => {
                     setPaymentMethod(e.target.value);
-                    if (e.target.value !== "boshqa") {
+                    if (e.target.value !== "other") {
                       setCustomPaymentMethod("");
                     }
                   }}
                   className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="Нақд">💵 Нақд</option>
-                  <option value="Насия">💳 Насия</option>
-                  <option value="Бошқа">📝 Бошқа</option>
+                  {PAYMENT_METHOD_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.value === "cash"
+                        ? "💵 "
+                        : option.value === "debt"
+                        ? "💳 "
+                        : option.value === "card"
+                        ? "💳 "
+                        : option.value === "mobile"
+                        ? "📱 "
+                        : "📝 "}
+                      {option.label}
+                    </option>
+                  ))}
                 </select>
 
-                {paymentMethod === "boshqa" && (
+                {paymentMethod === "other" && (
                   <input
                     type="text"
                     value={customPaymentMethod}
@@ -764,7 +777,7 @@ export default function Sales() {
                   <button
                     onClick={() => {
                       setShowPayment(false);
-                      setPaymentMethod("Нақд");
+                      setPaymentMethod("cash");
                       setCustomPaymentMethod("");
                       setPaidAmount("");
                       setCustomAdminName("");
@@ -775,7 +788,7 @@ export default function Sales() {
                   </button>
                   <button
                     onClick={handleConfirmPayment}
-                    disabled={loading || (paymentMethod === "Бошқа" && !customPaymentMethod.trim())}
+                    disabled={loading || (paymentMethod === "other" && !customPaymentMethod.trim())}
                     className="flex-1 px-2 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
                     {loading ? "To'lov kiritilmoqda..." : "Tasdiqlash"}

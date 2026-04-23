@@ -9,6 +9,7 @@ import { useState } from "react";
 import { Button } from "@mui/material";
 import { Fullscreen } from "lucide-react";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../ui/ChequeProvider";
+import { getPaymentMethodLabel } from "../../utils/paymentMethod";
 
 export default function Navbar() {
   const dispatch = useDispatch<AppDispatch>();
@@ -143,9 +144,7 @@ export default function Navbar() {
 
       const products = Array.isArray(productsJson.products) ? productsJson.products : [];
 
-      const paymentLabel =
-        sale.payment_method === "cash" ? "Наличные" :
-        sale.payment_method === "card" ? "Карта" : "Мобильная";
+      const paymentLabel = getPaymentMethodLabel(sale.payment_method);
 
       const chequeNumber = generateChequeNumber();
       const buyerName = escapeHtml(String(sale.customer_name || sale.buyer || sale.client_name || sale.admin_name || "Mijoz"));

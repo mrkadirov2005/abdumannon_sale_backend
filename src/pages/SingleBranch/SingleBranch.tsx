@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import { toast } from "react-toastify";
 import type { Sale } from "../../../types/types";
+import { getPaymentMethodLabel, paymentMethodMatchesFilter } from "../../utils/paymentMethod";
 
 export default function SingleBranch() {
   const branch = useSelector(getBranchesFromStore).branch;
@@ -20,7 +21,7 @@ export default function SingleBranch() {
 
   // States for search, filter, sort
   const [search, setSearch] = useState("");
-  const [paymentFilter, setPaymentFilter] = useState<"" | "all" | "cash" | "card" | "mobile">("all");
+  const [paymentFilter, setPaymentFilter] = useState<"" | "all" | "cash" | "card" | "debt" | "mobile" | "other">("all");
   const [sortKey, setSortKey] = useState<keyof Sale>("sale_time");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
@@ -69,7 +70,7 @@ export default function SingleBranch() {
 
     // Payment filter
     if (paymentFilter !== "all") {
-      rows = rows.filter((r) => (r.payment_method ?? "") === paymentFilter);
+      rows = rows.filter((r) => paymentMethodMatchesFilter(r.payment_method, paymentFilter));
     }
 
     // Search by sale_id
@@ -284,15 +285,16 @@ export default function SingleBranch() {
             value={paymentFilter}
             onChange={(e) =>
               setPaymentFilter(
-                e.target.value as "" | "all" | "cash" | "card" | "mobile"
+                e.target.value as "" | "all" | "cash" | "card" | "debt" | "mobile" | "other"
               )
             }
           >
             <option value="all">Алл пайменц</option>
-            <option value="cash">Цаш</option>
-            <option value="card">Цард</option>
-            <option value="mobile">Мобиле</option>
-            <option value="">Ункновн</option>
+            <option value="cash">наличные</option>
+            <option value="debt">Долг</option>
+            <option value="card">карта</option>
+            <option value="mobile">Мобильный</option>
+            <option value="other">Другое</option>
           </select>
 
           {isFilterActive && (
@@ -349,7 +351,7 @@ export default function SingleBranch() {
                   <td className="px-3 py-2 border font-mono">{row.sale_id}</td>
                   <td className="px-3 py-2 border">{Number(row.total_price).toLocaleString("en-US")}</td>
                   <td className="px-3 py-2 border text-green-600">{Number(row.profit).toLocaleString("en-US")}</td>
-                  <td className="px-3 py-2 border">{row.payment_method || "—"}</td>
+                  <td className="px-3 py-2 border">{getPaymentMethodLabel(row.payment_method)}</td>
                   <td className="px-3 py-2 border">{new Date(row.sale_time).toLocaleString()}</td>
                   <td className="px-3 py-2 border">{row.admin_name}</td>
                 </tr>
