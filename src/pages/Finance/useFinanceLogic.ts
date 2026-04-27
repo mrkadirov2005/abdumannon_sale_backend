@@ -24,6 +24,8 @@ const getHeaders = () => {
 
 const MY_DEBTS_ADMIN_ID = "qarzlarim";
 const VALYUTCHIK_ADMIN_ID = "valyutchik";
+const MY_DEBT_SCOPE_TAG_QARZLARIM = "[qarzlarim]";
+const MY_DEBT_SCOPE_TAG_VALYUTCHIK = "[valyutchik]";
 
 const normalizePersonName = (value: string) =>
   value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -33,6 +35,14 @@ const extractPersonNameFromDescription = (description?: string) => {
   const parts = description.split(":");
   const rawName = (parts[0] || "").trim();
   return rawName;
+};
+
+const getMyDebtRecordScope = (description?: string): "qarzlarim" | "valyutchik" | null => {
+  if (!description) return null;
+  const lower = description.toLowerCase();
+  if (lower.includes(MY_DEBT_SCOPE_TAG_VALYUTCHIK)) return "valyutchik";
+  if (lower.includes(MY_DEBT_SCOPE_TAG_QARZLARIM)) return "qarzlarim";
+  return null;
 };
 
 export const useFinanceLogic = (source: FinanceSource) => {
@@ -86,9 +96,13 @@ export const useFinanceLogic = (source: FinanceSource) => {
         ? rawDebts.map((debt) => ({
             ...debt,
             admin_id:
-              debt.admin_id === MY_DEBTS_ADMIN_ID
+              String(debt.admin_id ?? "")
+                .trim()
+                .toLowerCase() === MY_DEBTS_ADMIN_ID
                 ? MY_DEBTS_ADMIN_ID
-                : debt.admin_id === VALYUTCHIK_ADMIN_ID
+                : String(debt.admin_id ?? "")
+                    .trim()
+                    .toLowerCase() === VALYUTCHIK_ADMIN_ID
                 ? VALYUTCHIK_ADMIN_ID
                 : "qarzdorlar",
           }))
@@ -133,7 +147,15 @@ export const useFinanceLogic = (source: FinanceSource) => {
     ) => {
       const personsMap = new Map<string, Person>();
       const isRecordRelevantForSource = (record: FinanceRecord) => {
-        if (isMyDebtSource) return record.category === "my_debt";
+        if (isMyDebtSource) {
+          if (record.category !== "my_debt") return false;
+          const scope = getMyDebtRecordScope(record.description);
+          // valyutchik should only see its own tagged my_debt payments
+          if (source === "valyutchik") return scope === "valyutchik";
+          // qarzlarim should not include valyutchik payments; untagged legacy records default to qarzlarim
+          if (source === "myDebts") return scope !== "valyutchik";
+          return true;
+        }
         return record.category !== "my_debt";
       };
 
@@ -430,12 +452,21 @@ export const useFinanceLogic = (source: FinanceSource) => {
           categoryToSend = hasMyDebts ? "my_debt" : "sales";
         }
 
+        const needsScopeTag = categoryToSend === "my_debt";
+        const scopeTag =
+          source === "valyutchik"
+            ? `${MY_DEBT_SCOPE_TAG_VALYUTCHIK} `
+            : `${MY_DEBT_SCOPE_TAG_QARZLARIM} `;
+        const scopedDetails = needsScopeTag
+          ? `${scopeTag}${paymentData.description || ""}`.trim()
+          : (paymentData.description || "").trim();
+
         const response = await fetch(`${DEFAULT_ENDPOINT}/finance`, {
           method: "POST",
           headers: getHeaders(),
           body: JSON.stringify({
             amount,
-            description: `${selectedPersonName}: ${paymentData.description}`,
+            description: `${selectedPersonName}: ${scopedDetails}`.trim(),
             type: paymentData.type,
             category: categoryToSend,
             date: paymentData.date,
@@ -725,6 +756,56 @@ export const useFinanceLogic = (source: FinanceSource) => {
     [fetchData, shop_id, source]
   );
 
+  const handleUpdateMyDebt = useCallback(
+    async (debt: Debt, updates: { amount: number; comment: string }) => {
+      if (!debt?.id) return false;
+
+      // Only allow editing debts that belong to my-debt sources.
+      const isMyDebtSource = source === "myDebts" || source === "valyutchik";
+      if (!isMyDebtSource) {
+        toast.error("Bu bo'limda qarzni tahrirlab bo'lmaydi");
+        return false;
+      }
+
+      const amount = Number(updates.amount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        toast.error("Summa noto'g'ri kiritilgan");
+        return false;
+      }
+
+      try {
+        const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            id: debt.id,
+            // Keep the lender/name stable from Finance to avoid silently moving rows between people.
+            name: debt.name,
+            amount,
+            product_names: updates.comment || "",
+            branch_id: 1,
+          }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok) {
+          toast.success("Qarz yangilandi");
+          fetchData();
+          return true;
+        }
+
+        toast.error(data?.message || data?.error || "Qarzni yangilashda xatolik");
+        return false;
+      } catch (error) {
+        console.error("Error updating debt:", error);
+        toast.error("Qarzni yangilashda xatolik");
+        return false;
+      }
+    },
+    [fetchData, source]
+  );
+
   return {
     // State
     wagons,
@@ -753,6 +834,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
     handleDeleteDebt,
     handleAddPayment,
     handleAddMyDebt,
+    handleUpdateMyDebt,
     markDebtsReturned,
     myDebtsCardTotals,
   };

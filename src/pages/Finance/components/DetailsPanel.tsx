@@ -13,6 +13,7 @@ interface DetailsPanelProps {
   onDeleteWagon: (wagonId: string) => void;
   onDeleteFinanceRecord: (recordId: number) => void;
   onDeleteDebt: (debtId: string) => void;
+  onEditDebt: (debt: Debt) => void;
   source: "wagons" | "debts" | "myDebts" | "valyutchik";
   onBackToOverview: () => void;
   onEditFinanceRecord: (record: FinanceRecord) => void;
@@ -27,6 +28,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   onDeleteWagon,
   onDeleteFinanceRecord,
   onDeleteDebt,
+  onEditDebt,
   source,
   onBackToOverview,
   onEditFinanceRecord,
@@ -40,10 +42,26 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   const isMyDebtSource = source === "myDebts" || source === "valyutchik";
   const MY_DEBTS_ADMIN_ID = "qarzlarim";
   const VALYUTCHIK_ADMIN_ID = "valyutchik";
+  const getAdminId = (debt: Debt) => String(debt.admin_id ?? "").trim().toLowerCase();
 
   const getRecordPersonKey = (record: FinanceRecord) => {
     const rawName = record.description?.split(":")[0] || "";
     return normalizePersonName(rawName);
+  };
+
+  const getMyDebtRecordScope = (record: FinanceRecord): "qarzlarim" | "valyutchik" | null => {
+    const lower = String(record.description ?? "").toLowerCase();
+    if (lower.includes("[valyutchik]")) return "valyutchik";
+    if (lower.includes("[qarzlarim]")) return "qarzlarim";
+    return null;
+  };
+
+  const isMyDebtRecordForThisTab = (record: FinanceRecord) => {
+    if (record.category !== "my_debt") return false;
+    const scope = getMyDebtRecordScope(record);
+    if (source === "valyutchik") return scope === "valyutchik";
+    if (source === "myDebts") return scope !== "valyutchik"; // default untagged -> qarzlarim
+    return false;
   };
 
   const formatCurrency = (value: number, currency: "USD" | "RUB") => {
@@ -79,12 +97,23 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   const personKey = normalizePersonName(person.name);
   const personFinanceRecords = financeRecords.filter((record) => {
-    if (source === "myDebts") {
-      return getRecordPersonKey(record) === personKey;
+    if (getRecordPersonKey(record) !== personKey) return false;
+
+    if (source === "valyutchik") {
+      return isMyDebtRecordForThisTab(record);
     }
+
+    if (source === "myDebts") {
+      // For myDebts we show:
+      // - my_debt payments that belong to qarzlarim (not valyutchik)
+      // - non-my_debt payments (transferred/qarzdorlar part)
+      if (record.category === "my_debt") return isMyDebtRecordForThisTab(record);
+      return true;
+    }
+
     if (isMyDebtSource && record.category !== "my_debt") return false;
     if (!isMyDebtSource && record.category === "my_debt") return false;
-    return getRecordPersonKey(record) === personKey;
+    return true;
   });
 
   const debts: Debt[] = person.debts || [];
@@ -117,8 +146,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   };
 
   const personRecordsMyDebt = financeRecords.filter((record) => {
-    if (record.category !== "my_debt") return false;
-    return getRecordPersonKey(record) === personKey;
+    if (getRecordPersonKey(record) !== personKey) return false;
+    return isMyDebtRecordForThisTab(record);
   });
 
   const personRecordsOther = financeRecords.filter((record) => {
@@ -563,6 +592,16 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                       >
                         <Printer size={18} />
                       </button>
+                      {((source === "myDebts" && getAdminId(debt) === MY_DEBTS_ADMIN_ID) ||
+                        (source === "valyutchik" && getAdminId(debt) === VALYUTCHIK_ADMIN_ID)) && (
+                        <button
+                          onClick={() => onEditDebt(debt)}
+                          className="text-blue-600 hover:text-blue-800 transition"
+                          title="Таҳрирлаш"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                      )}
                       <button
                         onClick={onAddPayment}
                         className="text-blue-600 hover:text-blue-800 transition"

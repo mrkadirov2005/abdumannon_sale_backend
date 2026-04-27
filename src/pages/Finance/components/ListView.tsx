@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2, Printer } from "lucide-react";
+import { Trash2, Printer, Edit2 } from "lucide-react";
 import type { Wagon, Debt } from "../types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
 
@@ -9,6 +9,7 @@ interface ListViewProps {
   source: "wagons" | "debts" | "myDebts" | "valyutchik";
   onDeleteWagon: (wagonId: string) => void;
   onDeleteDebt: (debtId: string) => void;
+  onEditDebt: (debt: Debt) => void;
 }
 
 export const ListView: React.FC<ListViewProps> = ({
@@ -17,12 +18,16 @@ export const ListView: React.FC<ListViewProps> = ({
   source,
   onDeleteWagon,
   onDeleteDebt,
+  onEditDebt,
 }) => {
   const formatCurrency = (value: number, currency: "USD" | "RUB") => {
     const suffix = currency === "USD" ? "$" : "₽";
     return `${Number(value).toLocaleString("en-US")} ${suffix}`;
   };
   const debtCurrency = source === "valyutchik" ? "USD" : "RUB";
+  const MY_DEBTS_ADMIN_ID = "qarzlarim";
+  const VALYUTCHIK_ADMIN_ID = "valyutchik";
+  const getAdminId = (debt: Debt) => String(debt.admin_id ?? "").trim().toLowerCase();
 
   const printDebt = (debt: Debt) => {
     const date = `${debt.year}-${String(debt.month).padStart(2, "0")}-${String(debt.day).padStart(2, "0")}`;
@@ -122,6 +127,16 @@ export const ListView: React.FC<ListViewProps> = ({
                     >
                       <Printer size={18} />
                     </button>
+                    {((source === "myDebts" && getAdminId(debt) === MY_DEBTS_ADMIN_ID) ||
+                      (source === "valyutchik" && getAdminId(debt) === VALYUTCHIK_ADMIN_ID)) && (
+                      <button
+                        onClick={() => onEditDebt(debt)}
+                        className="text-blue-600 hover:text-blue-800 transition ml-3"
+                        title="Таҳрирлаш"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                    )}
                     {(source === "myDebts" || source === "valyutchik") && (
                       <button
                         onClick={() => onDeleteDebt(debt.id)}

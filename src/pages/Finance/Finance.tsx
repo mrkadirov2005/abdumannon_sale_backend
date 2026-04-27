@@ -9,7 +9,8 @@ import { ListView } from "./components/ListView";
 import { DetailsPanel } from "./components/DetailsPanel";
 import { PaymentModal } from "./components/PaymentModal";
 import { MyDebtModal } from "./components/MyDebtModal";
-import type { ViewMode, FinanceSource, FinanceRecord } from "./types";
+import { EditDebtModal } from "./components/EditDebtModal";
+import type { ViewMode, FinanceSource, FinanceRecord, Debt } from "./types";
 
 const Finance: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("folders");
@@ -26,6 +27,12 @@ const Finance: React.FC = () => {
     date: new Date().toISOString().split("T")[0],
   });
   const [editingFinanceRecord, setEditingFinanceRecord] = useState<FinanceRecord | null>(null);
+  const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
+  const [showEditDebtModal, setShowEditDebtModal] = useState(false);
+  const [editDebtForm, setEditDebtForm] = useState({
+    amount: "",
+    comment: "",
+  });
   const {
     loading,
     searchQuery,
@@ -49,6 +56,7 @@ const Finance: React.FC = () => {
     handleAddPayment,
     handleReplaceFinanceRecord,
     handleAddMyDebt,
+    handleUpdateMyDebt,
     markDebtsReturned,
     myDebtsCardTotals,
   } = useFinanceLogic(source);
@@ -65,7 +73,8 @@ const Finance: React.FC = () => {
     if (!description) return "";
     const parts = description.split(": ");
     if (parts.length <= 1) return description;
-    return parts.slice(1).join(": ");
+    const rest = parts.slice(1).join(": ");
+    return rest.replace(/^\[(valyutchik|qarzlarim)\]\s*/i, "");
   };
 
   const openCreatePaymentModal = () => {
@@ -90,6 +99,30 @@ const Finance: React.FC = () => {
     setShowPaymentModal(false);
     setEditingFinanceRecord(null);
     setFormData(getDefaultPaymentForm());
+  };
+
+  const openEditDebtModal = (debt: Debt) => {
+    // Editing debts from "wagons" or generic "qarzdorlar" in Finance doesn't make sense.
+    if (!(source === "myDebts" || source === "valyutchik")) return;
+
+    setEditingDebt(debt);
+    // backend sometimes returns product_names as array; keep UI robust
+    const rawComment: any = (debt as any)?.product_names;
+    const normalizedComment = Array.isArray(rawComment)
+      ? rawComment.filter(Boolean).join("|")
+      : String(rawComment ?? "");
+
+    setEditDebtForm({
+      amount: String(debt.amount ?? ""),
+      comment: normalizedComment,
+    });
+    setShowEditDebtModal(true);
+  };
+
+  const closeEditDebtModal = () => {
+    setShowEditDebtModal(false);
+    setEditingDebt(null);
+    setEditDebtForm({ amount: "", comment: "" });
   };
 
   const shouldShowPulQoshish =
@@ -125,6 +158,8 @@ const Finance: React.FC = () => {
           setViewMode("folders");
           setShowPaymentModal(false);
           setEditingFinanceRecord(null);
+          setShowEditDebtModal(false);
+          setEditingDebt(null);
         }}
         onAddMyDebt={() => setShowMyDebtModal(true)}
       />
@@ -145,6 +180,8 @@ const Finance: React.FC = () => {
           setSelectedPerson(null);
           setShowPaymentModal(false);
           setEditingFinanceRecord(null);
+          setShowEditDebtModal(false);
+          setEditingDebt(null);
         }}
       />
 
@@ -167,6 +204,7 @@ const Finance: React.FC = () => {
         source={source}
         onDeleteWagon={handleDeleteWagon}
         onDeleteDebt={handleDeleteDebt}
+        onEditDebt={openEditDebtModal}
       />
       )}
 
@@ -196,6 +234,7 @@ const Finance: React.FC = () => {
           onDeleteWagon={handleDeleteWagon}
           onDeleteFinanceRecord={handleDeleteFinanceRecord}
           onDeleteDebt={handleDeleteDebt}
+          onEditDebt={openEditDebtModal}
           source={source}
           onBackToOverview={() => setSelectedPerson(null)}
           onEditFinanceRecord={openEditPaymentModal}
@@ -279,6 +318,22 @@ const Finance: React.FC = () => {
             date: new Date().toISOString().split("T")[0],
           });
         }}
+      />
+
+      <EditDebtModal
+        isOpen={showEditDebtModal}
+        debt={editingDebt}
+        formData={editDebtForm}
+        onFormChange={(data) => setEditDebtForm({ ...editDebtForm, ...data })}
+        onSubmit={async () => {
+          if (!editingDebt) return;
+          const ok = await handleUpdateMyDebt(editingDebt, {
+            amount: Number(editDebtForm.amount),
+            comment: editDebtForm.comment,
+          });
+          if (ok) closeEditDebtModal();
+        }}
+        onClose={closeEditDebtModal}
       />
     </div>
   );
