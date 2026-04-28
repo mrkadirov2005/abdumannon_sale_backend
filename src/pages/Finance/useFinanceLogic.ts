@@ -140,11 +140,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
   }, [baseDebtsDefault, baseDebtsMy, baseDebtsValyutchik, debts, source]);
 
   const buildPersonsFromDebts = useCallback(
-    (
-      debtsList: Debt[],
-      isMyDebtSource: boolean,
-      overpaidNames?: Set<string>
-    ) => {
+    (debtsList: Debt[], isMyDebtSource: boolean) => {
       const personsMap = new Map<string, Person>();
       const isRecordRelevantForSource = (record: FinanceRecord) => {
         if (isMyDebtSource) {
@@ -175,12 +171,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
 
         const person = personsMap.get(personNameKey)!;
         person.debts!.push(debt);
-
-        if (isMyDebtSource && overpaidNames?.has(personNameKey)) {
-          person.paidAmount += debt.amount;
-        } else {
-          person.totalAmount += debt.amount;
-        }
+        person.totalAmount += debt.amount;
       });
 
       financeRecords.filter(isRecordRelevantForSource).forEach((record) => {
@@ -214,42 +205,6 @@ export const useFinanceLogic = (source: FinanceSource) => {
     },
     [financeRecords]
   );
-
-  const mergePersonsByName = useCallback((persons: Person[]) => {
-    const merged = new Map<string, Person>();
-    persons.forEach((person) => {
-      const key = normalizePersonName(person.name);
-      if (!merged.has(key)) {
-        merged.set(key, {
-          ...person,
-          debts: person.debts ? [...person.debts] : undefined,
-          wagons: person.wagons ? [...person.wagons] : undefined,
-        });
-        return;
-      }
-      const existing = merged.get(key)!;
-      existing.totalAmount += person.totalAmount;
-      existing.paidAmount += person.paidAmount;
-      existing.remainingAmount += person.remainingAmount;
-      if (person.debts?.length) {
-        existing.debts = [...(existing.debts || []), ...person.debts];
-      }
-      if (person.wagons?.length) {
-        existing.wagons = [...(existing.wagons || []), ...person.wagons];
-      }
-    });
-    return Array.from(merged.values()).sort(
-      (a, b) => b.totalAmount - a.totalAmount
-    );
-  }, []);
-
-  const overpaidNameSet = useMemo(() => {
-    return new Set(
-      buildPersonsFromDebts(baseDebtsDefault, false)
-        .filter((person) => person.remainingAmount < 0)
-        .map((person) => normalizePersonName(person.name))
-    );
-  }, [baseDebtsDefault, buildPersonsFromDebts]);
 
   const uniquePersons = useMemo(() => {
     if (source === "wagons") {
@@ -313,15 +268,62 @@ export const useFinanceLogic = (source: FinanceSource) => {
     }
 
     if (source === "myDebts") {
-      const myDebtsPersons = buildPersonsFromDebts(
-        baseDebtsMy,
-        true,
-        overpaidNameSet
-      );
-      const overpaidPersons = buildPersonsFromDebts(baseDebtsDefault, false).filter(
+      const myDebtsPersons = buildPersonsFromDebts(baseDebtsMy, true);
+      const transferredOverpaid = buildPersonsFromDebts(baseDebtsDefault, false).filter(
         (person) => person.remainingAmount < 0
       );
-      return mergePersonsByName([...myDebtsPersons, ...overpaidPersons]);
+
+      const myMap = new Map<string, Person>();
+      myDebtsPersons.forEach((p) => myMap.set(normalizePersonName(p.name), p));
+
+      const transferredMap = new Map<string, Person>();
+      transferredOverpaid.forEach((p) =>
+        transferredMap.set(normalizePersonName(p.name), p)
+      );
+
+      const merged: Person[] = [];
+      const allKeys = new Set<string>([
+        ...Array.from(myMap.keys()),
+        ...Array.from(transferredMap.keys()),
+      ]);
+
+      allKeys.forEach((key) => {
+        const my = myMap.get(key);
+        const transferred = transferredMap.get(key);
+
+        // If this person exists in myDebts AND has an overpaid balance in qarzdorlar,
+        // show the transferred (qarzdorlar) payments as "taken", and the myDebts debts as "paid".
+        // This matches the business meaning of "moved from qarzdorlar into qarzlarim".
+        if (my && transferred) {
+          const taken = transferred.paidAmount; // sum of non-my_debt finance records
+          const paid = my.totalAmount; // sum of qarzlarim debts
+          merged.push({
+            ...my,
+            totalAmount: taken,
+            paidAmount: paid,
+            remainingAmount: paid - taken, // negative => credit (shown as + in invert mode)
+          });
+          return;
+        }
+
+        if (my) {
+          merged.push(my);
+          return;
+        }
+
+        if (transferred) {
+          // Overpaid in qarzdorlar but no myDebts rows; show credit only.
+          const credit = Math.abs(transferred.remainingAmount);
+          merged.push({
+            ...transferred,
+            totalAmount: credit,
+            paidAmount: 0,
+            remainingAmount: -credit,
+          });
+        }
+      });
+
+      return merged.sort((a, b) => b.totalAmount - a.totalAmount);
     }
 
     if (source === "valyutchik") {
@@ -338,20 +340,9 @@ export const useFinanceLogic = (source: FinanceSource) => {
     baseDebtsMy,
     baseDebtsValyutchik,
     buildPersonsFromDebts,
-    mergePersonsByName,
-    overpaidNameSet,
   ]);
 
   const myDebtsCardTotals = useMemo(() => {
-    const myDebtsPersons = buildPersonsFromDebts(
-      baseDebtsMy,
-      true,
-      overpaidNameSet
-    );
-    const transferredPersons = buildPersonsFromDebts(baseDebtsDefault, false).filter(
-      (person) => person.remainingAmount < 0
-    );
-
     const sumTotals = (list: Person[]) =>
       list.reduce(
         (acc, p) => {
@@ -363,19 +354,11 @@ export const useFinanceLogic = (source: FinanceSource) => {
         { totalAmount: 0, paidAmount: 0, remainingAmount: 0 }
       );
 
-    const myTotals = sumTotals(myDebtsPersons);
-    const transferredTotals = sumTotals(transferredPersons);
-
-    const totalAmount = myTotals.totalAmount + transferredTotals.paidAmount;
-    const paidAmount = myTotals.paidAmount + transferredTotals.totalAmount;
-    const remainingAmount = totalAmount - paidAmount;
-
-    return {
-      totalAmount,
-      paidAmount,
-      remainingAmount,
-    };
-  }, [baseDebtsDefault, baseDebtsMy, buildPersonsFromDebts, overpaidNameSet]);
+    // Keep card totals consistent with what we show in the myDebts persons list.
+    return sumTotals(uniquePersons);
+  }, [
+    uniquePersons,
+  ]);
 
   const visibleDebts = useMemo(() => {
     if (source === "myDebts") {

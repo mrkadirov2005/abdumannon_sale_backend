@@ -117,72 +117,40 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   });
 
   const debts: Debt[] = person.debts || [];
-
-  const computeTotalsForDebts = (
-    debtsList: Debt[],
-    records: FinanceRecord[]
-  ) => {
-    let totalAmount = 0;
-    let paidAmount = 0;
-
-    debtsList.forEach((debt) => {
-      totalAmount += debt.amount;
+  const hasTransferredDebts =
+    source === "myDebts" &&
+    debts.some((debt) => {
+      const adminId = getAdminId(debt);
+      return adminId !== MY_DEBTS_ADMIN_ID && adminId !== VALYUTCHIK_ADMIN_ID;
     });
 
-    records.forEach((record) => {
-      const amount = parseFloat(record.amount);
-      if (Number.isNaN(amount)) return;
-      if (record.type === "income") {
-        paidAmount += amount;
-      } else {
-        paidAmount -= amount;
-      }
-    });
+  // For myDebts details cards we must match exactly what the user sees on screen:
+  // - "Қарзлар" table (debts list) => totalAmount
+  // - "Пул бериш тарихи" list (personFinanceRecords) => paidAmount
+  // - remaining = total - paid
+  const mergedDisplayTotals = (() => {
+    const parseAmount = (value: unknown) => {
+      if (typeof value === "number") return Number.isFinite(value) ? value : 0;
+      const raw = String(value ?? "").trim();
+      if (!raw) return 0;
+      // Support backend returning "36,000", "36 000", etc.
+      const normalized = raw.replace(/[\s,]/g, "");
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
 
-    if (paidAmount < 0) paidAmount = 0;
-    const remainingAmount = totalAmount - paidAmount;
+    const totalAmount = debts.reduce((sum, debt) => sum + parseAmount((debt as any).amount), 0);
+    const paidAmount = personFinanceRecords.reduce((sum, record) => {
+      const amount = parseAmount((record as any).amount);
+      return sum + (record.type === "income" ? amount : -amount);
+    }, 0);
 
-    return { totalAmount, paidAmount, remainingAmount };
-  };
-
-  const personRecordsMyDebt = financeRecords.filter((record) => {
-    if (getRecordPersonKey(record) !== personKey) return false;
-    return isMyDebtRecordForThisTab(record);
-  });
-
-  const personRecordsOther = financeRecords.filter((record) => {
-    if (record.category === "my_debt") return false;
-    return getRecordPersonKey(record) === personKey;
-  });
-
-  const myDebtsForPerson = debts.filter(
-    (debt) => debt.admin_id === MY_DEBTS_ADMIN_ID
-  );
-
-  const transferredDebtsForPerson = debts.filter(
-    (debt) =>
-      debt.admin_id !== MY_DEBTS_ADMIN_ID &&
-      debt.admin_id !== VALYUTCHIK_ADMIN_ID
-  );
-
-  const myTotals = computeTotalsForDebts(
-    myDebtsForPerson,
-    personRecordsMyDebt
-  );
-
-  const transferredTotals = computeTotalsForDebts(
-    transferredDebtsForPerson,
-    personRecordsOther
-  );
-
-  const mergedDisplayTotals = {
-    totalAmount: myTotals.totalAmount + transferredTotals.paidAmount,
-    paidAmount: myTotals.paidAmount + transferredTotals.totalAmount,
-    remainingAmount:
-      myTotals.totalAmount +
-      transferredTotals.paidAmount -
-      (myTotals.paidAmount + transferredTotals.totalAmount),
-  };
+    return {
+      totalAmount,
+      paidAmount,
+      remainingAmount: totalAmount - paidAmount,
+    };
+  })();
 
   const displayTotals =
     source === "myDebts"
@@ -428,7 +396,11 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
               currency,
               source === "wagons"
                 ? "alwaysNegative"
-                : source === "myDebts" || source === "valyutchik"
+                : source === "myDebts"
+                ? hasTransferredDebts
+                  ? "default"
+                  : "invert"
+                : source === "valyutchik"
                 ? "invert"
                 : "default"
             )}
