@@ -33,8 +33,22 @@ import { Button, LinearProgress, Menu, MenuItem, IconButton, Tooltip, Chip, Badg
 import { Refresh, FilterList, Receipt, TrendingUp } from "@mui/icons-material";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printChequeImmediately } from "../../components/ui/ChequeProvider";
 import { getPaymentMethodLabel, PAYMENT_METHOD_OPTIONS } from "../../utils/paymentMethod";
+import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
+import { transliterateUzToRu } from "../../utils/transliterate";
 
 const LOW_STOCK_THRESHOLD = 5;
+
+const normalizeCustomerSearch = (value: string) =>
+  transliterateUzToRu(value)
+    .toLowerCase()
+    .replace(/[’ʻʼ`']/g, "")
+    .replace(/[ҳх]/g, "h")
+    .replace(/[қ]/g, "к")
+    .replace(/[ғ]/g, "г")
+    .replace(/[ў]/g, "у")
+    .replace(/[ё]/g, "е")
+    .replace(/\s+/g, " ")
+    .trim();
 
 export default function Sales() {
   const [query, setQuery] = useState("");
@@ -44,6 +58,8 @@ export default function Sales() {
   const [customPaymentMethod, setCustomPaymentMethod] = useState<string>("");
   const [paidAmount, setPaidAmount] = useState<string>("");
   const [customAdminName, setCustomAdminName] = useState<string>("");
+  const [customerNameOptions, setCustomerNameOptions] = useState<string[]>([]);
+  const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
   const [priceInputs, setPriceInputs] = useState<Record<string, string>>({});
   const [quantityInputs, setQuantityInputs] = useState<Record<string, string>>({});
   const [sortAnchorEl, setSortAnchorEl] = useState<null | HTMLElement>(null);
@@ -76,6 +92,63 @@ export default function Sales() {
       dispatch(getBrandsThunk({ token }));
     }
   }, [shop_id, token, dispatch]);
+
+  useEffect(() => {
+    if (!shop_id || !token) return;
+
+    let isCancelled = false;
+
+    async function loadCustomerNames() {
+      try {
+        const isSuperAdmin = Boolean(authData.isSuperAdmin);
+        const salesEndpoint = isSuperAdmin ? ENDPOINTS.sales.getSales : ENDPOINTS.sales.getAdminSales;
+        const requestBody = isSuperAdmin
+          ? { shop_id }
+          : {
+              shop_id,
+              admin_name: authData.user?.uuid,
+            };
+
+        const res = await fetch(`${DEFAULT_ENDPOINT}${salesEndpoint}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: token ?? "",
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          throw new Error(errorText || "Failed to load sales");
+        }
+
+        const json = await res.json();
+        const sales = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
+        const names = new Map<string, string>();
+
+        sales.forEach((sale: any) => {
+          if (typeof sale?.admin_name !== "string") return;
+          const name = sale.admin_name.trim();
+          if (name) {
+            names.set(name.toLowerCase(), name);
+          }
+        });
+
+        if (!isCancelled) {
+          setCustomerNameOptions(Array.from(names.values()).sort((a, b) => a.localeCompare(b)));
+        }
+      } catch (error) {
+        console.error("Failed to load customer name suggestions:", error);
+      }
+    }
+
+    loadCustomerNames();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [shop_id, token, authData.isSuperAdmin, authData.user?.uuid]);
 
   useEffect(() => {
     setPriceInputs((prev) => {
@@ -138,6 +211,15 @@ export default function Sales() {
     });
     return map;
   }, [products]);
+
+  const customerSuggestions = useMemo(() => {
+    const input = normalizeCustomerSearch(customAdminName);
+    if (!input) return [];
+
+    return customerNameOptions
+      .filter((name) => normalizeCustomerSearch(name).startsWith(input))
+      .slice(0, 8);
+  }, [customAdminName, customerNameOptions]);
 
   const filtered = useMemo(() => {
     let result = products;
@@ -764,13 +846,40 @@ export default function Sales() {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Клиент Номи (ихтиёрий)</label>
-                  <input
-                    type="text"
-                    value={customAdminName}
-                    onChange={(e) => setCustomAdminName(e.target.value)}
-                    placeholder="Клиент номини киритинг (бўш қолдиринг, агар стандарт бўлса)..."
-                    className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={customAdminName}
+                      onChange={(e) => {
+                        setCustomAdminName(e.target.value);
+                        setShowCustomerSuggestions(true);
+                      }}
+                      onFocus={() => setShowCustomerSuggestions(true)}
+                      onBlur={() => {
+                        window.setTimeout(() => setShowCustomerSuggestions(false), 150);
+                      }}
+                      placeholder="Клиент номини киритинг (бўш қолдиринг, агар стандарт бўлса)..."
+                      className="w-full px-2 md:px-3 py-1.5 md:py-2 border border-gray-200 rounded-lg text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {showCustomerSuggestions && customerSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1 max-h-52 overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg z-20">
+                        {customerSuggestions.map((name) => (
+                          <button
+                            key={name}
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setCustomAdminName(name);
+                              setShowCustomerSuggestions(false);
+                            }}
+                            className="block w-full px-3 py-2 text-left text-xs md:text-sm text-gray-900 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
+                          >
+                            {name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex gap-2 pt-1 md:pt-2">
