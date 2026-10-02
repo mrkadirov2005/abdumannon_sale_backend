@@ -136,7 +136,7 @@ export default function DebtManagement() {
 
   // Sorting
   const [sortKey, setSortKey] = useState<SortKey>("date");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
 
   const isSuperAdmin = useSelector(getIsSuperUserFromStore);
   const authData = useSelector(getAuthFromStore);
@@ -1071,7 +1071,9 @@ export default function DebtManagement() {
       if (record.type !== "income" || record.category === "my_debt") return false;
       const personName = (record.description?.split(": ")[0] || "").trim().toLowerCase();
       return personName === key;
-    });
+    })
+      // Oldest first, like the debts above
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [financeRecords, selectedDebtor]);
 
   const sheetTotals = useMemo(() => {
@@ -1239,7 +1241,7 @@ export default function DebtManagement() {
         index + 1,
         formatDate(debt),
         <span className={debt.branch_id === 1 ? "text-red-700" : "text-blue-700"}>
-          {debt.branch_id === 1 ? "Мой долг" : "Выдан в долг"}
+          {debt.branch_id === 1 ? "Долг" : "Выдан в долг"}
         </span>,
       ],
       trailing: [formatMoney(debt.amount)],
@@ -2185,6 +2187,7 @@ export default function DebtManagement() {
         formData={paymentForm}
         onFormChange={(data) => setPaymentForm((prev) => ({ ...prev, ...data }))}
         onAddPayment={addPaymentForSelectedDebtor}
+        title={selectedDebtor ?? undefined}
         onClose={() => {
           setShowPaymentModal(false);
           setPaymentForm(getDefaultPaymentForm());
