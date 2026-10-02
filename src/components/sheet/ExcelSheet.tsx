@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Pencil, Check, X } from "lucide-react";
+import { Plus, Pencil, Check, X, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   RU_UNIT_OPTIONS,
@@ -21,6 +21,9 @@ interface ExcelSheetProps {
   totals: SheetTotal[];
   addLabel: string;
   onAdd: () => void;
+  // Optional second "+" action shown next to the first one
+  secondaryAddLabel?: string;
+  onSecondaryAdd?: () => void;
   formatMoney: (value: number) => string;
 }
 
@@ -62,6 +65,8 @@ export const ExcelSheet: React.FC<ExcelSheetProps> = ({
   totals,
   addLabel,
   onAdd,
+  secondaryAddLabel,
+  onSecondaryAdd,
   formatMoney,
 }) => {
   const [selected, setSelected] = useState<{ row: string; col: string } | null>(null);
@@ -188,7 +193,14 @@ export const ExcelSheet: React.FC<ExcelSheetProps> = ({
     }
   };
 
-  const renderActions = (row: string, canEdit: boolean, onEdit: () => void, onSave: () => void) => {
+  const renderActions = (
+    row: string,
+    canEdit: boolean,
+    onEdit: () => void,
+    onSave: () => void,
+    onDelete?: () => void,
+    deleteLabel = "Удалить"
+  ) => {
     if (editing?.row === row) {
       return (
         <div className="flex items-center gap-1">
@@ -210,14 +222,29 @@ export const ExcelSheet: React.FC<ExcelSheetProps> = ({
       );
     }
     if (editing || selected?.row !== row) return null;
-    if (!canEdit) return <span className="text-xs text-gray-400">Только просмотр</span>;
+    if (!canEdit && !onDelete) return <span className="text-xs text-gray-400">Только просмотр</span>;
     return (
-      <button
-        onClick={onEdit}
-        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
-      >
-        <Pencil size={14} /> Редактировать
-      </button>
+      <div className="flex items-center gap-1">
+        {canEdit && (
+          <button
+            onClick={onEdit}
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+          >
+            <Pencil size={14} /> Редактировать
+          </button>
+        )}
+        {onDelete && (
+          <button
+            onClick={() => {
+              setSelected(null);
+              onDelete();
+            }}
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700"
+          >
+            <Trash2 size={14} /> {deleteLabel}
+          </button>
+        )}
+      </div>
     );
   };
 
@@ -231,7 +258,7 @@ export const ExcelSheet: React.FC<ExcelSheetProps> = ({
               {columns.map((_, i) => (
                 <th key={i} className={headCell}>{String.fromCharCode(65 + i)}</th>
               ))}
-              <th className={`${headCell} w-44`}></th>
+              <th className={`${headCell} w-56`}></th>
             </tr>
           </thead>
           <tbody>
@@ -366,7 +393,14 @@ export const ExcelSheet: React.FC<ExcelSheetProps> = ({
                       ))}
 
                     <td className={`${cell} whitespace-nowrap`}>
-                      {renderActions(rowKey, Boolean(group.edit), () => startLineEdit(rowKey, line, group), save)}
+                      {renderActions(
+                        rowKey,
+                        Boolean(group.edit),
+                        () => startLineEdit(rowKey, line, group),
+                        save,
+                        group.onDelete,
+                        "Удалить долг"
+                      )}
                     </td>
                   </tr>
                 );
@@ -439,7 +473,7 @@ export const ExcelSheet: React.FC<ExcelSheetProps> = ({
                       </>
                     )}
                     <td className={`${cell} whitespace-nowrap`}>
-                      {renderActions(payment.key, Boolean(payment.edit), () => startPaymentEdit(payment), save)}
+                      {renderActions(payment.key, Boolean(payment.edit), () => startPaymentEdit(payment), save, payment.onDelete)}
                     </td>
                   </tr>
                 );
@@ -462,12 +496,22 @@ export const ExcelSheet: React.FC<ExcelSheetProps> = ({
                 <Plus size={14} className="mx-auto" />
               </td>
               <td colSpan={fullSpan} className="border border-gray-300 p-0">
-                <button
-                  onClick={onAdd}
-                  className="w-full flex items-center gap-2 px-2 py-2 text-blue-700 font-medium hover:bg-blue-50 transition"
-                >
-                  <Plus size={16} /> {addLabel}
-                </button>
+                <div className="flex divide-x divide-gray-300">
+                  <button
+                    onClick={onAdd}
+                    className="flex-1 flex items-center gap-2 px-2 py-2 text-blue-700 font-medium hover:bg-blue-50 transition"
+                  >
+                    <Plus size={16} /> {addLabel}
+                  </button>
+                  {secondaryAddLabel && onSecondaryAdd && (
+                    <button
+                      onClick={onSecondaryAdd}
+                      className="flex-1 flex items-center gap-2 px-2 py-2 text-green-700 font-medium hover:bg-green-50 transition"
+                    >
+                      <Plus size={16} /> {secondaryAddLabel}
+                    </button>
+                  )}
+                </div>
               </td>
             </tr>
           </tbody>

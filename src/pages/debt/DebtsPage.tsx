@@ -14,8 +14,19 @@ import { Search, Plus, Edit2, Trash2, X, DollarSign, Eye, Printer, ArrowUpDown, 
 import { Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import { ExcelSheet } from "../../components/sheet/ExcelSheet";
 import type { SheetDebtUpdate, SheetGroup, SheetPayment, SheetPaymentDraft } from "../../components/sheet/sheetTypes";
+import { PaymentModal } from "../Finance/components/PaymentModal";
+import type { FormData as PaymentFormData } from "../Finance/types";
 import type { Admin } from "../../../types/types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../components/ui/ChequeProvider";
+
+// Same defaults as the payment modal in Moliya > Қарздорлар
+const getDefaultPaymentForm = (): PaymentFormData => ({
+  amount: "",
+  description: "",
+  type: "income",
+  category: "sales",
+  date: new Date().toISOString().split("T")[0],
+});
 
 /* ================= TYPES ================= */
 
@@ -106,6 +117,8 @@ export default function DebtManagement() {
   // NEW: View Mode
   const [viewMode, setViewMode] = useState<"list" | "folders" | "statistics">("folders");
   const [selectedDebtor, setSelectedDebtor] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentForm, setPaymentForm] = useState<PaymentFormData>(() => getDefaultPaymentForm());
   const [debtTypeFilter, setDebtTypeFilter] = useState<"all" | "given" | "taken">("all");
 
   // Filters
@@ -1107,6 +1120,73 @@ export default function DebtManagement() {
     }
   };
 
+  const openPaymentForSelectedDebtor = () => {
+    if (!selectedDebtor) return;
+    setPaymentForm(getDefaultPaymentForm());
+    setShowPaymentModal(true);
+  };
+
+  // Same request as Moliya > Қарздорлар "add payment": a finance record named "Debtor: comment"
+  const addPaymentForSelectedDebtor = async () => {
+    if (!selectedDebtor || !paymentForm.amount) {
+      toast.error("Iltimos, barcha maydonlarni to'ldiring");
+      return;
+    }
+    const amount = parseFloat(paymentForm.amount);
+    if (Number.isNaN(amount)) {
+      toast.error("Summa noto'g'ri kiritilgan");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${DEFAULT_ENDPOINT}/finance`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ?? "",
+        },
+        body: JSON.stringify({
+          amount,
+          description: `${selectedDebtor}: ${(paymentForm.description || "").trim()}`.trim(),
+          type: paymentForm.type,
+          category: paymentForm.category,
+          date: paymentForm.date,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(data.error || data.message || "Pul qo'shishda xatolik");
+        return;
+      }
+      toast.success("Pul qo'shildi");
+      setShowPaymentModal(false);
+      setPaymentForm(getDefaultPaymentForm());
+      fetchFinanceRecords();
+    } catch (error) {
+      console.error("Error adding payment:", error);
+      toast.error("Pul qo'shishda xatolik");
+    }
+  };
+
+  const deletePaymentFromSheet = async (record: FinanceRecord) => {
+    if (!window.confirm("Удалить этот платёж?")) return;
+    try {
+      const res = await fetch(`${DEFAULT_ENDPOINT}/finance/${record.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ?? "",
+        },
+      });
+      if (!res.ok) throw new Error("Failed to delete finance record");
+      toast.success("Платёж удалён");
+      fetchFinanceRecords();
+    } catch (error) {
+      console.error("Error deleting payment:", error);
+      toast.error("Не удалось удалить платёж");
+    }
+  };
+
   // Payments have no update endpoint: create the new record, then delete the old one (same as the finance page)
   const savePaymentFromSheet = async (record: FinanceRecord, draft: SheetPaymentDraft) => {
     const headers = {
@@ -1175,6 +1255,7 @@ export default function DebtManagement() {
         rawItems,
         onSave: (update) => saveDebtFromSheet(debt, update),
       },
+      onDelete: () => handleDeleteDebt(debt.id),
     };
   });
 
@@ -1189,6 +1270,7 @@ export default function DebtManagement() {
       initialDescription: record.description?.split(": ").slice(1).join(": ") || "",
       onSave: (draft) => savePaymentFromSheet(record, draft),
     },
+    onDelete: () => deletePaymentFromSheet(record),
   }));
 
   const openCreateForSelectedDebtor = () => {
@@ -1742,6 +1824,12 @@ export default function DebtManagement() {
               </div>
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <button
+                  onClick={openPaymentForSelectedDebtor}
+                  className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium flex items-center justify-center gap-2"
+                >
+                  <DollarSign size={18} /> Тўлов қўшиш
+                </button>
+                <button
                   onClick={() => setDebtorView(debtorView === "sheet" ? "table" : "sheet")}
                   className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2"
                   title="Сменить вид"
@@ -1779,6 +1867,8 @@ export default function DebtManagement() {
               ]}
               addLabel="Добавить долг"
               onAdd={openCreateForSelectedDebtor}
+              secondaryAddLabel="Добавить платёж"
+              onSecondaryAdd={openPaymentForSelectedDebtor}
               formatMoney={formatMoney}
             />
           )}
@@ -2089,6 +2179,18 @@ export default function DebtManagement() {
       )}
 
       {/* CREATE DEBT MODAL - PRODUCTS SECTION UPDATED */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        selectedPerson={selectedDebtor}
+        formData={paymentForm}
+        onFormChange={(data) => setPaymentForm((prev) => ({ ...prev, ...data }))}
+        onAddPayment={addPaymentForSelectedDebtor}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setPaymentForm(getDefaultPaymentForm());
+        }}
+      />
+
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl md:max-w-3xl max-h-[90vh] flex flex-col">

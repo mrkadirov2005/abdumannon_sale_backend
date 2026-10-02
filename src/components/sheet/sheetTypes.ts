@@ -41,6 +41,8 @@ export interface SheetGroup {
     rawItems: string[];
     onSave: (update: SheetDebtUpdate) => Promise<boolean>;
   };
+  // Present when the whole group (debt) can be deleted
+  onDelete?: () => void;
 }
 
 export interface SheetPaymentDraft {
@@ -60,6 +62,7 @@ export interface SheetPayment {
     initialDescription: string;
     onSave: (draft: SheetPaymentDraft) => Promise<boolean>;
   };
+  onDelete?: () => void;
 }
 
 export interface SheetTotal {
