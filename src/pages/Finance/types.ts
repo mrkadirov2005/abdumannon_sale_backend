@@ -22,6 +22,7 @@ export interface Wagon {
   total: number;
   paid_amount?: number;
   products: Product[];
+  created_at?: string;
 }
 
 export interface Debt {

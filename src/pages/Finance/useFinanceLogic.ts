@@ -22,6 +22,15 @@ const getHeaders = () => {
   };
 };
 
+// All lists are shown oldest first (newest at the bottom)
+const toTime = (value?: string) => {
+  const time = value ? new Date(value).getTime() : NaN;
+  return Number.isNaN(time) ? 0 : time;
+};
+
+const sortOldestFirst = <T,>(list: T[], getTime: (item: T) => number): T[] =>
+  Array.isArray(list) ? [...list].sort((a, b) => getTime(a) - getTime(b)) : list;
+
 const MY_DEBTS_ADMIN_ID = "qarzlarim";
 const VALYUTCHIK_ADMIN_ID = "valyutchik";
 const MY_DEBT_SCOPE_TAG_QARZLARIM = "[qarzlarim]";
@@ -89,8 +98,15 @@ export const useFinanceLogic = (source: FinanceSource) => {
       const financeData = await financeRes.json();
       const debtsData = await debtsRes.json();
 
-      setWagons(wagonsData.data || wagonsData);
-      setFinanceRecords(financeData.data || financeData);
+      setWagons(
+        sortOldestFirst<Wagon>(wagonsData.data || wagonsData, (wagon) => toTime(wagon.created_at))
+      );
+      setFinanceRecords(
+        sortOldestFirst<FinanceRecord>(
+          financeData.data || financeData,
+          (record) => toTime(record.date) || toTime(record.created_at)
+        )
+      );
       const rawDebts = debtsData.data || debtsData;
       const normalizedDebts = Array.isArray(rawDebts)
         ? rawDebts.map((debt) => ({
@@ -107,7 +123,11 @@ export const useFinanceLogic = (source: FinanceSource) => {
                 : "qarzdorlar",
           }))
         : rawDebts;
-      setDebts(normalizedDebts);
+      setDebts(
+        sortOldestFirst<Debt>(normalizedDebts, (debt) =>
+          new Date(debt.year, (debt.month || 1) - 1, debt.day || 1).getTime()
+        )
+      );
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Ma'lumotlarni yuklashda xatolik");
