@@ -4,6 +4,7 @@ import type { Person, FinanceRecord, Debt, Wagon } from "../types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
 import { DebtProductsModal } from "./DebtProductsModal";
 import { FinanceSheet } from "./FinanceSheet";
+import type { SheetDebtUpdate, SheetPaymentDraft } from "../../../components/sheet/sheetTypes";
 
 interface DetailsPanelProps {
   person: Person;
@@ -18,6 +19,8 @@ interface DetailsPanelProps {
   source: "wagons" | "debts" | "myDebts" | "valyutchik";
   onBackToOverview: () => void;
   onEditFinanceRecord: (record: FinanceRecord) => void;
+  onSaveSheetDebt: (debt: Debt, update: SheetDebtUpdate) => Promise<boolean>;
+  onSaveSheetPayment: (record: FinanceRecord, draft: SheetPaymentDraft) => Promise<boolean>;
 }
 
 export const DetailsPanel: React.FC<DetailsPanelProps> = ({
@@ -33,6 +36,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   source,
   onBackToOverview,
   onEditFinanceRecord,
+  onSaveSheetDebt,
+  onSaveSheetPayment,
 }) => {
   const [showDebtProducts, setShowDebtProducts] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
@@ -185,6 +190,20 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       ? "invert"
       : "default"
   );
+
+  // Same rule as the edit button in the details view
+  const canEditDebt = (debt: Debt) =>
+    (source === "myDebts" && getAdminId(debt) === MY_DEBTS_ADMIN_ID) ||
+    (source === "valyutchik" && getAdminId(debt) === VALYUTCHIK_ADMIN_ID);
+
+  // Russian labels for the Excel sheet
+  const sheetTotalLabel =
+    source === "debts"
+      ? "Абдуманнон (дал)"
+      : source === "wagons"
+      ? "Поступивший груз"
+      : "Абдуманнон (взял)";
+  const sheetPaidLabel = source === "debts" ? "Клиент (дал)" : "Оплачено";
 
   const printWagon = (wagon: Wagon) => {
     printCheque({
@@ -372,12 +391,12 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           <button
             onClick={() => setView(view === "sheet" ? "details" : "sheet")}
             className="flex items-center gap-2 px-3 py-2 text-sm bg-white text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-50 transition"
-            title="Кўринишни алмаштириш"
+            title="Сменить вид"
           >
             {view === "sheet" ? (
-              <><List size={16} /> Жадвал кўриниши</>
+              <><List size={16} /> Табличный вид</>
             ) : (
-              <><Table2 size={16} /> Excel кўриниши</>
+              <><Table2 size={16} /> Вид Excel</>
             )}
           </button>
           {showPulQoshish && (
@@ -404,10 +423,14 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           debts={debts}
           records={personFinanceRecords}
           currency={currency}
+          onAddPayment={onAddPayment}
+          canEditDebt={canEditDebt}
+          onSaveDebt={onSaveSheetDebt}
+          onSavePayment={onSaveSheetPayment}
           totals={[
-            { label: totalLabel, value: formatCurrency(displayTotals.totalAmount, currency), className: "text-blue-700" },
-            { label: paidLabel, value: formatCurrency(displayTotals.paidAmount, currency), className: "text-green-700" },
-            { label: "Қолдиқ Сумма", value: remainingText, className: "text-orange-700" },
+            { label: sheetTotalLabel, value: formatCurrency(displayTotals.totalAmount, currency), className: "text-blue-700" },
+            { label: sheetPaidLabel, value: formatCurrency(displayTotals.paidAmount, currency), className: "text-green-700" },
+            { label: "Остаток", value: remainingText, className: "text-orange-700" },
           ]}
         />
       ) : (

@@ -12,6 +12,8 @@ import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { toast } from "react-toastify";
 import { Search, Plus, Edit2, Trash2, X, DollarSign, Eye, Printer, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight, ArrowLeft, MoreVertical, Table2, List } from "lucide-react";
 import { Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import { ExcelSheet } from "../../components/sheet/ExcelSheet";
+import type { SheetDebtUpdate, SheetGroup, SheetPayment, SheetPaymentDraft } from "../../components/sheet/sheetTypes";
 import type { Admin } from "../../../types/types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../components/ui/ChequeProvider";
 
@@ -1048,19 +1050,6 @@ export default function DebtManagement() {
 
   /* ================= SHEET VIEW (single debtor) ================= */
 
-  const SHEET_COLUMNS = ["№", "Сана", "Тур", "Маҳсулот", "Миқдор", "Бирлик", "Нарх", "Сумма", "Қарз жами"];
-
-  const sheetDebts = useMemo(() => {
-    return filteredAndSorted.map((debt) => {
-      const lines = normalizeProductNames(debt.product_names).map((item) => {
-        const [name, quantity, price, , unit] = item.split("*");
-        const qty = parseFloat(quantity) || 0;
-        const unitPrice = parseFloat(price) || 0;
-        return { name: name || "", quantity: qty, unit: unit || "pcs", price: unitPrice, sum: qty * unitPrice };
-      });
-      return { debt, lines };
-    });
-  }, [filteredAndSorted]);
 
   const sheetPayments = useMemo(() => {
     if (!selectedDebtor) return [];
@@ -1081,6 +1070,134 @@ export default function DebtManagement() {
   }, [filteredAndSorted, sheetPayments]);
 
   const formatMoney = (value: number) => value.toLocaleString("en-US");
+
+  // Inline edit of one product line: same request as the edit modal (/debts/update)
+  const saveDebtFromSheet = async (debt: Debt, update: SheetDebtUpdate) => {
+    try {
+      const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.debts.update}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: token ?? "",
+        },
+        body: JSON.stringify({
+          id: debt.id,
+          name: debt.name,
+          amount: update.amount,
+          product_names: update.rawItems,
+          branch_id: debt.branch_id,
+          isreturned: debt.isreturned,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update debt");
+      }
+
+      const json = await res.json();
+      setDebts((prev) => prev.map((d) => (d.id === json.data.id ? json.data : d)));
+      fetchStatistics();
+      fetchUnreturnedDebtsCache();
+      toast.success("Изменения сохранены");
+      return true;
+    } catch (err) {
+      console.error(err);
+      toast.error("Не удалось сохранить изменения");
+      return false;
+    }
+  };
+
+  // Payments have no update endpoint: create the new record, then delete the old one (same as the finance page)
+  const savePaymentFromSheet = async (record: FinanceRecord, draft: SheetPaymentDraft) => {
+    const headers = {
+      "Content-Type": "application/json",
+      authorization: token ?? "",
+    };
+    const personName = (record.description?.split(": ")[0] || selectedDebtor || "").trim();
+
+    try {
+      const createRes = await fetch(`${DEFAULT_ENDPOINT}/finance`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          amount: draft.amount,
+          description: `${personName}: ${draft.description}`.trim(),
+          type: record.type,
+          category: record.category,
+          date: draft.date,
+        }),
+      });
+      if (!createRes.ok) {
+        throw new Error("Failed to create finance record");
+      }
+
+      const deleteRes = await fetch(`${DEFAULT_ENDPOINT}/finance/${record.id}`, {
+        method: "DELETE",
+        headers,
+      });
+      if (!deleteRes.ok) {
+        toast.error("Не удалось удалить старую запись");
+        fetchFinanceRecords();
+        return false;
+      }
+
+      fetchFinanceRecords();
+      toast.success("Платёж обновлён");
+      return true;
+    } catch (err) {
+      console.error(err);
+      toast.error("Не удалось сохранить платёж");
+      return false;
+    }
+  };
+
+  const sheetGroups: SheetGroup[] = filteredAndSorted.map((debt, index) => {
+    const rawItems = normalizeProductNames(debt.product_names);
+    return {
+      key: debt.id,
+      leading: [
+        index + 1,
+        formatDate(debt),
+        <span className={debt.branch_id === 1 ? "text-red-700" : "text-blue-700"}>
+          {debt.branch_id === 1 ? "Мой долг" : "Выдан в долг"}
+        </span>,
+      ],
+      trailing: [formatMoney(debt.amount)],
+      trailingClassNames: ["font-semibold"],
+      lines: rawItems.map((item) => {
+        const [name, quantity, price, , unit] = item.split("*");
+        const qty = parseFloat(quantity) || 0;
+        const unitPrice = parseFloat(price) || 0;
+        return { kind: "product", name: name || "", quantity: qty, unit: unit || "pcs", price: unitPrice, sum: qty * unitPrice };
+      }),
+      edit: {
+        amount: debt.amount,
+        rawItems,
+        onSave: (update) => saveDebtFromSheet(debt, update),
+      },
+    };
+  });
+
+  const sheetPaymentRows: SheetPayment[] = sheetPayments.map((record) => ({
+    key: `pay-${record.id}`,
+    date: new Date(record.date).toLocaleDateString("ru-RU"),
+    description: record.description?.split(": ").slice(1).join(": ") || "",
+    amount: Number.parseFloat(record.amount) || 0,
+    isIncome: true,
+    edit: {
+      initialDate: String(record.date).split("T")[0],
+      initialDescription: record.description?.split(": ").slice(1).join(": ") || "",
+      onSave: (draft) => savePaymentFromSheet(record, draft),
+    },
+  }));
+
+  const openCreateForSelectedDebtor = () => {
+    if (!selectedDebtor) return;
+    setFormData((prev) => ({ ...prev, name: selectedDebtor }));
+    setDebtorNameInput(selectedDebtor);
+    setShowSuggestions(false);
+    setShowCreateModal(true);
+  };
 
 
  
@@ -1538,48 +1655,67 @@ export default function DebtManagement() {
             <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Қарзларини кўриш учун қарздорга босинг</p>
           </div>
 
-          <div className="divide-y divide-gray-200">
-            {getUniqueDebtors.length === 0 ? (
-              <div className="p-8 sm:p-10 md:p-12 text-center">
-                <User size={48} className="text-gray-300 mb-4 mx-auto" />
-                <p className="text-base sm:text-lg md:text-xl font-medium text-gray-900">Қарздорлар топилмади</p>
-                <p className="text-sm md:text-base text-gray-500 mt-1">Янги қарз қўшишдан бошланг</p>
-              </div>
-            ) : (
-              getUniqueDebtors.map((debtor) => (
-                <div
-                  key={debtor.name}
-                  onClick={() => {
-                    setSelectedDebtor(debtor.name);
-                    setDebtorView("sheet");
-                    setViewMode("list");
-                  }}
-                  className="p-4 sm:p-5 md:p-6 hover:bg-blue-50 transition cursor-pointer group"
-                >
-                  <div className="flex items-center justify-between gap-3 md:gap-4">
-                    <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
-                      <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-base sm:text-lg md:text-xl">
-                        {debtor.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 truncate group-hover:text-blue-600 transition">
-                          {debtor.name}
-                        </h3>
-                        <p className="text-xs sm:text-sm md:text-base text-gray-600">
-                          {debtor.totalDebts} қарз
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 sm:gap-4 md:gap-6">
-                      
-                      <ChevronRight className="text-gray-400 group-hover:text-blue-600 transition flex-shrink-0" size={24} />
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          {getUniqueDebtors.length === 0 ? (
+            <div className="p-8 sm:p-10 md:p-12 text-center">
+              <User size={48} className="text-gray-300 mb-4 mx-auto" />
+              <p className="text-base sm:text-lg md:text-xl font-medium text-gray-900">Қарздорлар топилмади</p>
+              <p className="text-sm md:text-base text-gray-500 mt-1">Янги қарз қўшишдан бошланг</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px] text-sm">
+                <thead className="bg-gray-50 text-gray-600 text-xs uppercase">
+                  <tr>
+                    <th className="px-3 py-2 text-left w-12">№</th>
+                    <th className="px-3 py-2 text-left">Мижоз</th>
+                    <th className="px-3 py-2 text-center">Қарзлар</th>
+                    <th className="px-3 py-2 text-right">Жами</th>
+                    <th className="px-3 py-2 text-right">Тўланган</th>
+                    <th className="px-3 py-2 text-right">Қолдиқ</th>
+                    <th className="px-3 py-2 w-10" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {getUniqueDebtors.map((debtor, index) => (
+                    <tr
+                      key={debtor.name}
+                      onClick={() => {
+                        setSelectedDebtor(debtor.name);
+                        setDebtorView("sheet");
+                        setViewMode("list");
+                      }}
+                      className="hover:bg-blue-50 transition cursor-pointer group"
+                    >
+                      <td className="px-3 py-2 text-gray-500">{index + 1}</td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <div className="flex-shrink-0 w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            {debtor.name.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="font-medium text-gray-900 truncate group-hover:text-blue-600 transition">
+                            {debtor.name}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-center text-gray-700">{debtor.totalDebts}</td>
+                      <td className="px-3 py-2 text-right font-semibold text-gray-900">
+                        {debtor.totalAmount.toLocaleString("en-US")}
+                      </td>
+                      <td className="px-3 py-2 text-right text-green-700">
+                        {debtor.returnedAmount.toLocaleString("en-US")}
+                      </td>
+                      <td className="px-3 py-2 text-right font-semibold text-red-700">
+                        {debtor.unreturnedAmount.toLocaleString("en-US")}
+                      </td>
+                      <td className="px-3 py-2 text-right">
+                        <ChevronRight className="text-gray-400 group-hover:text-blue-600 transition inline" size={18} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -1608,12 +1744,12 @@ export default function DebtManagement() {
                 <button
                   onClick={() => setDebtorView(debtorView === "sheet" ? "table" : "sheet")}
                   className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2"
-                  title="Кўринишни алмаштириш"
+                  title="Сменить вид"
                 >
                   {debtorView === "sheet" ? (
-                    <><List size={18} /> Жадвал кўриниши</>
+                    <><List size={18} /> Табличный вид</>
                   ) : (
-                    <><Table2 size={18} /> Excel кўриниши</>
+                    <><Table2 size={18} /> Вид Excel</>
                   )}
                 </button>
                 <button
@@ -1627,118 +1763,25 @@ export default function DebtManagement() {
           )}
           
           {/* Excel-like Sheet View (single debtor) */}
-          {selectedDebtor && debtorView === "sheet" && (() => {
-            const cell = "border border-gray-300 px-2 py-1.5";
-            const headCell = "border border-gray-300 bg-gray-100 text-gray-500 font-normal text-xs text-center px-2 py-1";
-            const numCell = `${cell} text-right tabular-nums whitespace-nowrap`;
-            let rowNumber = 1;
-            const nextRow = () => {
-              rowNumber += 1;
-              return rowNumber;
-            };
-
-            return (
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-300">
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[960px] border-collapse text-sm text-gray-900">
-                    <thead className="sticky top-0 z-10">
-                      <tr>
-                        <th className={`${headCell} w-10`}></th>
-                        {SHEET_COLUMNS.map((_, i) => (
-                          <th key={i} className={headCell}>{String.fromCharCode(65 + i)}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* Column titles (row 1) */}
-                      <tr className="bg-green-50 font-semibold">
-                        <td className={`${headCell} w-10`}>1</td>
-                        {SHEET_COLUMNS.map((title) => (
-                          <td key={title} className={`${cell} whitespace-nowrap`}>{title}</td>
-                        ))}
-                      </tr>
-
-                      {sheetDebts.length === 0 && (
-                        <tr>
-                          <td className={`${headCell} w-10`}>{nextRow()}</td>
-                          <td colSpan={SHEET_COLUMNS.length} className={`${cell} text-center text-gray-500 py-6`}>
-                            Қарзлар топилмади
-                          </td>
-                        </tr>
-                      )}
-
-                      {sheetDebts.map(({ debt, lines }, debtIndex) => {
-                        const rows = lines.length > 0 ? lines : [null];
-                        const span = rows.length;
-                        const zebra = debtIndex % 2 === 1 ? "bg-gray-50" : "bg-white";
-
-                        return rows.map((line, lineIndex) => (
-                          <tr key={`${debt.id}-${lineIndex}`} className={`${zebra} hover:bg-blue-50`}>
-                            <td className={`${headCell} w-10`}>{nextRow()}</td>
-                            {lineIndex === 0 && (
-                              <>
-                                <td rowSpan={span} className={`${cell} text-center align-top`}>{debtIndex + 1}</td>
-                                <td rowSpan={span} className={`${cell} whitespace-nowrap align-top`}>{formatDate(debt)}</td>
-                                <td rowSpan={span} className={`${cell} whitespace-nowrap align-top ${debt.branch_id === 1 ? "text-red-700" : "text-blue-700"}`}>
-                                  {debt.branch_id === 1 ? "Nasiyam" : "Berilgan"}
-                                </td>
-                              </>
-                            )}
-                            <td className={cell}>{line ? line.name : "—"}</td>
-                            <td className={numCell}>{line ? line.quantity : ""}</td>
-                            <td className={`${cell} whitespace-nowrap`}>{line ? formatUnitLabel(line.unit) : ""}</td>
-                            <td className={numCell}>{line ? formatMoney(line.price) : ""}</td>
-                            <td className={numCell}>{line ? formatMoney(line.sum) : formatMoney(debt.amount)}</td>
-                            {lineIndex === 0 && (
-                              <td rowSpan={span} className={`${numCell} font-semibold align-top`}>{formatMoney(debt.amount)}</td>
-                            )}
-                          </tr>
-                        ));
-                      })}
-
-                      {/* Payments from finance records */}
-                      {sheetPayments.length > 0 && (
-                        <>
-                          <tr className="bg-green-50 font-semibold">
-                            <td className={`${headCell} w-10`}>{nextRow()}</td>
-                            <td colSpan={SHEET_COLUMNS.length} className={cell}>Тўловлар</td>
-                          </tr>
-                          {sheetPayments.map((payment, i) => (
-                            <tr key={payment.id} className="hover:bg-blue-50">
-                              <td className={`${headCell} w-10`}>{nextRow()}</td>
-                              <td className={`${cell} text-center`}>{i + 1}</td>
-                              <td className={`${cell} whitespace-nowrap`}>{(payment.date || payment.created_at || "").slice(0, 10)}</td>
-                              <td className={`${cell} text-green-700`}>Тўлов</td>
-                              <td colSpan={4} className={cell}>{payment.description?.split(": ").slice(1).join(": ") || ""}</td>
-                              <td className={numCell}>{formatMoney(Number.parseFloat(payment.amount) || 0)}</td>
-                              <td className={cell}></td>
-                            </tr>
-                          ))}
-                        </>
-                      )}
-
-                      {/* Totals */}
-                      <tr className="bg-blue-50 font-bold">
-                        <td className={`${headCell} w-10`}>{nextRow()}</td>
-                        <td colSpan={8} className={`${cell} text-right`}>Жами қарз:</td>
-                        <td className={numCell}>{formatMoney(sheetTotals.total)}</td>
-                      </tr>
-                      <tr className="bg-blue-50 font-bold">
-                        <td className={`${headCell} w-10`}>{nextRow()}</td>
-                        <td colSpan={8} className={`${cell} text-right`}>Тўланган:</td>
-                        <td className={`${numCell} text-green-700`}>{formatMoney(sheetTotals.paid)}</td>
-                      </tr>
-                      <tr className="bg-blue-50 font-bold">
-                        <td className={`${headCell} w-10`}>{nextRow()}</td>
-                        <td colSpan={8} className={`${cell} text-right`}>Қолдиқ:</td>
-                        <td className={`${numCell} text-red-700`}>{formatMoney(sheetTotals.remaining)}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })()}
+          {selectedDebtor && debtorView === "sheet" && (
+            <ExcelSheet
+              leadingColumns={["№", "Дата", "Тип"]}
+              trailingColumns={["Итого долга"]}
+              groups={sheetGroups}
+              emptyText="Долгов нет"
+              payments={sheetPaymentRows}
+              paymentsTitle="Платежи"
+              paymentsEmptyText="Платежей нет"
+              totals={[
+                { label: "Общий долг", value: formatMoney(sheetTotals.total), className: "" },
+                { label: "Оплачено", value: formatMoney(sheetTotals.paid), className: "text-green-700" },
+                { label: "Остаток", value: formatMoney(sheetTotals.remaining), className: "text-red-700" },
+              ]}
+              addLabel="Добавить долг"
+              onAdd={openCreateForSelectedDebtor}
+              formatMoney={formatMoney}
+            />
+          )}
 
           {/* Debts Table View */}
           {(!selectedDebtor || debtorView === "table") && (

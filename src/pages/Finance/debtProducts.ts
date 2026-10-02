@@ -21,7 +21,7 @@ export const formatUnitLabel = (unit: string | undefined | null) => {
   return found ? found.label : normalized;
 };
 
-const normalizeProductNames = (value: unknown): string[] => {
+export const normalizeProductNames = (value: unknown): string[] => {
   if (Array.isArray(value)) {
     return value.filter((v) => typeof v === "string" && v.trim() !== "");
   }

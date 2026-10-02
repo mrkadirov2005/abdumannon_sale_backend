@@ -238,6 +238,23 @@ const Finance: React.FC = () => {
           source={source}
           onBackToOverview={() => setSelectedPerson(null)}
           onEditFinanceRecord={openEditPaymentModal}
+          onSaveSheetDebt={(debt, update) =>
+            handleUpdateMyDebt(debt, { amount: update.amount, comment: update.rawItems.join("|") })
+          }
+          onSaveSheetPayment={(record, draft) =>
+            handleReplaceFinanceRecord(
+              record.id,
+              selectedPerson || "",
+              {
+                amount: String(draft.amount),
+                description: draft.description,
+                type: record.type,
+                category: record.category,
+                date: draft.date,
+              },
+              selectedPersonData?.debts
+            )
+          }
         />
       )}
 
