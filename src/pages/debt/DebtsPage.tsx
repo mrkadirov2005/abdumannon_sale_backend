@@ -10,7 +10,8 @@ import {
 } from "../../redux/selectors";
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { toast } from "react-toastify";
-import { Search, Plus, Edit2, Trash2, X, DollarSign, Eye, Printer, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight, ArrowLeft } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, X, DollarSign, Eye, Printer, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight, ArrowLeft, MoreVertical, Table2, List } from "lucide-react";
+import { Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import type { Admin } from "../../../types/types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../components/ui/ChequeProvider";
 
@@ -124,6 +125,24 @@ export default function DebtManagement() {
 
   const isSuperAdmin = useSelector(getIsSuperUserFromStore);
   const authData = useSelector(getAuthFromStore);
+
+  // Single debtor view: Excel-like sheet (default) or the regular table
+  const [debtorView, setDebtorView] = useState<"sheet" | "table">("sheet");
+
+  // Row actions menu (three dots)
+  const [actionMenuAnchor, setActionMenuAnchor] = useState<HTMLElement | null>(null);
+  const [actionMenuDebt, setActionMenuDebt] = useState<Debt | null>(null);
+
+  const closeActionMenu = () => {
+    setActionMenuAnchor(null);
+    setActionMenuDebt(null);
+  };
+
+  const runDebtAction = (action: (debt: Debt) => void) => {
+    const debt = actionMenuDebt;
+    closeActionMenu();
+    if (debt) action(debt);
+  };
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -1027,6 +1046,43 @@ export default function DebtManagement() {
     return list;
   }, [debts, debtTypeFilter, selectedDebtor, searchName, filterBranch, filterStatus, sortKey, sortDirection, filterByDateRange, filterStartDate, filterEndDate]);
 
+  /* ================= SHEET VIEW (single debtor) ================= */
+
+  const SHEET_COLUMNS = ["№", "Сана", "Тур", "Маҳсулот", "Миқдор", "Бирлик", "Нарх", "Сумма", "Қарз жами"];
+
+  const sheetDebts = useMemo(() => {
+    return filteredAndSorted.map((debt) => {
+      const lines = normalizeProductNames(debt.product_names).map((item) => {
+        const [name, quantity, price, , unit] = item.split("*");
+        const qty = parseFloat(quantity) || 0;
+        const unitPrice = parseFloat(price) || 0;
+        return { name: name || "", quantity: qty, unit: unit || "pcs", price: unitPrice, sum: qty * unitPrice };
+      });
+      return { debt, lines };
+    });
+  }, [filteredAndSorted]);
+
+  const sheetPayments = useMemo(() => {
+    if (!selectedDebtor) return [];
+    const key = selectedDebtor.trim().toLowerCase();
+    return financeRecords.filter((record) => {
+      if (record.type !== "income" || record.category === "my_debt") return false;
+      const personName = (record.description?.split(": ")[0] || "").trim().toLowerCase();
+      return personName === key;
+    });
+  }, [financeRecords, selectedDebtor]);
+
+  const sheetTotals = useMemo(() => {
+    const total = filteredAndSorted.reduce((sum, d) => sum + d.amount, 0);
+    const returned = filteredAndSorted.filter((d) => d.isreturned).reduce((sum, d) => sum + d.amount, 0);
+    const payments = sheetPayments.reduce((sum, r) => sum + (Number.parseFloat(r.amount) || 0), 0);
+    const paid = returned + payments;
+    return { total, payments, paid, remaining: Math.max(0, total - paid) };
+  }, [filteredAndSorted, sheetPayments]);
+
+  const formatMoney = (value: number) => value.toLocaleString("en-US");
+
+
  
   const totals = useMemo(() => {
     const total = filteredAndSorted.reduce((sum, debt) => sum + debt.amount, 0);
@@ -1495,6 +1551,7 @@ export default function DebtManagement() {
                   key={debtor.name}
                   onClick={() => {
                     setSelectedDebtor(debtor.name);
+                    setDebtorView("sheet");
                     setViewMode("list");
                   }}
                   className="p-4 sm:p-5 md:p-6 hover:bg-blue-50 transition cursor-pointer group"
@@ -1547,236 +1604,287 @@ export default function DebtManagement() {
                   <p className="text-base sm:text-lg md:text-xl font-bold text-blue-900">{selectedDebtor}</p>
                 </div>
               </div>
-              <button
-                onClick={() => setSelectedDebtor(null)}
-                className="w-full sm:w-auto px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium flex items-center justify-center gap-2"
-              >
-                <X size={18} /> Филтрни Тозалаш
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => setDebtorView(debtorView === "sheet" ? "table" : "sheet")}
+                  className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-2"
+                  title="Кўринишни алмаштириш"
+                >
+                  {debtorView === "sheet" ? (
+                    <><List size={18} /> Жадвал кўриниши</>
+                  ) : (
+                    <><Table2 size={18} /> Excel кўриниши</>
+                  )}
+                </button>
+                <button
+                  onClick={() => setSelectedDebtor(null)}
+                  className="w-full sm:w-auto px-4 py-2 bg-white border border-blue-300 text-blue-700 rounded-lg hover:bg-blue-100 transition font-medium flex items-center justify-center gap-2"
+                >
+                  <X size={18} /> Филтрни Тозалаш
+                </button>
+              </div>
             </div>
           )}
           
-          {/* Mobile/Tablet Card View */}
-          <div className="block xl:hidden space-y-3">
-            {filteredAndSorted.length === 0 ? (
-              <div className="bg-white rounded-lg p-8 text-center">
-                <DollarSign size={48} className="text-gray-300 mb-4 mx-auto" />
-                <p className="text-lg font-medium text-gray-900">Қарзлар топилмади</p>
-                <p className="text-sm text-gray-500 mt-1">
-                  {debts.length === 0 ? "Yangi qarz qo'shishdan boshlang" : "Filtrlarni sozlashga harakat qiling"}
-                </p>
-              </div>
-            ) : (
-              filteredAndSorted.map((debt) => (
-                <div
-                  key={debt.id}
-                  className={`bg-white rounded-lg shadow-sm p-4 md:p-5 border-l-4 ${
-                    debt.isreturned ? "border-green-500" : "border-red-500"
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 text-base md:text-lg">{debt.name}</h3>
-                      <p className="text-xs md:text-sm text-gray-500">{formatDate(debt)}</p>
-                    </div>
-                  </div>
+          {/* Excel-like Sheet View (single debtor) */}
+          {selectedDebtor && debtorView === "sheet" && (() => {
+            const cell = "border border-gray-300 px-2 py-1.5";
+            const headCell = "border border-gray-300 bg-gray-100 text-gray-500 font-normal text-xs text-center px-2 py-1";
+            const numCell = `${cell} text-right tabular-nums whitespace-nowrap`;
+            let rowNumber = 1;
+            const nextRow = () => {
+              rowNumber += 1;
+              return rowNumber;
+            };
 
-                  <div className="space-y-2 text-sm mb-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Жами Сумма:</span>
-                      <span className="font-semibold text-gray-900">
-                        {debt.amount.toLocaleString("en-US")} ₽
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Филиал:</span>
-                      <span className="text-gray-900">{getBranchName(debt.branch_id)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Тур:</span>
-                      <span className={`text-xs font-semibold ${debt.branch_id === 1 ? "text-red-600" : "text-blue-600"}`}>
-                        {debt.branch_id=== 1? "Nasiyam" : "Berilgan"}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Маҳсулотлар:</span>
-                      <p className="text-gray-900 text-xs mt-1 line-clamp-2">{formatProductsForDisplay(debt.product_names)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 pt-3 border-t border-gray-100">
-                    <button
-                      onClick={() => printDebt(debt)}
-                      className="flex-1 p-2 text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
-                    >
-                      <Printer size={16} /> Чоп Етиш
-                    </button>
-
-                    <button
-                      onClick={() => fetchDebtById(debt.id)}
-                      className="flex-1 p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors duration-200 flex items-center justify-center gap-1 text-sm"
-                    >
-                      <Eye size={16} /> Кўриш
-                    </button>
-
-
-                    <button
-                      onClick={() => openEditModal(debt)}
-                      className="p-2 text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors duration-200"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-
-                    <button
-                      onClick={() => handleDeleteDebt(debt.id)}
-                      className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Desktop Table View */}
-          <div className="hidden xl:block bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th
-                  onClick={() => handleSort("date")}
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    Сана
-                    {getSortIcon("date")}
-                  </div>
-                </th>
-                <th
-                  onClick={() => handleSort("name")}
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    Мижоз
-                    {getSortIcon("name")}
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Тур
-                </th>
-                <th
-                  onClick={() => handleSort("amount")}
-                  className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
-                >
-                  <div className="flex items-center gap-2">
-                    Жами
-                    {getSortIcon("amount")}
-                  </div>
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Амаллар
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredAndSorted.length === 0 ? (
-                <tr>
-                  <td colSpan={10} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <DollarSign size={48} className="text-gray-300 mb-4" />
-                      <p className="text-lg font-medium text-gray-900">Қарзлар топилмади</p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        {debts.length === 0 ? "Yangi qarz qo'shishdan boshlang" : "Filtrlarni sozlashga harakat qiling"}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                <>
-                  {filteredAndSorted.map((debt) => {
-                    return (
-                      <tr
-                        key={debt.id}
-                        className={`hover:bg-gray-50 transition ${
-                          debt.isreturned ? "bg-green-50/50" : "bg-orange-50/30"
-                        }`}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-medium text-gray-900">{formatDate(debt)}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm font-semibold text-gray-900">{debt.name}</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                            debt.branch_id === 1 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
-                          }`}>
-                            {debt.branch_id===1 ? "Nasiyam" : "Berilgan"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-semibold text-gray-900">
-                            {debt.amount.toLocaleString("en-US")} ₽
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => printDebt(debt)}
-                              className="p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-colors duration-200"
-                              title="Чоп Етиш"
-                            >
-                              <Printer size={18} />
-                            </button>
-
-                            <button
-                              onClick={() => fetchDebtById(debt.id)}
-                              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
-                              title="Батафсил Кўриш"
-                            >
-                              <Eye size={18} />
-                            </button>
-
-
-                            <button
-                              onClick={() => openEditModal(debt)}
-                              className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors duration-200"
-                              title="Таҳрирлаш"
-                            >
-                              <Edit2 size={18} />
-                            </button>
-
-                            <button
-                              onClick={() => handleDeleteDebt(debt.id)}
-                              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200"
-                              title="Ўчириш"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </td>
+            return (
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-300">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[960px] border-collapse text-sm text-gray-900">
+                    <thead className="sticky top-0 z-10">
+                      <tr>
+                        <th className={`${headCell} w-10`}></th>
+                        {SHEET_COLUMNS.map((_, i) => (
+                          <th key={i} className={headCell}>{String.fromCharCode(65 + i)}</th>
+                        ))}
                       </tr>
-                    );
-                  })}
-                  
-                  {/* TOTAL ROW */}
-                  <tr className="bg-gradient-to-r from-blue-100 to-purple-100 font-bold border-t-2 border-gray-300">
-                    <td colSpan={3} className="px-6 py-4 text-right text-base text-gray-900">
-                      ТОТАЛ:
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-base text-gray-900">
-                      {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
-                    </td>
-                    <td className="px-6 py-4"></td>
+                    </thead>
+                    <tbody>
+                      {/* Column titles (row 1) */}
+                      <tr className="bg-green-50 font-semibold">
+                        <td className={`${headCell} w-10`}>1</td>
+                        {SHEET_COLUMNS.map((title) => (
+                          <td key={title} className={`${cell} whitespace-nowrap`}>{title}</td>
+                        ))}
+                      </tr>
+
+                      {sheetDebts.length === 0 && (
+                        <tr>
+                          <td className={`${headCell} w-10`}>{nextRow()}</td>
+                          <td colSpan={SHEET_COLUMNS.length} className={`${cell} text-center text-gray-500 py-6`}>
+                            Қарзлар топилмади
+                          </td>
+                        </tr>
+                      )}
+
+                      {sheetDebts.map(({ debt, lines }, debtIndex) => {
+                        const rows = lines.length > 0 ? lines : [null];
+                        const span = rows.length;
+                        const zebra = debtIndex % 2 === 1 ? "bg-gray-50" : "bg-white";
+
+                        return rows.map((line, lineIndex) => (
+                          <tr key={`${debt.id}-${lineIndex}`} className={`${zebra} hover:bg-blue-50`}>
+                            <td className={`${headCell} w-10`}>{nextRow()}</td>
+                            {lineIndex === 0 && (
+                              <>
+                                <td rowSpan={span} className={`${cell} text-center align-top`}>{debtIndex + 1}</td>
+                                <td rowSpan={span} className={`${cell} whitespace-nowrap align-top`}>{formatDate(debt)}</td>
+                                <td rowSpan={span} className={`${cell} whitespace-nowrap align-top ${debt.branch_id === 1 ? "text-red-700" : "text-blue-700"}`}>
+                                  {debt.branch_id === 1 ? "Nasiyam" : "Berilgan"}
+                                </td>
+                              </>
+                            )}
+                            <td className={cell}>{line ? line.name : "—"}</td>
+                            <td className={numCell}>{line ? line.quantity : ""}</td>
+                            <td className={`${cell} whitespace-nowrap`}>{line ? formatUnitLabel(line.unit) : ""}</td>
+                            <td className={numCell}>{line ? formatMoney(line.price) : ""}</td>
+                            <td className={numCell}>{line ? formatMoney(line.sum) : formatMoney(debt.amount)}</td>
+                            {lineIndex === 0 && (
+                              <td rowSpan={span} className={`${numCell} font-semibold align-top`}>{formatMoney(debt.amount)}</td>
+                            )}
+                          </tr>
+                        ));
+                      })}
+
+                      {/* Payments from finance records */}
+                      {sheetPayments.length > 0 && (
+                        <>
+                          <tr className="bg-green-50 font-semibold">
+                            <td className={`${headCell} w-10`}>{nextRow()}</td>
+                            <td colSpan={SHEET_COLUMNS.length} className={cell}>Тўловлар</td>
+                          </tr>
+                          {sheetPayments.map((payment, i) => (
+                            <tr key={payment.id} className="hover:bg-blue-50">
+                              <td className={`${headCell} w-10`}>{nextRow()}</td>
+                              <td className={`${cell} text-center`}>{i + 1}</td>
+                              <td className={`${cell} whitespace-nowrap`}>{(payment.date || payment.created_at || "").slice(0, 10)}</td>
+                              <td className={`${cell} text-green-700`}>Тўлов</td>
+                              <td colSpan={4} className={cell}>{payment.description?.split(": ").slice(1).join(": ") || ""}</td>
+                              <td className={numCell}>{formatMoney(Number.parseFloat(payment.amount) || 0)}</td>
+                              <td className={cell}></td>
+                            </tr>
+                          ))}
+                        </>
+                      )}
+
+                      {/* Totals */}
+                      <tr className="bg-blue-50 font-bold">
+                        <td className={`${headCell} w-10`}>{nextRow()}</td>
+                        <td colSpan={8} className={`${cell} text-right`}>Жами қарз:</td>
+                        <td className={numCell}>{formatMoney(sheetTotals.total)}</td>
+                      </tr>
+                      <tr className="bg-blue-50 font-bold">
+                        <td className={`${headCell} w-10`}>{nextRow()}</td>
+                        <td colSpan={8} className={`${cell} text-right`}>Тўланган:</td>
+                        <td className={`${numCell} text-green-700`}>{formatMoney(sheetTotals.paid)}</td>
+                      </tr>
+                      <tr className="bg-blue-50 font-bold">
+                        <td className={`${headCell} w-10`}>{nextRow()}</td>
+                        <td colSpan={8} className={`${cell} text-right`}>Қолдиқ:</td>
+                        <td className={`${numCell} text-red-700`}>{formatMoney(sheetTotals.remaining)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Debts Table View */}
+          {(!selectedDebtor || debtorView === "table") && (
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[720px]">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th
+                      onClick={() => handleSort("date")}
+                      className="px-4 md:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
+                    >
+                      <div className="flex items-center gap-2">
+                        Сана
+                        {getSortIcon("date")}
+                      </div>
+                    </th>
+                    <th
+                      onClick={() => handleSort("name")}
+                      className="px-4 md:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
+                    >
+                      <div className="flex items-center gap-2">
+                        Мижоз
+                        {getSortIcon("name")}
+                      </div>
+                    </th>
+                    <th className="px-4 md:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Тур
+                    </th>
+                    <th className="px-4 md:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Маҳсулотлар
+                    </th>
+                    <th
+                      onClick={() => handleSort("amount")}
+                      className="px-4 md:px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition"
+                    >
+                      <div className="flex items-center gap-2">
+                        Жами
+                        {getSortIcon("amount")}
+                      </div>
+                    </th>
+                    <th className="w-12 px-2 py-4" aria-label="Амаллар"></th>
                   </tr>
-                </>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredAndSorted.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center">
+                          <DollarSign size={48} className="text-gray-300 mb-4" />
+                          <p className="text-lg font-medium text-gray-900">Қарзлар топилмади</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {debts.length === 0 ? "Yangi qarz qo'shishdan boshlang" : "Filtrlarni sozlashga harakat qiling"}
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    <>
+                      {filteredAndSorted.map((debt) => (
+                        <tr
+                          key={debt.id}
+                          className={`hover:bg-gray-50 transition ${
+                            debt.isreturned ? "bg-green-50/50" : "bg-orange-50/30"
+                          }`}
+                        >
+                          <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                            <span className="text-sm font-medium text-gray-900">{formatDate(debt)}</span>
+                          </td>
+                          <td className="px-4 md:px-6 py-4">
+                            <span className="text-sm font-semibold text-gray-900">{debt.name}</span>
+                          </td>
+                          <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                            <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                              debt.branch_id === 1 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                            }`}>
+                              {debt.branch_id === 1 ? "Nasiyam" : "Berilgan"}
+                            </span>
+                          </td>
+                          <td className="px-4 md:px-6 py-4 max-w-xs">
+                            <p className="text-xs text-gray-700 line-clamp-2">{formatProductsForDisplay(debt.product_names)}</p>
+                          </td>
+                          <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                            <span className="text-sm font-semibold text-gray-900">
+                              {debt.amount.toLocaleString("en-US")} ₽
+                            </span>
+                          </td>
+                          <td className="px-2 py-4 text-right">
+                            <button
+                              onClick={(e) => {
+                                setActionMenuAnchor(e.currentTarget);
+                                setActionMenuDebt(debt);
+                              }}
+                              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-full transition-colors duration-200"
+                              title="Амаллар"
+                              aria-label="Амаллар"
+                            >
+                              <MoreVertical size={18} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+
+                      {/* TOTAL ROW */}
+                      <tr className="bg-gradient-to-r from-blue-100 to-purple-100 font-bold border-t-2 border-gray-300">
+                        <td colSpan={4} className="px-4 md:px-6 py-4 text-right text-base text-gray-900">
+                          ТОТАЛ:
+                        </td>
+                        <td className="px-4 md:px-6 py-4 whitespace-nowrap text-base text-gray-900">
+                          {filteredAndSorted.reduce((sum, d) => sum + d.amount, 0).toLocaleString("en-US")} ₽
+                        </td>
+                        <td className="px-2 py-4"></td>
+                      </tr>
+                    </>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          )}
+
+          {/* Row actions menu */}
+          <Menu
+            anchorEl={actionMenuAnchor}
+            open={Boolean(actionMenuAnchor)}
+            onClose={closeActionMenu}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+            transformOrigin={{ vertical: "top", horizontal: "right" }}
+          >
+            <MenuItem onClick={() => runDebtAction(printDebt)}>
+              <ListItemIcon><Printer size={18} className="text-purple-600" /></ListItemIcon>
+              <ListItemText>Чоп Етиш</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => runDebtAction((debt) => fetchDebtById(debt.id))}>
+              <ListItemIcon><Eye size={18} className="text-blue-600" /></ListItemIcon>
+              <ListItemText>Батафсил Кўриш</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => runDebtAction(openEditModal)}>
+              <ListItemIcon><Edit2 size={18} className="text-orange-600" /></ListItemIcon>
+              <ListItemText>Таҳрирлаш</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => runDebtAction((debt) => handleDeleteDebt(debt.id))} sx={{ color: "error.main" }}>
+              <ListItemIcon><Trash2 size={18} className="text-red-600" /></ListItemIcon>
+              <ListItemText>Ўчириш</ListItemText>
+            </MenuItem>
+          </Menu>
         </>
       )}
 

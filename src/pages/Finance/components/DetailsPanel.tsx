@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { Plus, Trash2, Printer, ArrowLeft, Edit2 } from "lucide-react";
+import { Plus, Trash2, Printer, ArrowLeft, Edit2, List, Table2 } from "lucide-react";
 import type { Person, FinanceRecord, Debt, Wagon } from "../types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
 import { DebtProductsModal } from "./DebtProductsModal";
+import { FinanceSheet } from "./FinanceSheet";
 
 interface DetailsPanelProps {
   person: Person;
@@ -35,6 +36,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 }) => {
   const [showDebtProducts, setShowDebtProducts] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [view, setView] = useState<"sheet" | "details">("sheet");
 
   const normalizePersonName = (value: string) =>
     value.trim().toLowerCase().replace(/\s+/g, " ");
@@ -160,6 +162,29 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           paidAmount: person.paidAmount,
           remainingAmount: person.remainingAmount,
         };
+
+  const totalLabel =
+    source === "debts"
+      ? "Абдуманнон (берган)"
+      : source === "wagons"
+      ? "Келган юк"
+      : source === "myDebts" || source === "valyutchik"
+      ? "Абдуманнон (олган)"
+      : "Жами Сумма";
+  const paidLabel = source === "debts" ? "Клиент (берган)" : "Тўланган";
+  const remainingText = formatBalance(
+    displayTotals.remainingAmount,
+    currency,
+    source === "wagons"
+      ? "alwaysNegative"
+      : source === "myDebts"
+      ? hasTransferredDebts
+        ? "default"
+        : "invert"
+      : source === "valyutchik"
+      ? "invert"
+      : "default"
+  );
 
   const printWagon = (wagon: Wagon) => {
     printCheque({
@@ -344,6 +369,17 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           </h2>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setView(view === "sheet" ? "details" : "sheet")}
+            className="flex items-center gap-2 px-3 py-2 text-sm bg-white text-blue-700 border border-blue-300 rounded-lg hover:bg-blue-50 transition"
+            title="Кўринишни алмаштириш"
+          >
+            {view === "sheet" ? (
+              <><List size={16} /> Жадвал кўриниши</>
+            ) : (
+              <><Table2 size={16} /> Excel кўриниши</>
+            )}
+          </button>
           {showPulQoshish && (
             <button
               onClick={onAddMyDebtFromDebts}
@@ -361,50 +397,37 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         </div>
       </div>
 
+      {view === "sheet" ? (
+        <FinanceSheet
+          source={source}
+          wagons={person.wagons || []}
+          debts={debts}
+          records={personFinanceRecords}
+          currency={currency}
+          totals={[
+            { label: totalLabel, value: formatCurrency(displayTotals.totalAmount, currency), className: "text-blue-700" },
+            { label: paidLabel, value: formatCurrency(displayTotals.paidAmount, currency), className: "text-green-700" },
+            { label: "Қолдиқ Сумма", value: remainingText, className: "text-orange-700" },
+          ]}
+        />
+      ) : (
+      <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <p className="text-gray-600 text-sm mb-1">
-            {source === "debts"
-              ? "Абдуманнон (берган)"
-              : source === "wagons"
-              ? "Келган юк"
-              : source === "myDebts" || source === "valyutchik"
-              ? "Абдуманнон (олган)"
-              : "Жами Сумма"}
-          </p>
+          <p className="text-gray-600 text-sm mb-1">{totalLabel}</p>
           <p className="text-3xl font-bold text-blue-600">
             {formatCurrency(displayTotals.totalAmount, currency)}
           </p>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <p className="text-gray-600 text-sm mb-1">
-            {source === "debts"
-              ? "Клиент (берган)"
-              : source === "myDebts" || source === "valyutchik"
-              ? "Тўланган"
-              : "Тўланган"}
-          </p>
+          <p className="text-gray-600 text-sm mb-1">{paidLabel}</p>
           <p className="text-3xl font-bold text-green-600">
             {formatCurrency(displayTotals.paidAmount, currency)}
           </p>
         </div>
         <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
           <p className="text-gray-600 text-sm mb-1">Қолдиқ Сумма</p>
-          <p className="text-3xl font-bold text-orange-600">
-            {formatBalance(
-              displayTotals.remainingAmount,
-              currency,
-              source === "wagons"
-                ? "alwaysNegative"
-                : source === "myDebts"
-                ? hasTransferredDebts
-                  ? "default"
-                  : "invert"
-                : source === "valyutchik"
-                ? "invert"
-                : "default"
-            )}
-          </p>
+          <p className="text-3xl font-bold text-orange-600">{remainingText}</p>
         </div>
       </div>
 
@@ -649,6 +672,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           ))
         )}
       </div>
+      </>
+      )}
 
       <DebtProductsModal
         isOpen={showDebtProducts}
