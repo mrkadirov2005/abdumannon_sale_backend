@@ -137,8 +137,27 @@ export default function DebtManagement() {
   const [debtorNameInput, setDebtorNameInput] = useState("");
 
   // Sorting
+  // "Newest first" checkbox; remembered per browser
+  const [newestFirst, setNewestFirst] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("debts.newestFirst") === "1";
+    } catch {
+      return false;
+    }
+  });
   const [sortKey, setSortKey] = useState<SortKey>("date");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortDirection, setSortDirection] = useState<SortDirection>(() => (newestFirst ? "desc" : "asc"));
+
+  const toggleNewestFirst = (value: boolean) => {
+    setNewestFirst(value);
+    setSortKey("date");
+    setSortDirection(value ? "desc" : "asc");
+    try {
+      localStorage.setItem("debts.newestFirst", value ? "1" : "0");
+    } catch {
+      // storage unavailable (private mode) - the choice just isn't remembered
+    }
+  };
 
   const isSuperAdmin = useSelector(getIsSuperUserFromStore);
   const authData = useSelector(getAuthFromStore);
@@ -823,11 +842,12 @@ export default function DebtManagement() {
       };
     });
 
-    // Oldest first: by the date of each person's first debt
+    // Oldest first by the date of each person's first debt (newest first when the checkbox is on)
     const firstDebtTime = (summary: DebtorSummary) =>
       Math.min(...summary.debts.map((d) => new Date(d.year, (d.month || 1) - 1, d.day || 1).getTime()));
-    return normalized.sort((a, b) => firstDebtTime(a) - firstDebtTime(b) || a.name.localeCompare(b.name));
-  }, [debts, debtTypeFilter, paymentsByName, unreturnedByName]);
+    const dir = newestFirst ? -1 : 1;
+    return normalized.sort((a, b) => (firstDebtTime(a) - firstDebtTime(b)) * dir || a.name.localeCompare(b.name));
+  }, [debts, debtTypeFilter, paymentsByName, unreturnedByName, newestFirst]);
 
   // Debtors with nothing left to pay (either direction) go to the archive
   const SETTLED_EPSILON = 0.01;
@@ -1088,9 +1108,9 @@ export default function DebtManagement() {
       const personName = (record.description?.split(": ")[0] || "").trim().toLowerCase();
       return personName === key;
     })
-      // Oldest first, like the debts above
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [financeRecords, selectedDebtor]);
+      // Same order as the debts above
+      .sort((a, b) => (new Date(a.date).getTime() - new Date(b.date).getTime()) * (newestFirst ? -1 : 1));
+  }, [financeRecords, selectedDebtor, newestFirst]);
 
   const sheetTotals = useMemo(() => {
     const total = filteredAndSorted.reduce((sum, d) => sum + d.amount, 0);
@@ -1465,6 +1485,15 @@ export default function DebtManagement() {
             >
               Статистика
             </button>
+            <label className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-700 text-sm md:text-base font-medium cursor-pointer select-none hover:bg-gray-200 transition">
+              <input
+                type="checkbox"
+                checked={newestFirst}
+                onChange={(e) => toggleNewestFirst(e.target.checked)}
+                className="w-4 h-4 accent-blue-600"
+              />
+              Сначала новые
+            </label>
           </div>
         </div>
       </div>
