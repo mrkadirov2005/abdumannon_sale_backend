@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Plus, Trash2, Printer, ArrowLeft, Edit2, List, Table2 } from "lucide-react";
 import type { Person, FinanceRecord, Debt, Wagon } from "../types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
+import { formatWagonDate } from "../wagonDate";
 import { DebtProductsModal } from "./DebtProductsModal";
 import { FinanceSheet } from "./FinanceSheet";
 import type { SheetDebtUpdate, SheetPaymentDraft } from "../../../components/sheet/sheetTypes";
@@ -209,7 +210,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     printCheque({
       title: "Накладная",
       number: generateChequeNumber(),
-      date: new Date().toLocaleDateString("ru-RU"),
+      date: formatWagonDate(wagon.created_at),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,
       products: (wagon.products || []).map((p) => ({
@@ -232,7 +233,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       const parts = wagon.wagon_number.split(",");
       const wagonNumber = parts[1] || wagon.wagon_number;
       return (wagon.products || []).map((p) => ({
-        name: `[${wagonNumber}] ${p.product_name || p.name || ""}`,
+        name: `[${wagonNumber}, ${formatWagonDate(wagon.created_at)}] ${p.product_name || p.name || ""}`,
         quantity: Number(p.amount ?? 0),
         unit: p.unit || "pcs",
         price: Number(p.price ?? 0),
@@ -306,7 +307,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         const parts = wagon.wagon_number.split(",");
         const wagonNumber = parts[1] || wagon.wagon_number;
         return (wagon.products || []).map((p) => ({
-          name: `[${wagonNumber}] ${p.product_name || p.name || ""}`,
+          name: `[${wagonNumber}, ${formatWagonDate(wagon.created_at)}] ${p.product_name || p.name || ""}`,
           quantity: Number(p.amount ?? 0),
           unit: p.unit || "pcs",
           price: Number(p.price ?? 0),
@@ -473,6 +474,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
               <thead className="bg-gray-100 border-b">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                    Сана
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-700">
                     Вагон
                   </th>
                   <th className="px-4 py-3 text-right font-semibold text-gray-700">
@@ -499,6 +503,9 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
                   return (
                     <tr key={wagon.id} className="border-b hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                        {formatWagonDate(wagon.created_at)}
+                      </td>
                       <td className="px-4 py-3 font-semibold text-gray-900">
                         {wagonNumber}
                       </td>

@@ -1,6 +1,7 @@
 import React from "react";
 import type { Debt, FinanceRecord, FinanceSource, Wagon } from "../types";
 import { normalizeProductNames, parseProductsFromString } from "../debtProducts";
+import { formatWagonDate } from "../wagonDate";
 import { ExcelSheet } from "../../../components/sheet/ExcelSheet";
 import type {
   SheetDebtUpdate,
@@ -58,7 +59,7 @@ export const FinanceSheet: React.FC<FinanceSheetProps> = ({
         const paid = parseFloat(String(wagon.paid_amount || 0)) || 0;
         return {
           key: wagon.id,
-          leading: [index + 1, wagonNumber],
+          leading: [index + 1, formatWagonDate(wagon.created_at), wagonNumber],
           trailing: [formatMoney(total), formatMoney(paid), formatMoney(total - paid)],
           trailingClassNames: ["font-semibold", "text-green-700", "text-orange-700"],
           lines: (wagon.products || []).map((p) => {
@@ -116,7 +117,7 @@ export const FinanceSheet: React.FC<FinanceSheetProps> = ({
 
   return (
     <ExcelSheet
-      leadingColumns={isWagons ? ["№", "Вагон"] : ["№", "Дата"]}
+      leadingColumns={isWagons ? ["№", "Дата", "Вагон"] : ["№", "Дата"]}
       trailingColumns={isWagons ? ["Итого по вагону", "Оплачено", "Остаток"] : ["Итого долга"]}
       groups={groups}
       emptyText={isWagons ? "Вагонов нет" : "Долгов нет"}

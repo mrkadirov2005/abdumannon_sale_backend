@@ -2,6 +2,7 @@ import React from "react";
 import { Trash2, Printer, Edit2 } from "lucide-react";
 import type { Wagon, Debt } from "../types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
+import { formatWagonDate } from "../wagonDate";
 
 interface ListViewProps {
   wagons: Wagon[];
@@ -55,7 +56,7 @@ export const ListView: React.FC<ListViewProps> = ({
     printCheque({
       title: "Накладная",
       number: generateChequeNumber(),
-      date: new Date().toLocaleDateString("ru-RU"),
+      date: formatWagonDate(wagon.created_at),
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: wagon.wagon_number.split(",")[0] || "",
       products: (wagon.products || []).map((p) => ({
@@ -163,6 +164,9 @@ export const ListView: React.FC<ListViewProps> = ({
           <thead className="bg-gray-100 border-b">
             <tr>
               <th className="px-4 py-3 text-left font-semibold text-gray-700">
+                Сана
+              </th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-700">
                 Вагон Рақами
               </th>
               <th className="px-4 py-3 text-right font-semibold text-gray-700">
@@ -182,6 +186,9 @@ export const ListView: React.FC<ListViewProps> = ({
           <tbody>
             {wagons.map((wagon) => (
               <tr key={wagon.id} className="border-b hover:bg-gray-50 transition">
+                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                  {formatWagonDate(wagon.created_at)}
+                </td>
                 <td className="px-4 py-3 font-semibold text-gray-900">
                   {wagon.wagon_number}
                 </td>
