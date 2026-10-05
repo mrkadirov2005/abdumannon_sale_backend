@@ -823,7 +823,10 @@ export default function DebtManagement() {
       };
     });
 
-    return normalized.sort((a, b) => b.unreturnedAmount - a.unreturnedAmount);
+    // Oldest first: by the date of each person's first debt
+    const firstDebtTime = (summary: DebtorSummary) =>
+      Math.min(...summary.debts.map((d) => new Date(d.year, (d.month || 1) - 1, d.day || 1).getTime()));
+    return normalized.sort((a, b) => firstDebtTime(a) - firstDebtTime(b) || a.name.localeCompare(b.name));
   }, [debts, debtTypeFilter, paymentsByName, unreturnedByName]);
 
   // Debtors with nothing left to pay (either direction) go to the archive
