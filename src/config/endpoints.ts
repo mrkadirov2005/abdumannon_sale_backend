@@ -115,6 +115,7 @@ export const ENDPOINTS={
         restoreFromSheets:"/backup/restore-from-sheets",
         manualBackupDrive:"/backup/manual-backup-drive",
         telegram:"/backup/telegram",
+        sheetsStatus:"/backup/sheets-status",
     },
     shop:{
         update:"/shop/update_shop"

@@ -111,36 +111,41 @@ export default function DatabaseBackup(): JSX.Element {
         }
     };
 
-    // Backup to Google Sheets via Apps Script
+    // Backup to Google Sheets: the server reads the database itself and writes it in the background,
+    // because it takes longer than the proxy timeout. Poll the status until it finishes.
     const backupToGoogleSheets = async (): Promise<void> => {
-        if (!backupData) {
-            toast.warning("⚠️ No backup data available to send to Google Sheets");
-            return;
-        }
-
-        const toastId = toast.loading("⏳ Sending backup to Google Sheets...");
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": `${authData.accessToken}`,
+        };
+        const toastId = toast.loading("⏳ Гоогле Шеецга ёзилмоқда (бир неча дақиқа)...");
         try {
+            const startedAt = new Date().toISOString();
             const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.backuptoGoogleSheets}`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `${authData.accessToken}`,
-                },
-                body: JSON.stringify({
-                    data: backupData.data
-                })
+                headers,
             });
-
-            const result = await res.json();
-
             if (!res.ok) {
-                throw new Error(result?.message || "Google Sheets backup failed");
+                const result = await res.json().catch(() => null);
+                throw new Error(result?.message || `HTTP ${res.status}`);
             }
 
-            toast.update(toastId, { render: "✅ Backup successfully sent to Google Sheets", type: "success", isLoading: false, autoClose: 3000 });
+            for (let i = 0; i < 120; i++) {
+                await new Promise((r) => setTimeout(r, 5000));
+                const statusRes = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.sheetsStatus}`, { headers });
+                if (!statusRes.ok) continue;
+                const { data } = await statusRes.json();
+                const lastRun = data?.lastRun;
+                if (data?.running || !lastRun || lastRun.finishedAt < startedAt) continue;
+
+                if (!lastRun.ok) throw new Error(lastRun.error);
+                toast.update(toastId, { render: `✅ Гоогле Шеецга ёзилди: ${lastRun.tables} та жадвал, ${lastRun.rows} та қатор`, type: "success", isLoading: false, autoClose: 5000 });
+                return;
+            }
+            throw new Error("10 дақиқадан кўп вақт кетди, кейинроқ жадвални текширинг");
         } catch (err: any) {
             console.error(err);
-            toast.update(toastId, { render: `❌ Failed to backup to Google Sheets: ${err.message}`, type: "error", isLoading: false, autoClose: 3000 });
+            toast.update(toastId, { render: `❌ Гоогле Шеецга ёзилмади: ${err.message}`, type: "error", isLoading: false, autoClose: 6000 });
         }
     };
 
