@@ -10,7 +10,7 @@ import {
 } from "../../redux/selectors";
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { toast } from "react-toastify";
-import { Search, Plus, Edit2, Trash2, X, DollarSign, Eye, Printer, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight, ArrowLeft, MoreVertical, Table2, List } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, X, DollarSign, Eye, Printer, ArrowUpDown, ChevronUp, ChevronDown, Filter, Download, Folder, User, ChevronRight, ArrowLeft, MoreVertical, Table2, List, Archive } from "lucide-react";
 import { Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import { ExcelSheet } from "../../components/sheet/ExcelSheet";
 import type { SheetDebtUpdate, SheetGroup, SheetPayment, SheetPaymentDraft } from "../../components/sheet/sheetTypes";
@@ -115,8 +115,10 @@ export default function DebtManagement() {
   const [showDebtDetail, setShowDebtDetail] = useState(false);
 
   // NEW: View Mode
-  const [viewMode, setViewMode] = useState<"list" | "folders" | "statistics">("folders");
+  const [viewMode, setViewMode] = useState<"list" | "folders" | "archive" | "statistics">("folders");
   const [selectedDebtor, setSelectedDebtor] = useState<string | null>(null);
+  // Folder the open debtor was picked from, so "back" returns there
+  const [debtorOrigin, setDebtorOrigin] = useState<"folders" | "archive">("folders");
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentForm, setPaymentForm] = useState<PaymentFormData>(() => getDefaultPaymentForm());
   const [debtTypeFilter, setDebtTypeFilter] = useState<"all" | "given" | "taken">("all");
@@ -824,6 +826,17 @@ export default function DebtManagement() {
     return normalized.sort((a, b) => b.unreturnedAmount - a.unreturnedAmount);
   }, [debts, debtTypeFilter, paymentsByName, unreturnedByName]);
 
+  // Debtors with nothing left to pay (either direction) go to the archive
+  const SETTLED_EPSILON = 0.01;
+  const activeDebtors = useMemo(
+    () => getUniqueDebtors.filter((d) => d.unreturnedAmount > SETTLED_EPSILON),
+    [getUniqueDebtors]
+  );
+  const archivedDebtors = useMemo(
+    () => getUniqueDebtors.filter((d) => d.unreturnedAmount <= SETTLED_EPSILON),
+    [getUniqueDebtors]
+  );
+
   // NEW: Filter debtors for autocomplete
   const filteredDebtorSuggestions = useMemo(() => {
     if (!debtorNameInput.trim()) return [];
@@ -854,7 +867,7 @@ export default function DebtManagement() {
 
   const handleBackToAllDebts = () => {
     setSelectedDebtor(null);
-    setViewMode("folders");
+    setViewMode(debtorOrigin);
   };
 
   const getSortIcon = (key: SortKey) => {
@@ -1411,6 +1424,20 @@ export default function DebtManagement() {
             </button>
             <button
               onClick={() => {
+                setViewMode("archive");
+                setSelectedDebtor(null);
+                setDebtTypeFilter("all");
+              }}
+              className={`flex-1 md:flex-none px-3 sm:px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition text-sm md:text-base ${
+                viewMode === "archive"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <Archive size={18} /> Архив
+            </button>
+            <button
+              onClick={() => {
                 setViewMode("list");
                 setSelectedDebtor(null);
               }}
@@ -1729,21 +1756,32 @@ export default function DebtManagement() {
       )}
 
       {/* DEBTORS FOLDER VIEW */}
-      {viewMode === "folders" && !selectedDebtor && (
+      {(viewMode === "folders" || viewMode === "archive") && !selectedDebtor && (() => {
+        const isArchive = viewMode === "archive";
+        const shownDebtors = isArchive ? archivedDebtors : activeDebtors;
+        return (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <div className="p-4 sm:p-5 md:p-6 border-b border-gray-200">
             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Folder className="text-blue-600" size={24} />
-              Қарздорлар ({getUniqueDebtors.length})
+              {isArchive ? <Archive className="text-gray-500" size={24} /> : <Folder className="text-blue-600" size={24} />}
+              {isArchive ? "Архив" : "Қарздорлар"} ({shownDebtors.length})
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Қарзларини кўриш учун қарздорга босинг</p>
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">
+              {isArchive
+                ? "Полностью рассчитавшиеся: нам не должны и мы не должны. Нажмите, чтобы посмотреть историю"
+                : "Қарзларини кўриш учун қарздорга босинг"}
+            </p>
           </div>
 
-          {getUniqueDebtors.length === 0 ? (
+          {shownDebtors.length === 0 ? (
             <div className="p-8 sm:p-10 md:p-12 text-center">
               <User size={48} className="text-gray-300 mb-4 mx-auto" />
-              <p className="text-base sm:text-lg md:text-xl font-medium text-gray-900">Қарздорлар топилмади</p>
-              <p className="text-sm md:text-base text-gray-500 mt-1">Янги қарз қўшишдан бошланг</p>
+              <p className="text-base sm:text-lg md:text-xl font-medium text-gray-900">
+                {isArchive ? "Архив пуст" : "Қарздорлар топилмади"}
+              </p>
+              <p className="text-sm md:text-base text-gray-500 mt-1">
+                {isArchive ? "Здесь появятся люди, у которых долг полностью закрыт" : "Янги қарз қўшишдан бошланг"}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -1760,10 +1798,11 @@ export default function DebtManagement() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {getUniqueDebtors.map((debtor, index) => (
+                  {shownDebtors.map((debtor, index) => (
                     <tr
                       key={debtor.name}
                       onClick={() => {
+                        setDebtorOrigin(isArchive ? "archive" : "folders");
                         setSelectedDebtor(debtor.name);
                         setDebtorView("sheet");
                         setViewMode("list");
@@ -1801,7 +1840,8 @@ export default function DebtManagement() {
             </div>
           )}
         </div>
-      )}
+        );
+      })()}
 
       {/* DEBTS TABLE/LIST VIEW */}
       {(viewMode === "list" || selectedDebtor) && (
