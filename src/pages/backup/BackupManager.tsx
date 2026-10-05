@@ -309,74 +309,80 @@ export default function DatabaseBackup(): JSX.Element {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <button
-                        onClick={downloadBackup}
-                        disabled={loading}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
-                    >
-                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Download size={20} />}
-                        Довнлоад Бацкуп
-                    </button>
+                <div className="space-y-6 mb-8">
+                    <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                        <h2 className="text-xl font-semibold text-gray-900">Захиралаш</h2>
+                        <p className="text-sm text-gray-500 mt-1 mb-4">Маълумотлар базасининг нусхасини олиш</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <button
+                            onClick={downloadBackup}
+                            disabled={loading}
+                            className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
+                        >
+                            {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Download size={20} />}
+                            Довнлоад Бацкуп
+                        </button>
+                        <button
+                            onClick={downloadSqlBackup}
+                            disabled={loading}
+                            className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-800 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
+                        >
+                            {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Download size={20} />}
+                            SQL Думп
+                        </button>
+                        <button
+                            onClick={backupToGoogleSheets}
+                            disabled={loading}
+                            className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
+                        >
+                            {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Share2 size={20} />}
+                            Бацкуп то Гоогле Шеец
+                        </button>
+                        <button
+                            onClick={backupToTelegram}
+                            disabled={loading}
+                            className="flex items-center justify-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
+                        >
+                            {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Send size={20} />}
+                            Телеграмга юбориш
+                        </button>
+                        </div>
+                    </section>
 
-                    <button
-                        onClick={downloadSqlBackup}
-                        disabled={loading}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-800 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
-                    >
-                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Download size={20} />}
-                        SQL Думп
-                    </button>
-
-                    <label className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl cursor-pointer">
-                        <Upload size={20} />
-                        Ресторе Бацкуп
-                        <input
-                            type="file"
-                            accept="application/json"
-                            hidden
-                            onChange={(e) => restoreBackup(e.target.files?.[0] ?? null)}
-                        />
-                    </label>
-
-                    <label className="flex items-center justify-center gap-2 px-6 py-3 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl cursor-pointer">
-                        <Upload size={20} />
-                        Ресторе SQL
-                        <input
-                            type="file"
-                            accept=".sql,text/plain"
-                            hidden
-                            onChange={(e) => restoreSqlBackup(e.target.files?.[0] ?? null)}
-                        />
-                    </label>
-
-                    <button
-                        onClick={backupToGoogleSheets}
-                        disabled={loading}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
-                    >
-                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Share2 size={20} />}
-                        Бацкуп то Гоогле Шеец
-                    </button>
-
-                    <button
-                        onClick={restoreFromGoogleSheets}
-                        disabled={loading}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
-                    >
-                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <RefreshCw size={20} />}
-                        Ресторе фром Шеец
-                    </button>
-
-
-                    <button
-                        onClick={backupToTelegram}
-                        disabled={loading}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
-                    >
-                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Send size={20} />}
-                        Телеграмга юбориш
-                    </button>
+                    <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                        <h2 className="text-xl font-semibold text-gray-900">Тиклаш</h2>
+                        <p className="text-sm text-gray-500 mt-1 mb-4">Нусхадан маълумотлар базасини тиклаш (жорий маълумотлар ўчирилади)</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <label className="flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl cursor-pointer">
+                            <Upload size={20} />
+                            Ресторе Бацкуп
+                            <input
+                                type="file"
+                                accept="application/json"
+                                hidden
+                                onChange={(e) => restoreBackup(e.target.files?.[0] ?? null)}
+                            />
+                        </label>
+                        <label className="flex items-center justify-center gap-2 px-6 py-3 bg-teal-700 hover:bg-teal-800 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl cursor-pointer">
+                            <Upload size={20} />
+                            Ресторе SQL
+                            <input
+                                type="file"
+                                accept=".sql,text/plain"
+                                hidden
+                                onChange={(e) => restoreSqlBackup(e.target.files?.[0] ?? null)}
+                            />
+                        </label>
+                        <button
+                            onClick={restoreFromGoogleSheets}
+                            disabled={loading}
+                            className="flex items-center justify-center gap-2 px-6 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
+                        >
+                            {loading ? <Loader className="w-5 h-5 animate-spin" /> : <RefreshCw size={20} />}
+                            Ресторе фром Шеец
+                        </button>
+                        </div>
+                    </section>
                 </div>
 
                 {/* Tables Overview */}
