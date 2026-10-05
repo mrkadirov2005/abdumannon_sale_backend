@@ -113,7 +113,6 @@ export const ENDPOINTS={
         restoreSql:"/backup/restore-sql",
         backuptoGoogleSheets:"/backup/backup-to-sheets",
         restoreFromSheets:"/backup/restore-from-sheets",
-        manualBackupDrive:"/backup/manual-backup-drive",
         telegram:"/backup/telegram",
         sheetsStatus:"/backup/sheets-status",
     },

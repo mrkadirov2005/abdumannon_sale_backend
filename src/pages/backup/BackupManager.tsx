@@ -3,7 +3,7 @@ import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { useSelector } from "react-redux";
 import { getAuthFromStore } from "../../redux/selectors";
 import { toast } from "react-toastify";
-import { Download, Upload, Share2, RefreshCw, ChevronDown, ChevronUp, Loader, Cloud, Send } from "lucide-react";
+import { Download, Upload, Share2, RefreshCw, ChevronDown, ChevronUp, Loader, Send } from "lucide-react";
 
 type BackupTableRow = Record<string, unknown>;
 
@@ -148,37 +148,6 @@ export default function DatabaseBackup(): JSX.Element {
             toast.update(toastId, { render: `❌ Гоогле Шеецга ёзилмади: ${err.message}`, type: "error", isLoading: false, autoClose: 6000 });
         }
     };
-
-    // Backup to Google Drive
-    const backupToGoogleDrive = async (): Promise<void> => {
-        const toastId = toast.loading("⏳ Sending backup to Google Drive...");
-        try {
-            const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.manualBackupDrive}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `${authData.accessToken}`,
-                },
-            });
-
-            const result = await res.json();
-
-            if (!res.ok) {
-                throw new Error(result?.message || "Google Drive backup failed");
-            }
-
-            toast.update(toastId, { 
-                render: `✅ Backup successfully sent to Google Drive!\n📁 File: ${result.data?.timestamp}`, 
-                type: "success", 
-                isLoading: false, 
-                autoClose: 3000 
-            });
-        } catch (err: any) {
-            console.error(err);
-            toast.update(toastId, { render: `❌ Failed to backup to Google Drive: ${err.message}`, type: "error", isLoading: false, autoClose: 3000 });
-        }
-    };
-
 
     // Send SQL backup to Telegram (same job the server runs every hour)
     const backupToTelegram = async (): Promise<void> => {
@@ -399,14 +368,6 @@ export default function DatabaseBackup(): JSX.Element {
                         Ресторе фром Шеец
                     </button>
 
-                    <button
-                        onClick={backupToGoogleDrive}
-                        disabled={loading}
-                        className="flex items-center justify-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
-                    >
-                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Cloud size={20} />}
-                        Гоогле Драйв
-                    </button>
 
                     <button
                         onClick={backupToTelegram}
