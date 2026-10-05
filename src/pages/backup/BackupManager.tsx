@@ -3,7 +3,7 @@ import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { useSelector } from "react-redux";
 import { getAuthFromStore } from "../../redux/selectors";
 import { toast } from "react-toastify";
-import { Download, Upload, Share2, RefreshCw, ChevronDown, ChevronUp, Loader, Cloud } from "lucide-react";
+import { Download, Upload, Share2, RefreshCw, ChevronDown, ChevronUp, Loader, Cloud, Send } from "lucide-react";
 
 type BackupTableRow = Record<string, unknown>;
 
@@ -175,6 +175,32 @@ export default function DatabaseBackup(): JSX.Element {
     };
 
 
+    // Send SQL backup to Telegram (same job the server runs every hour)
+    const backupToTelegram = async (): Promise<void> => {
+        const toastId = toast.loading("⏳ Телеграмга юборилмоқда...");
+        try {
+            const res = await fetch(`${DEFAULT_ENDPOINT}${ENDPOINTS.backup.telegram}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `${authData.accessToken}`,
+                },
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                throw new Error(result?.message || "Telegram backup failed");
+            }
+
+            const sizeKb = ((result.data?.size ?? 0) / 1024).toFixed(1);
+            toast.update(toastId, { render: `✅ Бэкап Телеграмга юборилди (${sizeKb} KB)`, type: "success", isLoading: false, autoClose: 3000 });
+        } catch (err: any) {
+            console.error(err);
+            toast.update(toastId, { render: `❌ Телеграмга юборилмади: ${err.message}`, type: "error", isLoading: false, autoClose: 4000 });
+        }
+    };
+
     // Restore backup from file
     const restoreBackup = async (file: File | null): Promise<void> => {
         if (!file) return;
@@ -309,7 +335,7 @@ export default function DatabaseBackup(): JSX.Element {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                     <button
                         onClick={downloadBackup}
                         disabled={loading}
@@ -375,6 +401,15 @@ export default function DatabaseBackup(): JSX.Element {
                     >
                         {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Cloud size={20} />}
                         Гоогле Драйв
+                    </button>
+
+                    <button
+                        onClick={backupToTelegram}
+                        disabled={loading}
+                        className="flex items-center justify-center gap-2 px-6 py-3 bg-sky-600 hover:bg-sky-700 disabled:bg-gray-400 text-white rounded-lg font-medium shadow-lg transition-all hover:shadow-xl"
+                    >
+                        {loading ? <Loader className="w-5 h-5 animate-spin" /> : <Send size={20} />}
+                        Телеграмга юбориш
                     </button>
                 </div>
 

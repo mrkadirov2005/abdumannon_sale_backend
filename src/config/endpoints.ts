@@ -114,6 +114,7 @@ export const ENDPOINTS={
         backuptoGoogleSheets:"/backup/backup-to-sheets",
         restoreFromSheets:"/backup/restore-from-sheets",
         manualBackupDrive:"/backup/manual-backup-drive",
+        telegram:"/backup/telegram",
     },
     shop:{
         update:"/shop/update_shop"
