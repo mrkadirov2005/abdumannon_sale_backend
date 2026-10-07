@@ -36,7 +36,8 @@ export const ENDPOINTS={
         login:{
             superuser:"/auth/login/superuser",
             admin:"/auth/login/admin"
-        }
+        },
+        changePassword:"/auth/change-password"
     },
     product:{
         get_shop_products:"/product/shop-products",

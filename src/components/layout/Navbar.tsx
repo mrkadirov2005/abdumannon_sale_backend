@@ -7,7 +7,8 @@ import { Logout } from "@mui/icons-material";
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { useState } from "react";
 import { Button } from "@mui/material";
-import { Fullscreen } from "lucide-react";
+import { Fullscreen, KeyRound } from "lucide-react";
+import ChangePasswordModal from "./ChangePasswordModal";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../ui/ChequeProvider";
 import { getPaymentMethodLabel } from "../../utils/paymentMethod";
 
@@ -20,6 +21,7 @@ export default function Navbar() {
   const authData = useSelector(getAuthFromStore);
   const [loading, setLoading] = useState(false);
   const [isChequeModalOpen, setIsChequeModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [chequeSaleId, setChequeSaleId] = useState("");
   const [printingCheque, setPrintingCheque] = useState(false);
   const [chequeMode, setChequeMode] = useState<"manual" | "auto">("manual");
@@ -277,6 +279,13 @@ export default function Navbar() {
 >
 {<Fullscreen />}
 </Button>
+        <Button
+          onClick={() => setIsPasswordModalOpen(true)}
+          variant="outlined"
+          startIcon={<KeyRound size={18} />}
+        >
+          Пароль
+        </Button>
         <button
           disabled={loading}
           onClick={handleLogout}
@@ -288,6 +297,7 @@ export default function Navbar() {
           <Logout />
         </button>
       </div>
+      {isPasswordModalOpen && <ChangePasswordModal onClose={() => setIsPasswordModalOpen(false)} />}
       {isChequeModalOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
