@@ -19,8 +19,9 @@ interface ExcelSheetProps {
   paymentsTitle: string;
   paymentsEmptyText: string;
   totals: SheetTotal[];
-  addLabel: string;
-  onAdd: () => void;
+  // Without onAdd the "add" row is hidden (read-only sheet, e.g. archived records)
+  addLabel?: string;
+  onAdd?: () => void;
   // Optional second "+" action shown next to the first one
   secondaryAddLabel?: string;
   onSecondaryAdd?: () => void;
@@ -491,6 +492,7 @@ export const ExcelSheet: React.FC<ExcelSheetProps> = ({
             ))}
 
             {/* Add new record */}
+            {onAdd && (
             <tr>
               <td className={`${headCell} w-10`}>
                 <Plus size={14} className="mx-auto" />
@@ -514,6 +516,7 @@ export const ExcelSheet: React.FC<ExcelSheetProps> = ({
                 </div>
               </td>
             </tr>
+            )}
           </tbody>
         </table>
       </div>

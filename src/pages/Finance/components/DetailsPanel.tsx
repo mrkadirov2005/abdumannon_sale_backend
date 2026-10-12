@@ -11,6 +11,8 @@ interface DetailsPanelProps {
   person: Person;
   financeRecords: FinanceRecord[];
   onAddPayment: () => void;
+  // Sheet "Добавить долг" (every tab except Вагонлар)
+  onAddDebt?: () => void;
   onAddMyDebtFromDebts: () => void;
   showPulQoshish: boolean;
   onDeleteWagon: (wagonId: string) => void;
@@ -28,6 +30,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   person,
   financeRecords,
   onAddPayment,
+  onAddDebt,
   onAddMyDebtFromDebts,
   showPulQoshish,
   onDeleteWagon,
@@ -425,6 +428,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           records={personFinanceRecords}
           currency={currency}
           onAddPayment={onAddPayment}
+          onAddDebt={onAddDebt}
           canEditDebt={canEditDebt}
           onSaveDebt={onSaveSheetDebt}
           onSavePayment={onSaveSheetPayment}

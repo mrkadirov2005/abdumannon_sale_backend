@@ -214,6 +214,17 @@ const Finance: React.FC = () => {
           person={selectedPersonData}
           financeRecords={financeRecords}
           onAddPayment={openCreatePaymentModal}
+          onAddDebt={
+            source === "debts" || source === "myDebts" || source === "valyutchik"
+              ? () => {
+                  setMyDebtForm((prev) => ({ ...prev, lender: selectedPerson || prev.lender }));
+                  // Қарздорлар: a client debt (same as "Pul qoshish");
+                  // Қарзларим / Валютчик: my own debt (qarzlarim / valyutchik, picked by the tab)
+                  setMyDebtAdminOverride(source === "debts" ? "qarzdorlar" : null);
+                  setShowMyDebtModal(true);
+                }
+              : undefined
+          }
           onAddMyDebtFromDebts={() => {
             if (source === "debts") {
               setMyDebtForm((prev) => ({

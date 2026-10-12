@@ -22,6 +22,8 @@ interface FinanceSheetProps {
   canEditDebt: (debt: Debt) => boolean;
   onSaveDebt: (debt: Debt, update: SheetDebtUpdate) => Promise<boolean>;
   onSavePayment: (record: FinanceRecord, draft: SheetPaymentDraft) => Promise<boolean>;
+  // Shown as "Добавить долг" next to "Добавить платёж" when given
+  onAddDebt?: () => void;
 }
 
 const formatDebtDate = (debt: Debt) =>
@@ -46,6 +48,7 @@ export const FinanceSheet: React.FC<FinanceSheetProps> = ({
   canEditDebt,
   onSaveDebt,
   onSavePayment,
+  onAddDebt,
 }) => {
   const formatMoney = (value: number) => `${Number(value).toLocaleString("en-US")} ${currency === "USD" ? "$" : "₽"}`;
   const isWagons = source === "wagons";
@@ -125,8 +128,10 @@ export const FinanceSheet: React.FC<FinanceSheetProps> = ({
       paymentsTitle="История платежей"
       paymentsEmptyText="Платежей нет"
       totals={totals}
-      addLabel="Добавить платёж"
-      onAdd={onAddPayment}
+      addLabel={onAddDebt ? "Добавить долг" : "Добавить платёж"}
+      onAdd={onAddDebt ?? onAddPayment}
+      secondaryAddLabel={onAddDebt ? "Добавить платёж" : undefined}
+      onSecondaryAdd={onAddDebt ? onAddPayment : undefined}
       formatMoney={formatMoney}
     />
   );

@@ -119,6 +119,10 @@ export default function DebtManagement() {
   const [selectedDebtor, setSelectedDebtor] = useState<string | null>(null);
   // Folder the open debtor was picked from, so "back" returns there
   const [debtorOrigin, setDebtorOrigin] = useState<"folders" | "archive">("folders");
+  // Statistika breakdown row whose people are listed in a modal
+  const [statsGroup, setStatsGroup] = useState<"active" | "archive" | "all" | null>(null);
+  // Person whose "Архивлар" (closed earlier periods) section is expanded
+  const [openArchiveFor, setOpenArchiveFor] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentForm, setPaymentForm] = useState<PaymentFormData>(() => getDefaultPaymentForm());
   const [debtTypeFilter, setDebtTypeFilter] = useState<"all" | "given" | "taken">("all");
@@ -213,6 +217,10 @@ export default function DebtManagement() {
   const shop_id = useSelector(getshopidfromstrore);
   const branches = useSelector(getBranchesFromStore);
   const EXCLUDED_ADMIN_IDS = new Set(["qarzlarim", "valyutchik"]);
+
+  // Direction comes from admin_id, like Moliya: qarzlarim / valyutchik are my own debts (Насиям),
+  // everything else is goods given on credit (Берилган Насия). branch_id is not a direction.
+  const isGivenDebt = (d: Debt) => !EXCLUDED_ADMIN_IDS.has(d.admin_id);
 
   const filterVisibleDebts = (items: Debt[]) => {
     return items.filter((d) => !EXCLUDED_ADMIN_IDS.has(d.admin_id));
@@ -766,9 +774,9 @@ export default function DebtManagement() {
   const unreturnedByName = useMemo(() => {
     let list = unreturnedDebts;
     if (debtTypeFilter === "given") {
-      list = unreturnedDebts.filter((d) => d.branch_id === 0);
+      list = unreturnedDebts.filter((d) => isGivenDebt(d));
     } else if (debtTypeFilter === "taken") {
-      list = unreturnedDebts.filter((d) => d.branch_id === 1);
+      list = unreturnedDebts.filter((d) => !isGivenDebt(d));
     }
 
     const map = new Map<string, number>();
@@ -802,9 +810,9 @@ export default function DebtManagement() {
     // Filter debts by debtTypeFilter first
     let filteredDebts = debts;
     if (debtTypeFilter === "given") {
-      filteredDebts = debts.filter((d) => d.branch_id === 0);
+      filteredDebts = debts.filter((d) => isGivenDebt(d));
     } else if (debtTypeFilter === "taken") {
-      filteredDebts = debts.filter((d) => d.branch_id === 1);
+      filteredDebts = debts.filter((d) => !isGivenDebt(d));
     }
 
     filteredDebts.forEach((debt) => {
@@ -1008,8 +1016,8 @@ export default function DebtManagement() {
     const filteredDebtors = debtTypeFilter === "all"
       ? debtors
       : debtTypeFilter === "given"
-      ? debtors.filter(d => d.debts.some(debt => debt.branch_id !== 1))
-      : debtors.filter(d => d.debts.some(debt => debt.branch_id === 1));
+      ? debtors.filter(d => d.debts.some(debt => isGivenDebt(debt)))
+      : debtors.filter(d => d.debts.some(debt => !isGivenDebt(debt)));
 
     const grandTotal = filteredDebtors.reduce((sum, d) => sum + d.totalAmount, 0);
 
@@ -1023,8 +1031,8 @@ export default function DebtManagement() {
         const relevantDebts = debtTypeFilter === "all"
           ? debtor.debts
           : debtTypeFilter === "given"
-          ? debtor.debts.filter(d => d.branch_id !== 1)
-          : debtor.debts.filter(d => d.branch_id === 1);
+          ? debtor.debts.filter(d => isGivenDebt(d))
+          : debtor.debts.filter(d => !isGivenDebt(d));
         const debtorTotal = relevantDebts.reduce((s, d) => s + d.amount, 0);
         return {
           name: `${debtor.name} (${relevantDebts.length} Ð´Ð¾Ð»Ð³(Ð¾Ð²))`,
@@ -1046,9 +1054,9 @@ export default function DebtManagement() {
     let list = [...input];
 
     if (debtTypeFilter === "given") {
-      list = list.filter((d) => d.branch_id === 0);
+      list = list.filter((d) => isGivenDebt(d));
     } else if (debtTypeFilter === "taken") {
-      list = list.filter((d) => d.branch_id === 1);
+      list = list.filter((d) => !isGivenDebt(d));
     }
 
     if (selectedDebtor) {
@@ -1119,6 +1127,80 @@ export default function DebtManagement() {
     const paid = returned + payments;
     return { total, payments, paid, remaining: Math.max(0, total - paid) };
   }, [filteredAndSorted, sheetPayments]);
+
+  // Split the open person's history into periods: a period closes when the balance reaches 0,
+  // and a new debt after that opens the next one. Earlier periods go under "Архивлар".
+  // Debts have no time, so on the same day debts are counted before payments.
+  const personPeriods = useMemo(() => {
+    const none = {
+      hasArchive: false,
+      archivedDebtIds: new Set<string>(),
+      archivedPaymentIds: new Set<number>(),
+      closedOn: [] as string[],
+      carriedCredit: 0,
+    };
+    if (!selectedDebtor) return none;
+
+    const key = selectedDebtor.trim().toLowerCase();
+    type PeriodEvent = { date: string; kind: "debt" | "pay"; amount: number; id: string | number; returned?: boolean };
+    const events: PeriodEvent[] = [
+      ...debts
+        .filter((d) => d.name.trim().toLowerCase() === key)
+        .map((d) => ({ date: formatDate(d), kind: "debt" as const, amount: d.amount, id: d.id, returned: d.isreturned })),
+      ...sheetPayments.map((r) => ({
+        date: String(r.date).split("T")[0],
+        kind: "pay" as const,
+        amount: Number.parseFloat(r.amount) || 0,
+        id: r.id,
+      })),
+    ];
+    events.sort((a, b) => a.date.localeCompare(b.date) || (a.kind === b.kind ? 0 : a.kind === "debt" ? -1 : 1));
+
+    let balance = 0;
+    let period = 0;
+    let periodHasDebt = false;
+    let balanceAtPeriodStart = 0;
+    const closedOn: string[] = [];
+    const periodOf = new Map<string, number>();
+
+    events.forEach((e) => {
+      // A new debt after a closed period opens the next period
+      if (e.kind === "debt" && closedOn[period] !== undefined) {
+        period += 1;
+        periodHasDebt = false;
+        balanceAtPeriodStart = balance;
+      }
+      periodOf.set(`${e.kind}-${e.id}`, period);
+      if (e.kind === "debt") {
+        periodHasDebt = true;
+        balance += e.returned ? 0 : e.amount;
+      } else {
+        balance -= e.amount;
+      }
+      if (periodHasDebt && closedOn[period] === undefined && balance <= 0.01) closedOn[period] = e.date;
+    });
+
+    // Only split when the person was archived and is now open again
+    const isOpenNow = closedOn[period] === undefined;
+    if (period === 0 || !isOpenNow) return none;
+
+    const archivedDebtIds = new Set<string>();
+    const archivedPaymentIds = new Set<number>();
+    periodOf.forEach((p, id) => {
+      if (p >= period) return;
+      if (id.startsWith("debt-")) archivedDebtIds.add(id.slice(5));
+      else archivedPaymentIds.add(Number(id.slice(4)));
+    });
+
+    return {
+      hasArchive: true,
+      archivedDebtIds,
+      archivedPaymentIds,
+      closedOn: closedOn.filter(Boolean),
+      // Overpayment left over from the archived periods, used up by the current debts
+      carriedCredit: Math.max(0, -balanceAtPeriodStart),
+    };
+  }, [selectedDebtor, debts, sheetPayments]);
 
   const formatMoney = (value: number) => value.toLocaleString("en-US");
 
@@ -1269,15 +1351,15 @@ export default function DebtManagement() {
     }
   };
 
-  const sheetGroups: SheetGroup[] = filteredAndSorted.map((debt, index) => {
+  const buildSheetGroups = (list: Debt[]): SheetGroup[] => list.map((debt, index) => {
     const rawItems = normalizeProductNames(debt.product_names);
     return {
       key: debt.id,
       leading: [
         index + 1,
         formatDate(debt),
-        <span className={debt.branch_id === 1 ? "text-red-700" : "text-blue-700"}>
-          {debt.branch_id === 1 ? "Долг" : "Выдан в долг"}
+        <span className={isGivenDebt(debt) ? "text-blue-700" : "text-red-700"}>
+          {isGivenDebt(debt) ? "Выдан в долг" : "Долг"}
         </span>,
       ],
       trailing: [formatMoney(debt.amount)],
@@ -1297,7 +1379,7 @@ export default function DebtManagement() {
     };
   });
 
-  const sheetPaymentRows: SheetPayment[] = sheetPayments.map((record) => ({
+  const buildPaymentRows = (list: FinanceRecord[]): SheetPayment[] => list.map((record) => ({
     key: `pay-${record.id}`,
     date: new Date(record.date).toLocaleDateString("ru-RU"),
     description: record.description?.split(": ").slice(1).join(": ") || "",
@@ -1310,6 +1392,16 @@ export default function DebtManagement() {
     },
     onDelete: () => deletePaymentFromSheet(record),
   }));
+
+  // Current period vs earlier (archived) periods of the open person
+  const currentDebts = filteredAndSorted.filter((d) => !personPeriods.archivedDebtIds.has(d.id));
+  const archivedDebts = filteredAndSorted.filter((d) => personPeriods.archivedDebtIds.has(d.id));
+  const currentPayments = sheetPayments.filter((r) => !personPeriods.archivedPaymentIds.has(r.id));
+  const archivedPayments = sheetPayments.filter((r) => personPeriods.archivedPaymentIds.has(r.id));
+  const sumDebts = (list: Debt[]) => list.reduce((sum, d) => sum + d.amount, 0);
+  const sumPaid = (debtList: Debt[], payments: FinanceRecord[]) =>
+    debtList.filter((d) => d.isreturned).reduce((sum, d) => sum + d.amount, 0) +
+    payments.reduce((sum, r) => sum + (Number.parseFloat(r.amount) || 0), 0);
 
   const openCreateForSelectedDebtor = () => {
     if (!selectedDebtor) return;
@@ -1350,26 +1442,40 @@ export default function DebtManagement() {
 
   const moliyaStats = useMemo(() => {
     const sumAmount = (list: Debt[]) => list.reduce((sum, d) => sum + d.amount, 0);
+    // Same name matching as Moliya: "Name: comment", case and extra spaces ignored
+    const personKey = (value: string) => value.trim().toLowerCase().replace(/\s+/g, " ");
 
-    // branch_id separates the two sides: 0 = Берилган Насия, 1 = Насиям.
-    // Each side is settled per person (like the debtor folders), so one person's
-    // overpayment never hides another person's debt.
+    // Net payments per person from non-my_debt finance records, like Moliya (income pays, expense adds back)
+    const netPayments = new Map<string, number>();
+    financeRecords.forEach((record) => {
+      if (record.category === "my_debt") return;
+      const key = personKey(record.description?.split(":")[0] || "");
+      const amount = Number.parseFloat(record.amount || "0");
+      if (!key || !Number.isFinite(amount)) return;
+      netPayments.set(key, (netPayments.get(key) || 0) + (record.type === "income" ? amount : -amount));
+    });
+
+    // Settled per person like Moliya: paid is never negative, and an overpayment stays as a
+    // negative remainder, so the side's remaining amount nets it out (Moliya's Қарздорлар total).
     const side = (list: Debt[]) => {
       const byPerson = new Map<string, Debt[]>();
       list.forEach((d) => {
-        const key = d.name.trim().toLowerCase();
+        const key = personKey(d.name);
         byPerson.set(key, [...(byPerson.get(key) || []), d]);
       });
 
-      let returnedAmount = 0;
-      let unreturnedAmount = 0;
+      let paidAmount = 0;
+      let remainingAmount = 0;
       let returnedCount = 0;
       byPerson.forEach((personDebts, key) => {
         const total = sumAmount(personDebts);
-        const paid = sumAmount(personDebts.filter((d) => d.isreturned)) + (paymentsByName.get(key) || 0);
-        const remaining = Math.max(0, total - paid);
-        returnedAmount += total - remaining;
-        unreturnedAmount += remaining;
+        const paid = Math.max(
+          0,
+          sumAmount(personDebts.filter((d) => d.isreturned)) + (netPayments.get(key) || 0)
+        );
+        const remaining = total - paid;
+        paidAmount += paid;
+        remainingAmount += remaining;
         // A debt counts as returned when it is marked so, or its person has paid everything
         returnedCount += remaining <= 0.01 ? personDebts.length : personDebts.filter((d) => d.isreturned).length;
       });
@@ -1377,15 +1483,15 @@ export default function DebtManagement() {
       return {
         count: list.length,
         totalAmount: sumAmount(list),
-        returnedAmount,
-        unreturnedAmount,
+        paidAmount,
+        remainingAmount,
         returnedCount,
         unreturnedCount: list.length - returnedCount,
       };
     };
 
-    const taken = side(debts.filter((d) => d.branch_id === 1));
-    const given = side(debts.filter((d) => d.branch_id === 0));
+    const given = side(debts.filter((d) => isGivenDebt(d)));
+    const taken = side(debts.filter((d) => !isGivenDebt(d)));
 
     return {
       totalTakenCount: taken.count,
@@ -1394,14 +1500,14 @@ export default function DebtManagement() {
       totalGivenAmount: given.totalAmount,
       unreturnedTakenCount: taken.unreturnedCount,
       unreturnedGivenCount: given.unreturnedCount,
-      unreturnedTakenAmount: taken.unreturnedAmount,
-      unreturnedGivenAmount: given.unreturnedAmount,
+      unreturnedTakenAmount: taken.remainingAmount,
+      unreturnedGivenAmount: given.remainingAmount,
       returnedTakenCount: taken.returnedCount,
       returnedGivenCount: given.returnedCount,
-      returnedTakenAmount: taken.returnedAmount,
-      returnedGivenAmount: given.returnedAmount,
+      returnedTakenAmount: taken.paidAmount,
+      returnedGivenAmount: given.paidAmount,
     };
-  }, [debts, paymentsByName]);
+  }, [debts, financeRecords]);
 
   /* ================= UI ================= */
 
@@ -1745,6 +1851,179 @@ export default function DebtManagement() {
               </div>
             </div>
 
+            {/* Active vs archive: same numbers as the two lists and their total rows */}
+            {(() => {
+              const summarize = (list: DebtorSummary[]) => {
+                const sum = (pick: (d: DebtorSummary) => number) => list.reduce((acc, d) => acc + pick(d), 0);
+                return {
+                  people: list.length,
+                  debts: sum((d) => d.totalDebts),
+                  total: sum((d) => d.totalAmount),
+                  paid: sum((d) => d.returnedAmount),
+                  remaining: sum((d) => d.unreturnedAmount),
+                  overpaid: sum((d) => Math.max(0, d.returnedAmount - d.totalAmount)),
+                };
+              };
+              const groups = {
+                active: { label: "Қарздорлар (фаол)", people: activeDebtors },
+                archive: { label: "Архив (ёпилган)", people: archivedDebtors },
+                all: { label: "Жами", people: getUniqueDebtors },
+              } as const;
+              const rows = [
+                { key: "active" as const, label: groups.active.label, ...summarize(activeDebtors) },
+                { key: "archive" as const, label: groups.archive.label, ...summarize(archivedDebtors) },
+              ];
+              const all = { key: "all" as const, label: groups.all.label, ...summarize(getUniqueDebtors) };
+              const modalGroup = statsGroup ? groups[statsGroup] : null;
+              const openPerson = (name: string) => {
+                setStatsGroup(null);
+                setDebtorOrigin(archivedDebtors.some((d) => d.name === name) ? "archive" : "folders");
+                setSelectedDebtor(name);
+                setDebtorView("sheet");
+                setViewMode("list");
+              };
+              const fmt = (n: number) => n.toLocaleString("en-US");
+              return (
+                <div className="mt-4 md:mt-6 border-2 border-blue-200 rounded-lg p-4 sm:p-5 md:p-6 bg-white">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-blue-900 mb-1">
+                    Берилган Насия: фаол ва архив
+                  </h3>
+                  <p className="text-xs sm:text-sm text-gray-500 mb-4">
+                    Қарздорлар ва Архив рўйхатларидаги жами қаторлар билан бир хил. Рўйхатни кўриш учун қаторга босинг
+                  </p>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[640px] text-sm">
+                      <thead className="bg-gray-50 text-gray-600 text-xs uppercase">
+                        <tr>
+                          <th className="px-3 py-2 text-left" />
+                          <th className="px-3 py-2 text-center">Мижоз</th>
+                          <th className="px-3 py-2 text-center">Қарзлар</th>
+                          <th className="px-3 py-2 text-right">Жами</th>
+                          <th className="px-3 py-2 text-right">Тўланган</th>
+                          <th className="px-3 py-2 text-right">Қолдиқ</th>
+                          <th className="px-3 py-2 text-right">Ортиқча тўланган</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {[...rows, all].map((row) => (
+                          <tr
+                            key={row.key}
+                            onClick={() => setStatsGroup(row.key)}
+                            className={`cursor-pointer hover:bg-blue-50 transition ${
+                              row === all ? "bg-gray-50 border-t-2 border-gray-300 font-bold" : ""
+                            }`}
+                          >
+                            <td className="px-3 py-2 text-gray-900">{row.label}</td>
+                            <td className="px-3 py-2 text-center">{row.people}</td>
+                            <td className="px-3 py-2 text-center">{row.debts}</td>
+                            <td className="px-3 py-2 text-right text-gray-900">{fmt(row.total)}</td>
+                            <td className="px-3 py-2 text-right text-green-700">{fmt(row.paid)}</td>
+                            <td className="px-3 py-2 text-right text-red-700">{fmt(row.remaining)}</td>
+                            <td className="px-3 py-2 text-right text-amber-700">{fmt(row.overpaid)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-4 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-700">Қарздорлар қолдиғи:</span>
+                      <span className="font-semibold text-red-700">{fmt(all.remaining)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-700">− Ортиқча тўланган (мижозга қайтариш керак):</span>
+                      <span className="font-semibold text-amber-700">−{fmt(all.overpaid)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-gray-200 pt-2">
+                      <span className="font-bold text-gray-900">Соф олишим керак (Молия билан бир хил):</span>
+                      <span className="font-bold text-green-700">{fmt(all.remaining - all.overpaid)}</span>
+                    </div>
+                  </div>
+
+                  {modalGroup && (() => {
+                    const totals = summarize(modalGroup.people);
+                    return (
+                      <div
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+                        onClick={() => setStatsGroup(null)}
+                      >
+                        <div
+                          className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="p-4 sm:p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-blue-50 to-indigo-50">
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-900">
+                                {modalGroup.label} ({totals.people} мижоз)
+                              </h3>
+                              <p className="text-xs text-gray-500">Мижозга босинг: қарз ва тўловлар тарихи очилади</p>
+                            </div>
+                            <button
+                              onClick={() => setStatsGroup(null)}
+                              className="p-2 text-gray-500 hover:text-gray-700"
+                              aria-label="Ёпиш"
+                            >
+                              <X size={22} />
+                            </button>
+                          </div>
+                          <div className="overflow-auto">
+                            {modalGroup.people.length === 0 ? (
+                              <p className="p-8 text-center text-gray-500">Мижозлар йўқ</p>
+                            ) : (
+                              <table className="w-full min-w-[640px] text-sm">
+                                <thead className="bg-gray-50 text-gray-600 text-xs uppercase sticky top-0">
+                                  <tr>
+                                    <th className="px-3 py-2 text-left w-12">№</th>
+                                    <th className="px-3 py-2 text-left">Мижоз</th>
+                                    <th className="px-3 py-2 text-center">Қарзлар</th>
+                                    <th className="px-3 py-2 text-right">Олган</th>
+                                    <th className="px-3 py-2 text-right">Берган</th>
+                                    <th className="px-3 py-2 text-right">Қолдиқ</th>
+                                    <th className="px-3 py-2 text-right">Ортиқча</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                  {modalGroup.people.map((person, index) => {
+                                    const overpaid = Math.max(0, person.returnedAmount - person.totalAmount);
+                                    return (
+                                      <tr
+                                        key={person.name}
+                                        onClick={() => openPerson(person.name)}
+                                        className="hover:bg-blue-50 cursor-pointer transition"
+                                      >
+                                        <td className="px-3 py-2 text-gray-500">{index + 1}</td>
+                                        <td className="px-3 py-2 font-medium text-gray-900">{person.name}</td>
+                                        <td className="px-3 py-2 text-center">{person.totalDebts}</td>
+                                        <td className="px-3 py-2 text-right font-semibold">{fmt(person.totalAmount)}</td>
+                                        <td className="px-3 py-2 text-right text-green-700">{fmt(person.returnedAmount)}</td>
+                                        <td className="px-3 py-2 text-right text-red-700">{fmt(person.unreturnedAmount)}</td>
+                                        <td className="px-3 py-2 text-right text-amber-700">{overpaid > 0 ? fmt(overpaid) : "—"}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                                <tfoot className="bg-gray-50 border-t-2 border-gray-300 font-bold sticky bottom-0">
+                                  <tr>
+                                    <td className="px-3 py-3" />
+                                    <td className="px-3 py-3">Жами</td>
+                                    <td className="px-3 py-3 text-center">{totals.debts}</td>
+                                    <td className="px-3 py-3 text-right">{fmt(totals.total)}</td>
+                                    <td className="px-3 py-3 text-right text-green-700">{fmt(totals.paid)}</td>
+                                    <td className="px-3 py-3 text-right text-red-700">{fmt(totals.remaining)}</td>
+                                    <td className="px-3 py-3 text-right text-amber-700">{fmt(totals.overpaid)}</td>
+                                  </tr>
+                                </tfoot>
+                              </table>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              );
+            })()}
+
             {/* Overall Summary */}
             <div className="mt-4 md:mt-6 border-2 border-purple-200 rounded-lg p-4 sm:p-5 md:p-6 bg-purple-50">
               <h3 className="text-base sm:text-lg md:text-xl font-bold text-purple-900 mb-4">Умумий Хулосала</h3>
@@ -1875,6 +2154,41 @@ export default function DebtManagement() {
                     </tr>
                   ))}
                 </tbody>
+                {(() => {
+                  // Totals of the rows shown above
+                  const sum = (pick: (d: DebtorSummary) => number) =>
+                    shownDebtors.reduce((acc, d) => acc + pick(d), 0);
+                  const totalAmount = sum((d) => d.totalAmount);
+                  const paidAmount = sum((d) => d.returnedAmount);
+                  const remainingAmount = sum((d) => d.unreturnedAmount);
+                  // Paid beyond what was owed: Қолдиқ stops at 0, so this is why Жами − Тўланган ≠ Қолдиқ
+                  const overpaid = sum((d) => Math.max(0, d.returnedAmount - d.totalAmount));
+                  return (
+                    <tfoot className="bg-gray-50 border-t-2 border-gray-300 font-bold">
+                      <tr>
+                        <td className="px-3 py-3" />
+                        <td className="px-3 py-3 text-gray-900">Жами ({shownDebtors.length} мижоз)</td>
+                        <td className="px-3 py-3 text-center text-gray-900">{sum((d) => d.totalDebts)}</td>
+                        <td className="px-3 py-3 text-right text-gray-900">{totalAmount.toLocaleString("en-US")}</td>
+                        <td className="px-3 py-3 text-right text-green-700">{paidAmount.toLocaleString("en-US")}</td>
+                        <td className="px-3 py-3 text-right text-red-700">{remainingAmount.toLocaleString("en-US")}</td>
+                        <td className="px-3 py-3" />
+                      </tr>
+                      {overpaid > 0 && (
+                        <tr className="font-normal text-xs text-gray-600">
+                          <td className="px-3 pb-3" />
+                          <td className="px-3 pb-3" colSpan={3}>
+                            Ортиқча тўланган (Тўланган ичида, Қолдиққа кирмайди)
+                          </td>
+                          <td className="px-3 pb-3 text-right text-amber-700 font-semibold">
+                            {overpaid.toLocaleString("en-US")}
+                          </td>
+                          <td className="px-3 pb-3" colSpan={2} />
+                        </tr>
+                      )}
+                    </tfoot>
+                  );
+                })()}
               </table>
             </div>
           )}
@@ -1932,27 +2246,91 @@ export default function DebtManagement() {
           )}
           
           {/* Excel-like Sheet View (single debtor) */}
-          {selectedDebtor && debtorView === "sheet" && (
-            <ExcelSheet
-              leadingColumns={["№", "Дата", "Тип"]}
-              trailingColumns={["Итого долга"]}
-              groups={sheetGroups}
-              emptyText="Долгов нет"
-              payments={sheetPaymentRows}
-              paymentsTitle="Платежи"
-              paymentsEmptyText="Платежей нет"
-              totals={[
-                { label: "Общий долг", value: formatMoney(sheetTotals.total), className: "" },
-                { label: "Оплачено", value: formatMoney(sheetTotals.paid), className: "text-green-700" },
-                { label: "Остаток", value: formatMoney(sheetTotals.remaining), className: "text-red-700" },
-              ]}
-              addLabel="Добавить долг"
-              onAdd={openCreateForSelectedDebtor}
-              secondaryAddLabel="Добавить платёж"
-              onSecondaryAdd={openPaymentForSelectedDebtor}
-              formatMoney={formatMoney}
-            />
-          )}
+          {selectedDebtor && debtorView === "sheet" && (() => {
+            const currentTotal = sumDebts(currentDebts);
+            const currentPaid = sumPaid(currentDebts, currentPayments);
+            const credit = personPeriods.carriedCredit;
+            const archivedTotal = sumDebts(archivedDebts);
+            const archivedPaid = sumPaid(archivedDebts, archivedPayments);
+            const archiveOpen = openArchiveFor === selectedDebtor;
+            return (
+              <>
+                <ExcelSheet
+                  leadingColumns={["№", "Дата", "Тип"]}
+                  trailingColumns={["Итого долга"]}
+                  groups={buildSheetGroups(personPeriods.hasArchive ? currentDebts : filteredAndSorted)}
+                  emptyText="Долгов нет"
+                  payments={buildPaymentRows(personPeriods.hasArchive ? currentPayments : sheetPayments)}
+                  paymentsTitle="Платежи"
+                  paymentsEmptyText="Платежей нет"
+                  totals={
+                    personPeriods.hasArchive
+                      ? [
+                          { label: "Общий долг", value: formatMoney(currentTotal), className: "" },
+                          { label: "Оплачено", value: formatMoney(currentPaid), className: "text-green-700" },
+                          ...(credit > 0
+                            ? [{ label: "Зачтено из архива (переплата)", value: formatMoney(credit), className: "text-amber-700" }]
+                            : []),
+                          {
+                            label: "Остаток",
+                            value: formatMoney(Math.max(0, currentTotal - currentPaid - credit)),
+                            className: "text-red-700",
+                          },
+                        ]
+                      : [
+                          { label: "Общий долг", value: formatMoney(sheetTotals.total), className: "" },
+                          { label: "Оплачено", value: formatMoney(sheetTotals.paid), className: "text-green-700" },
+                          { label: "Остаток", value: formatMoney(sheetTotals.remaining), className: "text-red-700" },
+                        ]
+                  }
+                  addLabel="Добавить долг"
+                  onAdd={openCreateForSelectedDebtor}
+                  secondaryAddLabel="Добавить платёж"
+                  onSecondaryAdd={openPaymentForSelectedDebtor}
+                  formatMoney={formatMoney}
+                />
+
+                {personPeriods.hasArchive && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => setOpenArchiveFor(archiveOpen ? null : selectedDebtor)}
+                      className="w-full flex items-center justify-between gap-3 px-4 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                    >
+                      <span className="flex items-center gap-2 font-semibold text-gray-800">
+                        <Archive size={18} className="text-gray-500" />
+                        Архивлар ({archivedDebts.length} қарз, {archivedPayments.length} тўлов)
+                      </span>
+                      <span className="flex items-center gap-2 text-sm text-gray-500">
+                        Ёпилган: {personPeriods.closedOn.map((d) => d.split("-").reverse().join(".")).join(", ")}
+                        {archiveOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      </span>
+                    </button>
+                    {archiveOpen && (
+                      <div className="mt-3 opacity-90">
+                        <ExcelSheet
+                          leadingColumns={["№", "Дата", "Тип"]}
+                          trailingColumns={["Итого долга"]}
+                          groups={buildSheetGroups(archivedDebts)}
+                          emptyText="Долгов нет"
+                          payments={buildPaymentRows(archivedPayments)}
+                          paymentsTitle="Платежи (архив)"
+                          paymentsEmptyText="Платежей нет"
+                          totals={[
+                            { label: "Общий долг", value: formatMoney(archivedTotal), className: "" },
+                            { label: "Оплачено", value: formatMoney(archivedPaid), className: "text-green-700" },
+                            ...(archivedPaid - archivedTotal > 0.01
+                              ? [{ label: "Переплата", value: formatMoney(archivedPaid - archivedTotal), className: "text-amber-700" }]
+                              : []),
+                          ]}
+                          formatMoney={formatMoney}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Debts Table View */}
           {(!selectedDebtor || debtorView === "table") && (
@@ -2027,9 +2405,9 @@ export default function DebtManagement() {
                           </td>
                           <td className="px-4 md:px-6 py-4 whitespace-nowrap">
                             <span className={`text-xs font-semibold px-2 py-1 rounded ${
-                              debt.branch_id === 1 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                              isGivenDebt(debt) ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"
                             }`}>
-                              {debt.branch_id === 1 ? "Nasiyam" : "Berilgan"}
+                              {isGivenDebt(debt) ? "Berilgan" : "Nasiyam"}
                             </span>
                           </td>
                           <td className="px-4 md:px-6 py-4 max-w-xs">
@@ -2138,9 +2516,9 @@ export default function DebtManagement() {
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <p className="text-xs font-medium text-gray-700 mb-1">Қарз Тури</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-                  selectedDebt.branch_id === 1 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                  isGivenDebt(selectedDebt) ? "bg-blue-100 text-blue-700" : "bg-red-100 text-red-700"
                 }`}>
-                  {selectedDebt.branch_id === 1 ? "Nasiyam" : "Berilgan Nasiya"}
+                  {isGivenDebt(selectedDebt) ? "Berilgan Nasiya" : "Nasiyam"}
                 </span>
               </div>
 
