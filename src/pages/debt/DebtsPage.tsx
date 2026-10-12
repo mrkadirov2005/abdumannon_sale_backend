@@ -1351,48 +1351,55 @@ export default function DebtManagement() {
   const moliyaStats = useMemo(() => {
     const sumAmount = (list: Debt[]) => list.reduce((sum, d) => sum + d.amount, 0);
 
-    const totalTaken = debts.filter((d) => d.branch_id === 1);
-    const totalGiven = debts.filter((d) => d.branch_id === 0);
+    // branch_id separates the two sides: 0 = Берилган Насия, 1 = Насиям.
+    // Each side is settled per person (like the debtor folders), so one person's
+    // overpayment never hides another person's debt.
+    const side = (list: Debt[]) => {
+      const byPerson = new Map<string, Debt[]>();
+      list.forEach((d) => {
+        const key = d.name.trim().toLowerCase();
+        byPerson.set(key, [...(byPerson.get(key) || []), d]);
+      });
 
-    const totalTakenAmount = sumAmount(totalTaken);
-    const totalGivenAmount = sumAmount(totalGiven);
-    const basePaidTaken = sumAmount(totalTaken.filter((d) => d.isreturned));
-    const basePaidGiven = sumAmount(totalGiven.filter((d) => d.isreturned));
-    const baseRemainingTaken = Math.max(0, totalTakenAmount - basePaidTaken);
-    const baseRemainingGiven = Math.max(0, totalGivenAmount - basePaidGiven);
+      let returnedAmount = 0;
+      let unreturnedAmount = 0;
+      let returnedCount = 0;
+      byPerson.forEach((personDebts, key) => {
+        const total = sumAmount(personDebts);
+        const paid = sumAmount(personDebts.filter((d) => d.isreturned)) + (paymentsByName.get(key) || 0);
+        const remaining = Math.max(0, total - paid);
+        returnedAmount += total - remaining;
+        unreturnedAmount += remaining;
+        // A debt counts as returned when it is marked so, or its person has paid everything
+        returnedCount += remaining <= 0.01 ? personDebts.length : personDebts.filter((d) => d.isreturned).length;
+      });
 
-    let paymentsTaken = 0;
-    let paymentsGiven = 0;
-    const takenNames = new Set(totalTaken.map((d) => d.name.trim().toLowerCase()));
-    const givenNames = new Set(totalGiven.map((d) => d.name.trim().toLowerCase()));
-    paymentsByName.forEach((amount, nameKey) => {
-      if (takenNames.has(nameKey)) paymentsTaken += amount;
-      if (givenNames.has(nameKey)) paymentsGiven += amount;
-    });
+      return {
+        count: list.length,
+        totalAmount: sumAmount(list),
+        returnedAmount,
+        unreturnedAmount,
+        returnedCount,
+        unreturnedCount: list.length - returnedCount,
+      };
+    };
 
-    const unreturnedTakenAmount = Math.max(0, baseRemainingTaken - paymentsTaken);
-    const unreturnedGivenAmount = Math.max(0, baseRemainingGiven - paymentsGiven);
-    const returnedTakenAmount = basePaidTaken + paymentsTaken;
-    const returnedGivenAmount = basePaidGiven + paymentsGiven;
-
-    const unreturnedTakenCount = totalTaken.filter((d) => !d.isreturned).length;
-    const unreturnedGivenCount = totalGiven.filter((d) => !d.isreturned).length;
-    const returnedTakenCount = totalTaken.filter((d) => d.isreturned).length;
-    const returnedGivenCount = totalGiven.filter((d) => d.isreturned).length;
+    const taken = side(debts.filter((d) => d.branch_id === 1));
+    const given = side(debts.filter((d) => d.branch_id === 0));
 
     return {
-      totalTakenCount: totalTaken.length,
-      totalGivenCount: totalGiven.length,
-      totalTakenAmount,
-      totalGivenAmount,
-      unreturnedTakenCount,
-      unreturnedGivenCount,
-      unreturnedTakenAmount,
-      unreturnedGivenAmount,
-      returnedTakenCount,
-      returnedGivenCount,
-      returnedTakenAmount,
-      returnedGivenAmount,
+      totalTakenCount: taken.count,
+      totalGivenCount: given.count,
+      totalTakenAmount: taken.totalAmount,
+      totalGivenAmount: given.totalAmount,
+      unreturnedTakenCount: taken.unreturnedCount,
+      unreturnedGivenCount: given.unreturnedCount,
+      unreturnedTakenAmount: taken.unreturnedAmount,
+      unreturnedGivenAmount: given.unreturnedAmount,
+      returnedTakenCount: taken.returnedCount,
+      returnedGivenCount: given.returnedCount,
+      returnedTakenAmount: taken.returnedAmount,
+      returnedGivenAmount: given.returnedAmount,
     };
   }, [debts, paymentsByName]);
 
