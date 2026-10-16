@@ -218,9 +218,10 @@ const Finance: React.FC = () => {
             source === "debts" || source === "myDebts" || source === "valyutchik"
               ? () => {
                   setMyDebtForm((prev) => ({ ...prev, lender: selectedPerson || prev.lender }));
-                  // Қарздорлар: a client debt (same as "Pul qoshish");
-                  // Қарзларим / Валютчик: my own debt (qarzlarim / valyutchik, picked by the tab)
-                  setMyDebtAdminOverride(source === "debts" ? "qarzdorlar" : null);
+                  // Қарздорлар, or an overpaid client on Қарзларим: a client debt (same as "Pul qoshish"),
+                  // so it is listed with his earlier debts instead of hiding them;
+                  // otherwise my own debt (qarzlarim / valyutchik, picked by the tab)
+                  setMyDebtAdminOverride(shouldShowPulQoshish ? "qarzdorlar" : null);
                   setShowMyDebtModal(true);
                 }
               : undefined
