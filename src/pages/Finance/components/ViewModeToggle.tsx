@@ -1,17 +1,22 @@
 import React from "react";
-import { Folder, DollarSign } from "lucide-react";
+import { Folder, DollarSign, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import type { ViewMode } from "../types";
+import type { DateOrder } from "../sortByDate";
 
 interface ViewModeToggleProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
   onPersonDeselect: () => void;
+  dateOrder: DateOrder;
+  onDateOrderToggle: () => void;
 }
 
 export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
   viewMode,
   onViewModeChange,
   onPersonDeselect,
+  dateOrder,
+  onDateOrderToggle,
 }) => {
   const handleModeChange = (mode: ViewMode) => {
     onViewModeChange(mode);
@@ -44,6 +49,18 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
             }`}
           >
             <DollarSign size={18} /> Барча Ёзувлар
+          </button>
+          <button
+            onClick={onDateOrderToggle}
+            className={`flex-1 md:flex-none px-3 sm:px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition text-sm md:text-base ${
+              dateOrder
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+            title={dateOrder === "asc" ? "Эскидан янгига" : dateOrder === "desc" ? "Янгидан эскига" : "Сана бўйича"}
+          >
+            {dateOrder === "asc" ? <ArrowUp size={18} /> : dateOrder === "desc" ? <ArrowDown size={18} /> : <ArrowUpDown size={18} />}
+            Сана
           </button>
         </div>
       </div>

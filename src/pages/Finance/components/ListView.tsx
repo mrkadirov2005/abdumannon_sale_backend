@@ -3,11 +3,13 @@ import { Trash2, Printer, Edit2 } from "lucide-react";
 import type { Wagon, Debt } from "../types";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
 import { formatWagonDate } from "../wagonDate";
+import { sortDebtsByDate, sortWagonsByDate, type DateOrder } from "../sortByDate";
 
 interface ListViewProps {
   wagons: Wagon[];
   debts: Debt[];
   source: "wagons" | "debts" | "myDebts" | "valyutchik";
+  dateOrder: DateOrder;
   onDeleteWagon: (wagonId: string) => void;
   onDeleteDebt: (debtId: string) => void;
   onEditDebt: (debt: Debt) => void;
@@ -17,6 +19,7 @@ export const ListView: React.FC<ListViewProps> = ({
   wagons,
   debts,
   source,
+  dateOrder,
   onDeleteWagon,
   onDeleteDebt,
   onEditDebt,
@@ -98,7 +101,7 @@ export const ListView: React.FC<ListViewProps> = ({
               </tr>
             </thead>
             <tbody>
-              {debts.map((debt) => (
+              {sortDebtsByDate(debts, dateOrder).map((debt) => (
                 <tr key={debt.id} className="border-b hover:bg-gray-50 transition">
                   <td className="px-4 py-3 font-semibold text-gray-900">
                     {debt.name}
@@ -184,7 +187,7 @@ export const ListView: React.FC<ListViewProps> = ({
             </tr>
           </thead>
           <tbody>
-            {wagons.map((wagon) => (
+            {sortWagonsByDate(wagons, dateOrder).map((wagon) => (
               <tr key={wagon.id} className="border-b hover:bg-gray-50 transition">
                 <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
                   {formatWagonDate(wagon.created_at)}

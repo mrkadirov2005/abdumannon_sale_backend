@@ -10,10 +10,12 @@ import { DetailsPanel } from "./components/DetailsPanel";
 import { PaymentModal } from "./components/PaymentModal";
 import { MyDebtModal } from "./components/MyDebtModal";
 import { EditDebtModal } from "./components/EditDebtModal";
+import type { DateOrder } from "./sortByDate";
 import type { ViewMode, FinanceSource, FinanceRecord, Debt } from "./types";
 
 const Finance: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("folders");
+  const [dateOrder, setDateOrder] = useState<DateOrder>(null);
   const [source, setSource] = useState<FinanceSource>("wagons");
   const [showMyDebtModal, setShowMyDebtModal] = useState(false);
   const [myDebtAdminOverride, setMyDebtAdminOverride] = useState<
@@ -174,6 +176,8 @@ const Finance: React.FC = () => {
       />
 
       <ViewModeToggle
+        dateOrder={dateOrder}
+        onDateOrderToggle={() => setDateOrder((order) => (order === "asc" ? "desc" : "asc"))}
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onPersonDeselect={() => {
@@ -195,6 +199,7 @@ const Finance: React.FC = () => {
             selectedPerson={selectedPerson}
             onPersonSelect={setSelectedPerson}
             source={source}
+            dateOrder={dateOrder}
           />
         )
       ) : (
@@ -202,6 +207,7 @@ const Finance: React.FC = () => {
         wagons={wagons}
         debts={debts}
         source={source}
+        dateOrder={dateOrder}
         onDeleteWagon={handleDeleteWagon}
         onDeleteDebt={handleDeleteDebt}
         onEditDebt={openEditDebtModal}

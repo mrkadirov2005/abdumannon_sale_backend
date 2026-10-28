@@ -1,11 +1,13 @@
 import React from "react";
 import type { Person } from "../types";
+import { sortPersonsByDate, type DateOrder } from "../sortByDate";
 
 interface FolderViewProps {
   persons: Person[];
   selectedPerson: string | null;
   onPersonSelect: (person: string) => void;
   source: "wagons" | "debts" | "myDebts" | "valyutchik";
+  dateOrder: DateOrder;
 }
 
 export const FolderView: React.FC<FolderViewProps> = ({
@@ -13,10 +15,11 @@ export const FolderView: React.FC<FolderViewProps> = ({
   selectedPerson,
   onPersonSelect,
   source,
+  dateOrder,
 }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-      {persons.map((person) => (
+      {sortPersonsByDate(persons, dateOrder).map((person) => (
         <div
           key={person.name}
           onClick={() => onPersonSelect(person.name)}
