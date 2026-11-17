@@ -11,6 +11,14 @@ import type {
 import { DEFAULT_ENDPOINT, ENDPOINTS } from "../../config/endpoints";
 import { useSelector } from "react-redux";
 import { getshopidfromstrore } from "../../redux/selectors";
+import {
+  MY_DEBTS_ADMIN_ID,
+  VALYUTCHIK_ADMIN_ID,
+  buildLedgerPersons,
+  debtAdminId,
+  getMyDebtRecordScope,
+  normalizePersonName,
+} from "./personLedger";
 
 const getHeaders = () => {
   const token = localStorage.getItem("Token");
@@ -31,27 +39,14 @@ const toTime = (value?: string) => {
 const sortOldestFirst = <T,>(list: T[], getTime: (item: T) => number): T[] =>
   Array.isArray(list) ? [...list].sort((a, b) => getTime(a) - getTime(b)) : list;
 
-const MY_DEBTS_ADMIN_ID = "qarzlarim";
-const VALYUTCHIK_ADMIN_ID = "valyutchik";
 const MY_DEBT_SCOPE_TAG_QARZLARIM = "[qarzlarim]";
 const MY_DEBT_SCOPE_TAG_VALYUTCHIK = "[valyutchik]";
-
-const normalizePersonName = (value: string) =>
-  value.trim().toLowerCase().replace(/\s+/g, " ");
 
 const extractPersonNameFromDescription = (description?: string) => {
   if (!description) return "";
   const parts = description.split(":");
   const rawName = (parts[0] || "").trim();
   return rawName;
-};
-
-const getMyDebtRecordScope = (description?: string): "qarzlarim" | "valyutchik" | null => {
-  if (!description) return null;
-  const lower = description.toLowerCase();
-  if (lower.includes(MY_DEBT_SCOPE_TAG_VALYUTCHIK)) return "valyutchik";
-  if (lower.includes(MY_DEBT_SCOPE_TAG_QARZLARIM)) return "qarzlarim";
-  return null;
 };
 
 export const useFinanceLogic = (source: FinanceSource) => {
@@ -136,28 +131,10 @@ export const useFinanceLogic = (source: FinanceSource) => {
     }
   }, [shop_id]);
 
-  const baseDebtsDefault = useMemo(
-    () =>
-      debts.filter(
-        (d) => d.admin_id !== MY_DEBTS_ADMIN_ID && d.admin_id !== VALYUTCHIK_ADMIN_ID
-      ),
-    [debts]
-  );
-  const baseDebtsMy = useMemo(
-    () => debts.filter((d) => d.admin_id === MY_DEBTS_ADMIN_ID),
-    [debts]
-  );
   const baseDebtsValyutchik = useMemo(
     () => debts.filter((d) => d.admin_id === VALYUTCHIK_ADMIN_ID),
     [debts]
   );
-
-  const baseDebts = useMemo(() => {
-    if (source === "myDebts") return baseDebtsMy;
-    if (source === "valyutchik") return baseDebtsValyutchik;
-    if (source === "debts") return baseDebtsDefault;
-    return debts;
-  }, [baseDebtsDefault, baseDebtsMy, baseDebtsValyutchik, debts, source]);
 
   const buildPersonsFromDebts = useCallback(
     (debtsList: Debt[], isMyDebtSource: boolean) => {
@@ -226,6 +203,27 @@ export const useFinanceLogic = (source: FinanceSource) => {
     [financeRecords]
   );
 
+  // Everyone from Қарздорлар and Қарзларим with one shared balance
+  const ledgerPersons = useMemo(
+    () => buildLedgerPersons(debts, financeRecords),
+    [debts, financeRecords]
+  );
+
+  // A client with client payments must not become a lender: it would change
+  // how those payments are read (see personLedger.ts)
+  const isClientWithPayments = useCallback(
+    (name: string) => {
+      const key = normalizePersonName(name);
+      return ledgerPersons.some(
+        (person) =>
+          normalizePersonName(person.name) === key &&
+          !person.isLender &&
+          (person.records || []).length > 0
+      );
+    },
+    [ledgerPersons]
+  );
+
   const uniquePersons = useMemo(() => {
     if (source === "wagons") {
       const personsMap = new Map<string, Person>();
@@ -287,80 +285,15 @@ export const useFinanceLogic = (source: FinanceSource) => {
       );
     }
 
-    if (source === "myDebts") {
-      const myDebtsPersons = buildPersonsFromDebts(baseDebtsMy, true);
-      const transferredOverpaid = buildPersonsFromDebts(baseDebtsDefault, false).filter(
-        (person) => person.remainingAmount < 0
-      );
-
-      const myMap = new Map<string, Person>();
-      myDebtsPersons.forEach((p) => myMap.set(normalizePersonName(p.name), p));
-
-      const transferredMap = new Map<string, Person>();
-      transferredOverpaid.forEach((p) =>
-        transferredMap.set(normalizePersonName(p.name), p)
-      );
-
-      const merged: Person[] = [];
-      const allKeys = new Set<string>([
-        ...Array.from(myMap.keys()),
-        ...Array.from(transferredMap.keys()),
-      ]);
-
-      allKeys.forEach((key) => {
-        const my = myMap.get(key);
-        const transferred = transferredMap.get(key);
-
-        // If this person exists in myDebts AND has an overpaid balance in qarzdorlar,
-        // show the transferred (qarzdorlar) payments as "taken", and the myDebts debts as "paid".
-        // This matches the business meaning of "moved from qarzdorlar into qarzlarim".
-        if (my && transferred) {
-          const taken = transferred.paidAmount; // sum of non-my_debt finance records
-          const paid = my.totalAmount; // sum of qarzlarim debts
-          merged.push({
-            ...my,
-            totalAmount: taken,
-            paidAmount: paid,
-            remainingAmount: paid - taken, // negative => credit (shown as + in invert mode)
-          });
-          return;
-        }
-
-        if (my) {
-          merged.push(my);
-          return;
-        }
-
-        if (transferred) {
-          // Overpaid in qarzdorlar but no myDebts rows; show credit only.
-          const credit = Math.abs(transferred.remainingAmount);
-          merged.push({
-            ...transferred,
-            totalAmount: credit,
-            paidAmount: 0,
-            remainingAmount: -credit,
-          });
-        }
-      });
-
-      return merged.sort((a, b) => b.totalAmount - a.totalAmount);
-    }
-
     if (source === "valyutchik") {
       return buildPersonsFromDebts(baseDebtsValyutchik, true);
     }
 
-    return buildPersonsFromDebts(baseDebtsDefault, false).filter(
-      (person) => person.remainingAmount >= 0
-    );
-  }, [
-    source,
-    wagons,
-    baseDebtsDefault,
-    baseDebtsMy,
-    baseDebtsValyutchik,
-    buildPersonsFromDebts,
-  ]);
+    // Қарздорлар / Қарзларим: each person is on the side their balance puts them
+    return ledgerPersons
+      .filter((person) => person.side === source)
+      .sort((a, b) => b.totalAmount - a.totalAmount);
+  }, [source, wagons, financeRecords, ledgerPersons, baseDebtsValyutchik, buildPersonsFromDebts]);
 
   const myDebtsCardTotals = useMemo(() => {
     const sumTotals = (list: Person[]) =>
@@ -380,40 +313,21 @@ export const useFinanceLogic = (source: FinanceSource) => {
     uniquePersons,
   ]);
 
+  // "Барча Ёзувлар": the debts of the people on this tab (client and qarzlarim alike)
   const visibleDebts = useMemo(() => {
-    if (source === "myDebts") {
-      const overpaidAllowed = new Set(
-        buildPersonsFromDebts(baseDebtsDefault, false)
-          .filter((person) => person.remainingAmount < 0)
-          .map((person) => normalizePersonName(person.name))
-      );
-      return [
-        ...baseDebtsMy,
-        ...baseDebtsDefault.filter((debt) =>
-          overpaidAllowed.has(normalizePersonName(debt.name))
-        ),
-      ];
-    }
-
-    if (source === "debts") {
+    if (source === "myDebts" || source === "debts") {
       const allowed = new Set(
         uniquePersons.map((person) => normalizePersonName(person.name))
       );
-      return baseDebtsDefault.filter((debt) =>
-        allowed.has(normalizePersonName(debt.name))
+      return debts.filter(
+        (debt) =>
+          debtAdminId(debt) !== VALYUTCHIK_ADMIN_ID &&
+          allowed.has(normalizePersonName(debt.name))
       );
     }
 
-
-    return baseDebts;
-  }, [
-    baseDebts,
-    baseDebtsDefault,
-    baseDebtsDefault,
-    baseDebtsMy,
-    source,
-    uniquePersons,
-  ]);
+    return source === "valyutchik" ? baseDebtsValyutchik : debts;
+  }, [baseDebtsValyutchik, debts, source, uniquePersons]);
 
   // Filter persons by search
   const filteredPersons = useMemo(() => {
@@ -430,8 +344,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
   const submitFinanceRecord = useCallback(
     async (
       selectedPersonName: string,
-      paymentData: FormData,
-      selectedPersonDebts?: Debt[]
+      paymentData: FormData
     ) => {
       if (!selectedPersonName || !paymentData.amount) {
         toast.error("Iltimos, barcha maydonlarni to'ldiring");
@@ -445,15 +358,9 @@ export const useFinanceLogic = (source: FinanceSource) => {
           return null;
         }
 
-        let categoryToSend = paymentData.category;
-        if (source === "valyutchik") {
-          categoryToSend = "my_debt";
-        } else if (source === "myDebts") {
-          const hasMyDebts = (selectedPersonDebts || []).some(
-            (debt) => debt.admin_id === MY_DEBTS_ADMIN_ID
-          );
-          categoryToSend = hasMyDebts ? "my_debt" : "sales";
-        }
+        // The caller picks the category from the person (lender → my_debt, client → sales);
+        // edits keep the record's own category so its meaning doesn't change
+        const categoryToSend = source === "valyutchik" ? "my_debt" : paymentData.category || "sales";
 
         const needsScopeTag = categoryToSend === "my_debt";
         const scopeTag =
@@ -581,14 +488,9 @@ export const useFinanceLogic = (source: FinanceSource) => {
   const handleAddPayment = useCallback(
     async (
       selectedPersonName: string,
-      selectedPersonDebts?: Debt[],
       paymentData: FormData = formData
     ) => {
-      const result = await submitFinanceRecord(
-        selectedPersonName,
-        paymentData,
-        selectedPersonDebts
-      );
+      const result = await submitFinanceRecord(selectedPersonName, paymentData);
 
       if (!result) return false;
 
@@ -610,14 +512,9 @@ export const useFinanceLogic = (source: FinanceSource) => {
     async (
       recordId: number,
       selectedPersonName: string,
-      paymentData: FormData,
-      selectedPersonDebts?: Debt[]
+      paymentData: FormData
     ) => {
-      const createResult = await submitFinanceRecord(
-        selectedPersonName,
-        paymentData,
-        selectedPersonDebts
-      );
+      const createResult = await submitFinanceRecord(selectedPersonName, paymentData);
 
       if (!createResult) return false;
 
@@ -763,9 +660,10 @@ export const useFinanceLogic = (source: FinanceSource) => {
     async (debt: Debt, updates: { amount: number; comment: string }) => {
       if (!debt?.id) return false;
 
-      // Only allow editing debts that belong to my-debt sources.
-      const isMyDebtSource = source === "myDebts" || source === "valyutchik";
-      if (!isMyDebtSource) {
+      // Only my own debts (qarzlarim / valyutchik) are editable, on whichever tab
+      // the person is shown (a lender who was overpaid is listed under Қарздорлар)
+      const admin = debtAdminId(debt);
+      if (admin !== MY_DEBTS_ADMIN_ID && admin !== VALYUTCHIK_ADMIN_ID) {
         toast.error("Bu bo'limda qarzni tahrirlab bo'lmaydi");
         return false;
       }
@@ -806,7 +704,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
         return false;
       }
     },
-    [fetchData, source]
+    [fetchData]
   );
 
   return {
@@ -840,5 +738,7 @@ export const useFinanceLogic = (source: FinanceSource) => {
     handleUpdateMyDebt,
     markDebtsReturned,
     myDebtsCardTotals,
+    ledgerPersons,
+    isClientWithPayments,
   };
 };

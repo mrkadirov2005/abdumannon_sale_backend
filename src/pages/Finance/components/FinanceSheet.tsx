@@ -16,6 +16,8 @@ interface FinanceSheetProps {
   wagons: Wagon[];
   debts: Debt[];
   records: FinanceRecord[];
+  // Whether a payment is shown with "+" (defaults to income)
+  isPaymentPlus?: (record: FinanceRecord) => boolean;
   currency: "USD" | "RUB";
   totals: SheetTotal[];
   onAddPayment: () => void;
@@ -42,6 +44,7 @@ export const FinanceSheet: React.FC<FinanceSheetProps> = ({
   wagons,
   debts,
   records,
+  isPaymentPlus = (record) => record.type === "income",
   currency,
   totals,
   onAddPayment,
@@ -110,7 +113,7 @@ export const FinanceSheet: React.FC<FinanceSheetProps> = ({
     date: new Date(record.date).toLocaleDateString("ru-RU"),
     description: record.description?.split(": ")[1] || record.description || "",
     amount: parseFloat(record.amount) || 0,
-    isIncome: record.type === "income",
+    isIncome: isPaymentPlus(record),
     edit: {
       initialDate: String(record.date).split("T")[0],
       initialDescription: extractEditableDescription(record.description),

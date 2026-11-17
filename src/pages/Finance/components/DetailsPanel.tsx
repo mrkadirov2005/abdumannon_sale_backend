@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Plus, Trash2, Printer, ArrowLeft, Edit2, List, Table2 } from "lucide-react";
 import type { Person, FinanceRecord, Debt, Wagon } from "../types";
+import { paymentIsFromMe } from "../personLedger";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
 import { formatWagonDate } from "../wagonDate";
 import { DebtProductsModal } from "./DebtProductsModal";
@@ -107,70 +108,39 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   const currency = source === "wagons" || source === "valyutchik" ? "USD" : "RUB";
 
   const personKey = normalizePersonName(person.name);
-  const personFinanceRecords = financeRecords.filter((record) => {
-    if (getRecordPersonKey(record) !== personKey) return false;
-
-    if (source === "valyutchik") {
-      return isMyDebtRecordForThisTab(record);
-    }
-
-    if (source === "myDebts") {
-      // For myDebts we show:
-      // - my_debt payments that belong to qarzlarim (not valyutchik)
-      // - non-my_debt payments (transferred/qarzdorlar part)
-      if (record.category === "my_debt") return isMyDebtRecordForThisTab(record);
-      return true;
-    }
-
-    if (isMyDebtSource && record.category !== "my_debt") return false;
-    if (!isMyDebtSource && record.category === "my_debt") return false;
-    return true;
-  });
+  // Қарздорлар / Қарзларим: the payments behind the person's shared balance (personLedger.ts)
+  const personFinanceRecords =
+    (source === "debts" || source === "myDebts") && person.records
+      ? person.records
+      : financeRecords.filter((record) => {
+          if (getRecordPersonKey(record) !== personKey) return false;
+          if (source === "valyutchik") return isMyDebtRecordForThisTab(record);
+          if (isMyDebtSource && record.category !== "my_debt") return false;
+          if (!isMyDebtSource && record.category === "my_debt") return false;
+          return true;
+        });
 
   const debts: Debt[] = person.debts || [];
-  const hasTransferredDebts =
-    source === "myDebts" &&
-    debts.some((debt) => {
-      const adminId = getAdminId(debt);
-      return adminId !== MY_DEBTS_ADMIN_ID && adminId !== VALYUTCHIK_ADMIN_ID;
-    });
 
-  // For myDebts details cards we must match exactly what the user sees on screen:
-  // - "Қарзлар" table (debts list) => totalAmount
-  // - "Пул бериш тарихи" list (personFinanceRecords) => paidAmount
-  // - remaining = total - paid
-  const mergedDisplayTotals = (() => {
-    const parseAmount = (value: unknown) => {
-      if (typeof value === "number") return Number.isFinite(value) ? value : 0;
-      const raw = String(value ?? "").trim();
-      if (!raw) return 0;
-      // Support backend returning "36,000", "36 000", etc.
-      const normalized = raw.replace(/[\s,]/g, "");
-      const parsed = Number(normalized);
-      return Number.isFinite(parsed) ? parsed : 0;
-    };
+  // "+" = a payment that lowers this tab's remaining amount: on Қарздорлар money from the
+  // client, on Қарзларим money from Абдуманнон. Plain income/expense on the other tabs.
+  const isPaymentPlus = (record: FinanceRecord) => {
+    if (source !== "debts" && source !== "myDebts") return record.type === "income";
+    const fromMe = paymentIsFromMe(record, !!person.isLender);
+    return source === "debts" ? !fromMe : fromMe;
+  };
 
-    const totalAmount = debts.reduce((sum, debt) => sum + parseAmount((debt as any).amount), 0);
-    const paidAmount = personFinanceRecords.reduce((sum, record) => {
-      const amount = parseAmount((record as any).amount);
-      return sum + (record.type === "income" ? amount : -amount);
-    }, 0);
-
-    return {
-      totalAmount,
-      paidAmount,
-      remainingAmount: totalAmount - paidAmount,
-    };
-  })();
-
-  const displayTotals =
-    source === "myDebts"
-      ? mergedDisplayTotals
-      : {
-          totalAmount: person.totalAmount,
-          paidAmount: person.paidAmount,
-          remainingAmount: person.remainingAmount,
-        };
+  const displayTotals = {
+    totalAmount: person.totalAmount,
+    paidAmount: person.paidAmount,
+    remainingAmount: person.remainingAmount,
+  };
+  const balanceMode: "default" | "alwaysNegative" | "invert" =
+    source === "wagons"
+      ? "alwaysNegative"
+      : source === "myDebts" || source === "valyutchik"
+      ? "invert"
+      : "default";
 
   const totalLabel =
     source === "debts"
@@ -181,23 +151,12 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       ? "Абдуманнон (олган)"
       : "Жами Сумма";
   const paidLabel = source === "debts" ? "Клиент (берган)" : "Тўланган";
-  const remainingText = formatBalance(
-    displayTotals.remainingAmount,
-    currency,
-    source === "wagons"
-      ? "alwaysNegative"
-      : source === "myDebts"
-      ? hasTransferredDebts
-        ? "default"
-        : "invert"
-      : source === "valyutchik"
-      ? "invert"
-      : "default"
-  );
+  const remainingText = formatBalance(displayTotals.remainingAmount, currency, balanceMode);
 
   // Same rule as the edit button in the details view
+  // My own debts are editable wherever the person is listed
   const canEditDebt = (debt: Debt) =>
-    (source === "myDebts" && getAdminId(debt) === MY_DEBTS_ADMIN_ID) ||
+    ((source === "debts" || source === "myDebts") && getAdminId(debt) === MY_DEBTS_ADMIN_ID) ||
     (source === "valyutchik" && getAdminId(debt) === VALYUTCHIK_ADMIN_ID);
 
   // Russian labels for the Excel sheet
@@ -339,8 +298,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         name: `💰 ${desc} (${date})`,
         quantity: 1,
         unit: "pcs",
-        price: record.type === "income" ? amt : -amt,
-        total: record.type === "income" ? amt : -amt,
+        price: isPaymentPlus(record) ? amt : -amt,
+        total: isPaymentPlus(record) ? amt : -amt,
       });
     });
 
@@ -351,16 +310,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       supplier: DEFAULT_SUPPLIER_HTML,
       buyer: person.name,
       products,
-      totalAmount: person.totalAmount,
-      status: `To'langan: ${person.paidAmount.toLocaleString("en-US")} | Qoldiq: ${formatBalance(
-        person.remainingAmount,
-        currency,
-        source === "wagons"
-          ? "alwaysNegative"
-          : source === "myDebts" || source === "valyutchik"
-          ? "invert"
-          : "default"
-      )}`,
+      totalAmount: displayTotals.totalAmount,
+      status: `To'langan: ${displayTotals.paidAmount.toLocaleString("en-US")} | Qoldiq: ${remainingText}`,
       signatureLeft: "Поставщик",
       signatureRight: "Получатель",
     });
@@ -426,6 +377,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           wagons={person.wagons || []}
           debts={debts}
           records={personFinanceRecords}
+          isPaymentPlus={isPaymentPlus}
           currency={currency}
           onAddPayment={onAddPayment}
           onAddDebt={onAddDebt}
@@ -621,8 +573,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                       >
                         <Printer size={18} />
                       </button>
-                      {((source === "myDebts" && getAdminId(debt) === MY_DEBTS_ADMIN_ID) ||
-                        (source === "valyutchik" && getAdminId(debt) === VALYUTCHIK_ADMIN_ID)) && (
+                      {canEditDebt(debt) && (
                         <button
                           onClick={() => onEditDebt(debt)}
                           className="text-blue-600 hover:text-blue-800 transition"
@@ -680,12 +631,12 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
               <div className="text-right mr-4">
                 <p
                   className={`font-bold text-lg ${
-                    record.type === "income"
+                    isPaymentPlus(record)
                       ? "text-green-600"
                       : "text-red-600"
                   }`}
                 >
-                  {record.type === "income" ? "+" : "-"}
+                  {isPaymentPlus(record) ? "+" : "-"}
                   {formatCurrency(parseFloat(record.amount), currency)}
                 </p>
               </div>

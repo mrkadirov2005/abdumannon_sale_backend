@@ -9,6 +9,8 @@ interface PaymentModalProps {
   onAddPayment: () => void;
   onClose: () => void;
   hideCategory?: boolean;
+  // true for lenders (qarzlarim / valyutchik): "income" means Абдуманнон paid
+  incomeIsFromMe?: boolean;
   title?: string;
   submitLabel?: string;
 }
@@ -21,6 +23,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
   onAddPayment,
   onClose,
   hideCategory = false,
+  incomeIsFromMe = false,
   title,
   submitLabel,
 }) => {
@@ -75,8 +78,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               }
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="income">Кирим</option>
-              <option value="expense">Чиқим</option>
+              {/* Named by who hands over the money, so the direction is never guessed wrong */}
+              <option value="income">
+                {incomeIsFromMe ? "Абдуманнон берди" : "Клиент берди"}
+              </option>
+              <option value="expense">
+                {incomeIsFromMe ? "Клиент берди" : "Абдуманнон берди"}
+              </option>
             </select>
           </div>
 

@@ -6,11 +6,14 @@ export interface MyDebtFormData {
   comment: string;
   isReturned: boolean;
   date: string;
+  // Used when kindChoice is on: "took" = Абдуманнон олди (qarzlarim), "gave" = Абдуманнон берди (client debt)
+  kind: "took" | "gave";
 }
 
 interface MyDebtModalProps {
   isOpen: boolean;
   formData: MyDebtFormData;
+  kindChoice?: boolean;
   onFormChange: (data: Partial<MyDebtFormData>) => void;
   onSubmit: () => void;
   onClose: () => void;
@@ -19,6 +22,7 @@ interface MyDebtModalProps {
 export const MyDebtModal: React.FC<MyDebtModalProps> = ({
   isOpen,
   formData,
+  kindChoice = false,
   onFormChange,
   onSubmit,
   onClose,
@@ -31,9 +35,25 @@ export const MyDebtModal: React.FC<MyDebtModalProps> = ({
         <h3 className="text-xl font-bold text-gray-900 mb-4">Қарз қўшиш</h3>
 
         <div className="space-y-4">
+          {kindChoice && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Тури
+              </label>
+              <select
+                value={formData.kind}
+                onChange={(e) => onFormChange({ kind: e.target.value as "took" | "gave" })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="took">Абдуманнон олди (Қарзларим)</option>
+                <option value="gave">Абдуманнон берди (Қарздорлар)</option>
+              </select>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Қарз берувчи *
+              {kindChoice && formData.kind === "gave" ? "Қарздор *" : "Қарз берувчи *"}
             </label>
             <input
               type="text"

@@ -44,6 +44,11 @@ export interface Person {
   remainingAmount: number;
   wagons?: Wagon[];
   debts?: Debt[];
+  // Қарздорлар / Қарзларим only (see personLedger.ts)
+  records?: FinanceRecord[];
+  isLender?: boolean;
+  balance?: number;
+  side?: "debts" | "myDebts";
 }
 
 export interface FinanceRecord {
