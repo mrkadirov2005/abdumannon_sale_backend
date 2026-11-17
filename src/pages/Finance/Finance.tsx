@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { useFinanceLogic } from "./useFinanceLogic";
 import { FinanceHeader } from "./components/FinanceHeader";
 import { FinanceStats } from "./components/FinanceStats";
@@ -8,26 +9,48 @@ import { FolderView } from "./components/FolderView";
 import { ListView } from "./components/ListView";
 import { DetailsPanel } from "./components/DetailsPanel";
 import { PaymentModal } from "./components/PaymentModal";
-import { MyDebtModal } from "./components/MyDebtModal";
+import { MyDebtModal, type MyDebtFormData } from "./components/MyDebtModal";
 import { EditDebtModal } from "./components/EditDebtModal";
 import type { DateOrder } from "./sortByDate";
 import type { ViewMode, FinanceSource, FinanceRecord, Debt } from "./types";
+import {
+  MY_DEBTS_ADMIN_ID,
+  VALYUTCHIK_ADMIN_ID,
+  debtAdminId,
+  paymentTypeFor,
+} from "./personLedger";
+
+// Which kind of debt the "Қарз қўшиш" modal creates:
+// admin null = the tab's own kind (qarzlarim on Қарзларим, valyutchik on Валютчик);
+// choice = let the user pick "Абдуманнон олди" (qarzlarim) or "Абдуманнон берди" (client debt)
+interface DebtTarget {
+  admin: "qarzlarim" | "qarzdorlar" | null;
+  choice: boolean;
+  fromHeader: boolean;
+}
+
+const today = () => new Date().toISOString().split("T")[0];
+
+const emptyDebtForm = (): MyDebtFormData => ({
+  lender: "",
+  amount: "",
+  comment: "",
+  isReturned: false,
+  date: today(),
+  kind: "took",
+});
 
 const Finance: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("folders");
   const [dateOrder, setDateOrder] = useState<DateOrder>(null);
   const [source, setSource] = useState<FinanceSource>("wagons");
   const [showMyDebtModal, setShowMyDebtModal] = useState(false);
-  const [myDebtAdminOverride, setMyDebtAdminOverride] = useState<
-    "qarzlarim" | "qarzdorlar" | null
-  >(null);
-  const [myDebtForm, setMyDebtForm] = useState({
-    lender: "",
-    amount: "",
-    comment: "",
-    isReturned: false,
-    date: new Date().toISOString().split("T")[0],
+  const [debtTarget, setDebtTarget] = useState<DebtTarget>({
+    admin: null,
+    choice: false,
+    fromHeader: false,
   });
+  const [myDebtForm, setMyDebtForm] = useState<MyDebtFormData>(emptyDebtForm);
   const [editingFinanceRecord, setEditingFinanceRecord] = useState<FinanceRecord | null>(null);
   const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
   const [showEditDebtModal, setShowEditDebtModal] = useState(false);
@@ -61,14 +84,22 @@ const Finance: React.FC = () => {
     handleUpdateMyDebt,
     markDebtsReturned,
     myDebtsCardTotals,
+    ledgerPersons,
+    isClientWithPayments,
   } = useFinanceLogic(source);
 
+  const isMyTab = source === "myDebts" || source === "valyutchik";
+  // A lender's payments are read "income = Абдуманнон paid" (see personLedger.ts)
+  const personIsLender = source === "valyutchik" || !!selectedPersonData?.isLender;
+
+  // A new payment defaults to the usual direction of the tab: on Қарздорлар / Вагонлар
+  // the other person pays, on Қарзларим / Валютчик Абдуманнон pays
   const getDefaultPaymentForm = () => ({
     amount: "",
     description: "",
-    type: "income" as const,
-    category: source === "myDebts" || source === "valyutchik" ? "my_debt" : "sales",
-    date: new Date().toISOString().split("T")[0],
+    type: paymentTypeFor(isMyTab, personIsLender),
+    category: personIsLender ? "my_debt" : "sales",
+    date: today(),
   });
 
   const extractEditableDescription = (description?: string) => {
@@ -104,8 +135,9 @@ const Finance: React.FC = () => {
   };
 
   const openEditDebtModal = (debt: Debt) => {
-    // Editing debts from "wagons" or generic "qarzdorlar" in Finance doesn't make sense.
-    if (!(source === "myDebts" || source === "valyutchik")) return;
+    // Only my own debts (qarzlarim / valyutchik) can be edited
+    const admin = debtAdminId(debt);
+    if (admin !== MY_DEBTS_ADMIN_ID && admin !== VALYUTCHIK_ADMIN_ID) return;
 
     setEditingDebt(debt);
     // backend sometimes returns product_names as array; keep UI robust
@@ -127,15 +159,39 @@ const Finance: React.FC = () => {
     setEditDebtForm({ amount: "", comment: "" });
   };
 
+  const openDebtModal = (target: DebtTarget, form: Partial<MyDebtFormData> = {}) => {
+    setDebtTarget(target);
+    setMyDebtForm({ ...emptyDebtForm(), ...form });
+    setShowMyDebtModal(true);
+  };
+
+  const closeDebtModal = () => {
+    setShowMyDebtModal(false);
+    setDebtTarget({ admin: null, choice: false, fromHeader: false });
+    setMyDebtForm(emptyDebtForm());
+  };
+
+  // A client (no qarzlarim debts) gets client debts only, on either tab
   const shouldShowPulQoshish =
     !!selectedPersonData &&
-    ((source === "debts") ||
-      (source === "myDebts" &&
-        !(selectedPersonData.debts || []).some((debt) => debt.admin_id === "qarzlarim")));
+    (source === "debts" || (source === "myDebts" && !selectedPersonData.isLender));
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // After a change the open person may now belong on the other tab: close their page and say where they went
+  useEffect(() => {
+    if (loading || !selectedPerson || selectedPersonData) return;
+    if (source !== "debts" && source !== "myDebts") return;
+    const moved = ledgerPersons.find((person) => person.name === selectedPerson);
+    setSelectedPerson(null);
+    if (moved?.side && moved.side !== source) {
+      toast.info(
+        `${selectedPerson} → ${moved.side === "debts" ? "Қарздорлар" : "Қарзларим"} бўлимига ўтди`
+      );
+    }
+  }, [loading, selectedPerson, selectedPersonData, source, ledgerPersons, setSelectedPerson]);
 
   if (loading) {
     return (
@@ -163,7 +219,7 @@ const Finance: React.FC = () => {
           setShowEditDebtModal(false);
           setEditingDebt(null);
         }}
-        onAddMyDebt={() => setShowMyDebtModal(true)}
+        onAddMyDebt={() => openDebtModal({ admin: null, choice: false, fromHeader: true })}
       />
 
       <FinanceStats
@@ -223,31 +279,28 @@ const Finance: React.FC = () => {
           onAddDebt={
             source === "debts" || source === "myDebts" || source === "valyutchik"
               ? () => {
-                  setMyDebtForm((prev) => ({ ...prev, lender: selectedPerson || prev.lender }));
-                  // Қарздорлар, or an overpaid client on Қарзларим: a client debt (same as "Pul qoshish"),
-                  // so it is listed with his earlier debts instead of hiding them;
-                  // otherwise my own debt (qarzlarim / valyutchik, picked by the tab)
-                  setMyDebtAdminOverride(shouldShowPulQoshish ? "qarzdorlar" : null);
-                  setShowMyDebtModal(true);
+                  const lender = selectedPerson || "";
+                  if (source === "valyutchik") {
+                    openDebtModal({ admin: null, choice: false, fromHeader: false }, { lender });
+                  } else if (selectedPersonData.isLender) {
+                    // A lender can get either kind; default to the tab's usual one
+                    openDebtModal(
+                      { admin: null, choice: true, fromHeader: false },
+                      { lender, kind: source === "myDebts" ? "took" : "gave" }
+                    );
+                  } else {
+                    // A client only gets client debts, so his earlier payments keep their meaning
+                    openDebtModal({ admin: "qarzdorlar", choice: false, fromHeader: false }, { lender });
+                  }
                 }
               : undefined
           }
-          onAddMyDebtFromDebts={() => {
-            if (source === "debts") {
-              setMyDebtForm((prev) => ({
-                ...prev,
-                lender: selectedPerson || prev.lender,
-              }));
-            }
-            if (source === "myDebts") {
-              setMyDebtForm((prev) => ({
-                ...prev,
-                lender: selectedPerson || prev.lender,
-              }));
-            }
-            setMyDebtAdminOverride("qarzdorlar");
-            setShowMyDebtModal(true);
-          }}
+          onAddMyDebtFromDebts={() =>
+            openDebtModal(
+              { admin: "qarzdorlar", choice: false, fromHeader: false },
+              { lender: selectedPerson || "" }
+            )
+          }
           showPulQoshish={shouldShowPulQoshish}
           onDeleteWagon={handleDeleteWagon}
           onDeleteFinanceRecord={handleDeleteFinanceRecord}
@@ -260,18 +313,13 @@ const Finance: React.FC = () => {
             handleUpdateMyDebt(debt, { amount: update.amount, comment: update.rawItems.join("|") })
           }
           onSaveSheetPayment={(record, draft) =>
-            handleReplaceFinanceRecord(
-              record.id,
-              selectedPerson || "",
-              {
-                amount: String(draft.amount),
-                description: draft.description,
-                type: record.type,
-                category: record.category,
-                date: draft.date,
-              },
-              selectedPersonData?.debts
-            )
+            handleReplaceFinanceRecord(record.id, selectedPerson || "", {
+              amount: String(draft.amount),
+              description: draft.description,
+              type: record.type,
+              category: record.category,
+              date: draft.date,
+            })
           }
         />
       )}
@@ -284,11 +332,11 @@ const Finance: React.FC = () => {
         onFormChange={(data) => setFormData({ ...formData, ...data })}
         onAddPayment={async () => {
           if (editingFinanceRecord) {
+            // The record keeps its category, so it is read the same way after the edit
             const success = await handleReplaceFinanceRecord(
               editingFinanceRecord.id,
               selectedPerson || "",
-              formData,
-              selectedPersonData?.debts
+              formData
             );
 
             if (success) {
@@ -297,24 +345,33 @@ const Finance: React.FC = () => {
             return;
           }
 
-          if ((source === "myDebts" || source === "valyutchik") && selectedPersonData) {
-            const amount = parseFloat(formData.amount || "0");
-            const delta = formData.type === "income" ? amount : -amount;
-            const nextPaid = selectedPersonData.paidAmount + delta;
-            const total = selectedPersonData.totalAmount;
+          const category = personIsLender
+            ? "my_debt"
+            : !formData.category || formData.category === "my_debt"
+            ? "sales"
+            : formData.category;
+          const success = await handleAddPayment(selectedPerson || "", { ...formData, category });
 
-            const success = await handleAddPayment(selectedPerson || "", selectedPersonData?.debts, formData);
-
-            if (success && nextPaid >= total) {
-              await markDebtsReturned(selectedPersonData.debts || []);
+          // Mark my own debts returned once Абдуманнон has paid them off
+          if (success && personIsLender && selectedPersonData) {
+            const amount = parseFloat(formData.amount || "0") || 0;
+            const fromMe = formData.type === "income";
+            const delta = fromMe ? amount : -amount;
+            const myAdmin = source === "valyutchik" ? VALYUTCHIK_ADMIN_ID : MY_DEBTS_ADMIN_ID;
+            const paidOff =
+              source === "valyutchik"
+                ? selectedPersonData.paidAmount + delta >= selectedPersonData.totalAmount
+                : (selectedPersonData.balance ?? 0) + delta >= 0;
+            if (paidOff) {
+              await markDebtsReturned(
+                (selectedPersonData.debts || []).filter((debt) => debtAdminId(debt) === myAdmin)
+              );
             }
-            return;
           }
-
-          await handleAddPayment(selectedPerson || "", selectedPersonData?.debts, formData);
         }}
         onClose={closePaymentModal}
-        hideCategory={source === "myDebts" || source === "valyutchik"}
+        hideCategory={isMyTab || personIsLender}
+        incomeIsFromMe={personIsLender}
         title={editingFinanceRecord ? "Moliya yozuvini tahrirlash" : undefined}
         submitLabel={editingFinanceRecord ? "Yangilash" : undefined}
       />
@@ -322,37 +379,38 @@ const Finance: React.FC = () => {
       <MyDebtModal
         isOpen={showMyDebtModal}
         formData={myDebtForm}
+        kindChoice={debtTarget.choice}
         onFormChange={(data) => setMyDebtForm({ ...myDebtForm, ...data })}
         onSubmit={async () => {
+          const admin = debtTarget.choice
+            ? myDebtForm.kind === "took"
+              ? MY_DEBTS_ADMIN_ID
+              : "qarzdorlar"
+            : debtTarget.admin;
+
+          // Turning a client with payments into a lender would flip how his payments are read
+          if (
+            debtTarget.fromHeader &&
+            source === "myDebts" &&
+            isClientWithPayments(myDebtForm.lender)
+          ) {
+            toast.error(
+              `«${myDebtForm.lender.trim()}» мижоз сифатида бор. Унинг саҳифасини очиб, тўловни «Клиент берди» деб қўшинг.`
+            );
+            return;
+          }
+
           await handleAddMyDebt(
             myDebtForm.lender,
             Number(myDebtForm.amount),
             myDebtForm.comment,
             myDebtForm.isReturned,
             myDebtForm.date,
-            myDebtAdminOverride || undefined
+            admin || undefined
           );
-          setShowMyDebtModal(false);
-          setMyDebtAdminOverride(null);
-          setMyDebtForm({
-            lender: "",
-            amount: "",
-            comment: "",
-            isReturned: false,
-            date: new Date().toISOString().split("T")[0],
-          });
+          closeDebtModal();
         }}
-        onClose={() => {
-          setShowMyDebtModal(false);
-          setMyDebtAdminOverride(null);
-          setMyDebtForm({
-            lender: "",
-            amount: "",
-            comment: "",
-            isReturned: false,
-            date: new Date().toISOString().split("T")[0],
-          });
-        }}
+        onClose={closeDebtModal}
       />
 
       <EditDebtModal
