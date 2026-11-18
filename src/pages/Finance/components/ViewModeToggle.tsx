@@ -1,5 +1,5 @@
 import React from "react";
-import { Folder, DollarSign, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { Folder, DollarSign, ArrowUp, ArrowDown } from "lucide-react";
 import type { ViewMode } from "../types";
 import type { DateOrder } from "../sortByDate";
 
@@ -52,14 +52,16 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
           </button>
           <button
             onClick={onDateOrderToggle}
+            // On (blue, ↑) = oldest first; off (default, ↓) = newest first
+            aria-pressed={dateOrder === "asc"}
             className={`flex-1 md:flex-none px-3 sm:px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition text-sm md:text-base ${
-              dateOrder
+              dateOrder === "asc"
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            title={dateOrder === "asc" ? "Эскидан янгига" : dateOrder === "desc" ? "Янгидан эскига" : "Сана бўйича"}
+            title={dateOrder === "asc" ? "Эскидан янгига (ўчириш: янгидан эскига)" : "Янгидан эскига (ёқиш: эскидан янгига)"}
           >
-            {dateOrder === "asc" ? <ArrowUp size={18} /> : dateOrder === "desc" ? <ArrowDown size={18} /> : <ArrowUpDown size={18} />}
+            {dateOrder === "asc" ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
             Сана
           </button>
         </div>

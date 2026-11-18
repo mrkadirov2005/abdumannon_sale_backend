@@ -42,7 +42,8 @@ const emptyDebtForm = (): MyDebtFormData => ({
 
 const Finance: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("folders");
-  const [dateOrder, setDateOrder] = useState<DateOrder>(null);
+  // "Сана" off (default) = newest first, on = oldest first; applies to every list on the page
+  const [dateOrder, setDateOrder] = useState<DateOrder>("desc");
   const [source, setSource] = useState<FinanceSource>("wagons");
   const [showMyDebtModal, setShowMyDebtModal] = useState(false);
   const [debtTarget, setDebtTarget] = useState<DebtTarget>({
@@ -275,6 +276,7 @@ const Finance: React.FC = () => {
         <DetailsPanel
           person={selectedPersonData}
           financeRecords={financeRecords}
+          dateOrder={dateOrder}
           onAddPayment={openCreatePaymentModal}
           onAddDebt={
             source === "debts" || source === "myDebts" || source === "valyutchik"

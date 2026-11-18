@@ -200,6 +200,36 @@ describe("Moliya page", () => {
     expect(posts[0].body).toMatchObject({ name: "Yangi", admin_id: "qarzlarim" });
   });
 
+  it("Сана: off = newest first (default), on = oldest first, for folders and a person's history", async () => {
+    // Vali's debt is newer than Шухрат's; Шухрат's "абду" payment is newer than his "сверка"
+    debts.find((d) => d.name === "Vali")!.day = 20;
+    records[0].date = "2026-10-03"; // Шухрат: сверка
+    records[1].date = "2026-10-20"; // Шухрат: [qarzlarim] абду
+    render(<Finance />);
+    await openTab("Қарздорлар");
+
+    const order = () =>
+      screen.getAllByRole("heading", { level: 3 }).map((h) => h.textContent).filter((t) => t === "Шухрат" || t === "Vali");
+    const sana = screen.getByRole("button", { name: /Сана/ });
+    expect(sana).toHaveAttribute("aria-pressed", "false");
+    expect(order()).toEqual(["Vali", "Шухрат"]);
+
+    fireEvent.click(sana);
+    expect(sana).toHaveAttribute("aria-pressed", "true");
+    expect(order()).toEqual(["Шухрат", "Vali"]);
+
+    fireEvent.click(sana); // off again
+    expect(order()).toEqual(["Vali", "Шухрат"]);
+
+    // Inside the person's page the payment history follows the same order
+    fireEvent.click(folder("Шухрат")!);
+    const newer = await screen.findByText(/абду/);
+    const older = screen.getByText(/сверка/);
+    expect(newer.compareDocumentPosition(older) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Сана/ }));
+    expect(screen.getByText(/абду/).compareDocumentPosition(screen.getByText(/сверка/)) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+  });
+
   it("normal lender Bank: payment from Абдуманнон is my_debt income, like before", async () => {
     render(<Finance />);
     await openTab("Қарзларим");
