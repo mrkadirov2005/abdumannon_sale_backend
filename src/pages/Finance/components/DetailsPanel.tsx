@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Plus, Trash2, Printer, ArrowLeft, Edit2, List, Table2 } from "lucide-react";
 import type { Person, FinanceRecord, Debt, Wagon } from "../types";
 import { paymentIsFromMe } from "../personLedger";
+import { sortDebtsByDate, sortRecordsByDate, sortWagonsByDate, type DateOrder } from "../sortByDate";
 import { DEFAULT_SUPPLIER_HTML, generateChequeNumber, printCheque } from "../../../components/ui/ChequeProvider";
 import { formatWagonDate } from "../wagonDate";
 import { DebtProductsModal } from "./DebtProductsModal";
@@ -21,6 +22,8 @@ interface DetailsPanelProps {
   onDeleteDebt: (debtId: string) => void;
   onEditDebt: (debt: Debt) => void;
   source: "wagons" | "debts" | "myDebts" | "valyutchik";
+  // "Сана" order for the debts, wagons and payment history on this page
+  dateOrder: DateOrder;
   onBackToOverview: () => void;
   onEditFinanceRecord: (record: FinanceRecord) => void;
   onSaveSheetDebt: (debt: Debt, update: SheetDebtUpdate) => Promise<boolean>;
@@ -39,6 +42,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   onDeleteDebt,
   onEditDebt,
   source,
+  dateOrder,
   onBackToOverview,
   onEditFinanceRecord,
   onSaveSheetDebt,
@@ -109,7 +113,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
 
   const personKey = normalizePersonName(person.name);
   // Қарздорлар / Қарзларим: the payments behind the person's shared balance (personLedger.ts)
-  const personFinanceRecords =
+  const personFinanceRecords = sortRecordsByDate(
     (source === "debts" || source === "myDebts") && person.records
       ? person.records
       : financeRecords.filter((record) => {
@@ -118,9 +122,12 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
           if (isMyDebtSource && record.category !== "my_debt") return false;
           if (!isMyDebtSource && record.category === "my_debt") return false;
           return true;
-        });
+        }),
+    dateOrder
+  );
 
-  const debts: Debt[] = person.debts || [];
+  const debts: Debt[] = sortDebtsByDate(person.debts || [], dateOrder);
+  const wagons: Wagon[] = sortWagonsByDate(person.wagons || [], dateOrder);
 
   // "+" = a payment that lowers this tab's remaining amount: on Қарздорлар money from the
   // client, on Қарзларим money from Абдуманнон. Plain income/expense on the other tabs.
@@ -190,8 +197,8 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
   };
 
   const printAllWagons = () => {
-    if (!person.wagons || person.wagons.length === 0) return;
-    const allProducts = person.wagons.flatMap((wagon) => {
+    if (wagons.length === 0) return;
+    const allProducts = wagons.flatMap((wagon) => {
       const parts = wagon.wagon_number.split(",");
       const wagonNumber = parts[1] || wagon.wagon_number;
       return (wagon.products || []).map((p) => ({
@@ -202,7 +209,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         total: p.subtotal !== undefined ? Number(p.subtotal) : Number(p.amount ?? 0) * Number(p.price ?? 0),
       }));
     });
-    const grandTotal = person.wagons.reduce((s, w) => s + Number(w.total), 0);
+    const grandTotal = wagons.reduce((s, w) => s + Number(w.total), 0);
     printCheque({
       title: "Вагонлар рўйхати",
       number: generateChequeNumber(),
@@ -265,7 +272,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
     let products: { name: string; quantity: number; unit: string; price: number; total: number }[] = [];
 
     if (source === "wagons") {
-      products = (person.wagons || []).flatMap((wagon) => {
+      products = wagons.flatMap((wagon) => {
         const parts = wagon.wagon_number.split(",");
         const wagonNumber = parts[1] || wagon.wagon_number;
         return (wagon.products || []).map((p) => ({
@@ -374,7 +381,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
       {view === "sheet" ? (
         <FinanceSheet
           source={source}
-          wagons={person.wagons || []}
+          wagons={wagons}
           debts={debts}
           records={personFinanceRecords}
           isPaymentPlus={isPaymentPlus}
@@ -415,7 +422,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
         <>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">
-              Вагонлар ({person.wagons?.length || 0})
+              Вагонлар ({wagons.length})
             </h3>
             <button
               onClick={printAllWagons}
@@ -453,7 +460,7 @@ export const DetailsPanel: React.FC<DetailsPanelProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {(person.wagons || []).map((wagon) => {
+                {wagons.map((wagon) => {
                   const parts = wagon.wagon_number.split(",");
                   const wagonNumber = parts[1] || wagon.wagon_number;
 
